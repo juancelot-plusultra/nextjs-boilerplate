@@ -42,11 +42,12 @@ export default function DashboardPage() {
             <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
               Add Member
             </button>
-            <button className="rounded-xl bg-[#f37120] px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
-              Record Check-in
-            </button>
-          </div>
-        </div>
+            <a
+  href="/checkin"
+  className="rounded-xl bg-[#f37120] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+>
+  Record Check-in
+</a>
 
         {/* Stats */}
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
