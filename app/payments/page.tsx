@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 type PaymentRow = {
@@ -13,23 +12,70 @@ type PaymentRow = {
   status: string | null;
   created_at: string;
   paid_at: string | null;
+  members?: {
+    member_code: string | null;
+    name: string | null;
+  } | null;
 };
 
-export default function PaymentsPage() {
-  const router = useRouter();
+function peso(n?: number | null) {
+  if (n == null) return "—";
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
 
+function isToday(dateIso?: string | null) {
+  if (!dateIso) return false;
+  const d = new Date(dateIso);
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
+
+export default function PaymentsPage() {
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [payingId, setPayingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadPayments() {
+  // UI filters (match your screenshot)
+  const [search, setSearch] = useState(""); // member_code search like M001
+  const [packageFilter, setPackageFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  // Per-row loading for button
+  const [marking, setMarking] = useState<Record<string, boolean>>({});
+
+  async function fetchPayments() {
     setLoading(true);
     setError(null);
 
+    // ✅ IMPORTANT:
+    // This assumes your tables are:
+    // public.payments(member_id uuid references public.members(id))
+    // public.members(id uuid, member_code text, name text, ...)
+    //
+    // And the FK is set so Supabase can join: members(*) from payments.
     const { data, error } = await supabase
       .from("payments")
-      .select("id, member_id, package_name, stage, amount, status, created_at, paid_at")
+      .select(
+        `
+        id,
+        member_id,
+        package_name,
+        stage,
+        amount,
+        status,
+        created_at,
+        paid_at,
+        members:members ( member_code, name )
+      `
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -43,155 +89,267 @@ export default function PaymentsPage() {
   }
 
   useEffect(() => {
-    loadPayments();
+    fetchPayments();
   }, []);
 
-  async function markAsPaid(paymentId: string) {
-    setPayingId(paymentId);
-    setError(null);
-
-    // optimistic UI (instant feedback)
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === paymentId
-          ? { ...r, status: "paid", paid_at: new Date().toISOString() }
-          : r
-      )
-    );
-
-    const { error } = await supabase
-      .from("payments")
-      .update({
-        status: "paid",
-        paid_at: new Date().toISOString(),
-      })
-      .eq("id", paymentId);
-
-    if (error) {
-      // rollback if failed
-      await loadPayments();
-      setError(error.message);
-    } else {
-      // reload so totals + data are 100% from DB
-      await loadPayments();
-      router.refresh();
+  const packages = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      if (r.package_name) set.add(r.package_name);
     }
-
-    setPayingId(null);
-  }
-
-  const summary = useMemo(() => {
-    const paymentsDue = rows.filter((r) => (r.status ?? "").toLowerCase() !== "paid").length;
-    const paidToday = rows.filter((r) => {
-      if (!r.paid_at) return false;
-      const d = new Date(r.paid_at);
-      const now = new Date();
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    }).length;
-
-    const overdue = rows.filter((r) => (r.status ?? "").toLowerCase() === "overdue").length;
-
-    return { paymentsDue, paidToday, overdue };
+    return ["ALL", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [rows]);
 
+  const filtered = useMemo(() => {
+    const s = search.trim().toLowerCase();
+
+    return rows.filter((r) => {
+      const memberCode = (r.members?.member_code ?? "").toLowerCase();
+      const memberName = (r.members?.name ?? "").toLowerCase();
+      const pkg = r.package_name ?? "";
+      const st = (r.status ?? "").toLowerCase();
+
+      const matchSearch =
+        !s ||
+        memberCode.includes(s) ||
+        memberName.includes(s) ||
+        (r.stage ?? "").toLowerCase().includes(s);
+
+      const matchPackage = packageFilter === "ALL" || pkg === packageFilter;
+
+      const matchStatus =
+        statusFilter === "ALL" || st === statusFilter.toLowerCase();
+
+      return matchSearch && matchPackage && matchStatus;
+    });
+  }, [rows, search, packageFilter, statusFilter]);
+
+  const stats = useMemo(() => {
+    const pending = rows.filter((r) => (r.status ?? "").toLowerCase() !== "paid");
+    const paidToday = rows.filter((r) => (r.status ?? "").toLowerCase() === "paid" && isToday(r.paid_at));
+    // Simple "overdue" definition: pending older than 7 days
+    const overdue = pending.filter((r) => {
+      const created = new Date(r.created_at).getTime();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      return Date.now() - created > sevenDays;
+    });
+
+    return {
+      paymentsDue: pending.length,
+      paidToday: paidToday.length,
+      overdue: overdue.length,
+      renewalsSoon: 0, // placeholder (we can compute this later from sessions/renewal logic)
+    };
+  }, [rows]);
+
+  async function markAsPaid(paymentId: string) {
+    try {
+      setMarking((m) => ({ ...m, [paymentId]: true }));
+      setError(null);
+
+      // ✅ This is the real update
+      const { error } = await supabase
+        .from("payments")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("id", paymentId);
+
+      if (error) throw error;
+
+      // Refresh list so you see it immediately
+      await fetchPayments();
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to mark as paid.");
+    } finally {
+      setMarking((m) => ({ ...m, [paymentId]: false }));
+    }
+  }
+
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Payments</h1>
-
-      {error && (
-        <div style={{ background: "#ffecec", padding: 12, borderRadius: 10, marginBottom: 12 }}>
-          <b>Error:</b> {error}
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: 18 }}>
-        <StatCard title="Payments Due" value={loading ? "—" : String(summary.paymentsDue)} />
-        <StatCard title="Paid Today" value={loading ? "—" : String(summary.paidToday)} />
-        <StatCard title="Overdue" value={loading ? "—" : String(summary.overdue)} />
-      </div>
-
-      <div style={{ border: "1px solid #ddd", borderRadius: 14, overflow: "hidden" }}>
-        <div style={{ padding: 14, borderBottom: "1px solid #eee", fontWeight: 700 }}>
-          Payment Records
+    <div className="min-h-screen bg-white">
+      {/* Top bar */}
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
+        <div className="text-xl font-extrabold">
+          Bear<span className="text-orange-500">Fit</span>PH
         </div>
 
-        {loading ? (
-          <div style={{ padding: 14 }}>Loading…</div>
-        ) : rows.length === 0 ? (
-          <div style={{ padding: 14 }}>No payments found.</div>
-        ) : (
-          <div style={{ width: "100%", overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#fafafa" }}>
-                  <Th>Payment ID</Th>
-                  <Th>Member ID</Th>
-                  <Th>Package</Th>
-                  <Th>Stage</Th>
-                  <Th>Amount</Th>
-                  <Th>Status</Th>
-                  <Th>Action</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => {
-                  const isPaid = (r.status ?? "").toLowerCase() === "paid";
+        <div className="flex items-center gap-2">
+          <a
+            href="/dashboard"
+            className="rounded-full border border-black px-4 py-2 text-sm font-semibold"
+          >
+            Dashboard
+          </a>
+          <a
+            href="/"
+            className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Log out
+          </a>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-6xl px-4 pb-10">
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatCard title="Payments Due" value={stats.paymentsDue} />
+          <StatCard title="Paid Today" value={stats.paidToday} />
+          <StatCard title="Overdue" value={stats.overdue} />
+          <StatCard title="Renewals Soon" value={stats.renewalsSoon} />
+        </div>
+
+        {/* Table card */}
+        <section className="mt-6 rounded-3xl border-2 border-black p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <h2 className="text-xl font-extrabold">Payment Records</h2>
+
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="M002 / name / stage..."
+                className="w-full rounded-2xl border border-black px-4 py-2 text-sm md:w-64"
+              />
+
+              <select
+                value={packageFilter}
+                onChange={(e) => setPackageFilter(e.target.value)}
+                className="w-full rounded-2xl border border-black px-4 py-2 text-sm md:w-56"
+              >
+                {packages.map((p) => (
+                  <option key={p} value={p}>
+                    {p === "ALL" ? "All Packages" : p}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full rounded-2xl border border-black px-4 py-2 text-sm md:w-40"
+              >
+                <option value="ALL">All Status</option>
+                <option value="pending">pending</option>
+                <option value="paid">paid</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={fetchPayments}
+                className="rounded-2xl border border-black px-4 py-2 text-sm font-semibold"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 rounded-2xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-4 overflow-hidden rounded-2xl border border-black">
+            <div className="grid grid-cols-12 bg-gray-50 px-4 py-3 text-xs font-bold uppercase">
+              <div className="col-span-3">Member</div>
+              <div className="col-span-3">Package</div>
+              <div className="col-span-2">Payment Stage</div>
+              <div className="col-span-2">Amount</div>
+              <div className="col-span-1">Status</div>
+              <div className="col-span-1 text-right">Action</div>
+            </div>
+
+            {loading ? (
+              <div className="px-4 py-6 text-sm">Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div className="px-4 py-6 text-sm">No payments found.</div>
+            ) : (
+              <div className="divide-y divide-black/10">
+                {filtered.map((r) => {
+                  const status = (r.status ?? "pending").toLowerCase();
+                  const isPaid = status === "paid";
+                  const busy = !!marking[r.id];
+
                   return (
-                    <tr key={r.id} style={{ borderTop: "1px solid #eee" }}>
-                      <Td>{r.id}</Td>
-                      <Td>{r.member_id}</Td>
-                      <Td>{r.package_name ?? "—"}</Td>
-                      <Td>{r.stage ?? "—"}</Td>
-                      <Td>{r.amount != null ? `₱${Number(r.amount).toLocaleString()}` : "—"}</Td>
-                      <Td>{r.status ?? "—"}</Td>
-                      <Td>
-                        <button
-                          onClick={() => markAsPaid(r.id)}
-                          disabled={isPaid || payingId === r.id}
-                          style={{
-                            padding: "10px 14px",
-                            borderRadius: 10,
-                            border: "1px solid #ddd",
-                            cursor: isPaid ? "not-allowed" : "pointer",
-                            fontWeight: 700,
-                          }}
+                    <div
+                      key={r.id}
+                      className="grid grid-cols-12 items-center px-4 py-4 text-sm"
+                    >
+                      <div className="col-span-3">
+                        <div className="font-bold">{r.members?.name ?? "—"}</div>
+                        <div className="text-xs text-gray-600">
+                          ID: {r.members?.member_code ?? "—"}
+                        </div>
+                      </div>
+
+                      <div className="col-span-3">
+                        {r.package_name ?? "—"}
+                      </div>
+
+                      <div className="col-span-2">
+                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold">
+                          {r.stage ?? "—"}
+                        </span>
+                      </div>
+
+                      <div className="col-span-2 font-extrabold text-orange-500">
+                        {peso(r.amount)}
+                      </div>
+
+                      <div className="col-span-1">
+                        <span
+                          className={
+                            "rounded-full px-3 py-1 text-xs font-bold " +
+                            (isPaid
+                              ? "bg-green-100 text-green-800"
+                              : "bg-yellow-100 text-yellow-800")
+                          }
                         >
-                          {isPaid ? "Paid" : payingId === r.id ? "Saving…" : "Mark as Paid"}
+                          {isPaid ? "Paid" : "Pending"}
+                        </span>
+                      </div>
+
+                      <div className="col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => markAsPaid(r.id)}
+                          disabled={isPaid || busy}
+                          className={
+                            "rounded-2xl px-4 py-2 text-xs font-bold text-white " +
+                            (isPaid
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : busy
+                              ? "bg-orange-300 cursor-wait"
+                              : "bg-orange-500 hover:bg-orange-600 active:scale-[0.99]")
+                          }
+                        >
+                          {isPaid ? "Paid" : busy ? "Saving…" : "Mark as Paid"}
                         </button>
-                      </Td>
-                    </tr>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          <div className="mt-6 rounded-2xl border border-black/20 bg-white p-4">
+            <div className="font-bold">Notes</div>
+            <div className="text-sm text-gray-700">
+              Next: We can make “Mark as Paid” also update the member’s balances / sessions,
+              and generate an email receipt.
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
 
-function StatCard({ title, value }: { title: string; value: string }) {
+function StatCard({ title, value }: { title: string; value: number }) {
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 14, padding: 14 }}>
-      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>{title}</div>
-      <div style={{ fontSize: 22, fontWeight: 800 }}>{value}</div>
+    <div className="rounded-3xl border-2 border-black p-4">
+      <div className="text-sm font-semibold text-gray-700">{title}</div>
+      <div className="mt-2 text-3xl font-extrabold">{value ?? "—"}</div>
     </div>
   );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th style={{ textAlign: "left", padding: 12, fontSize: 12, borderBottom: "1px solid #eee" }}>
-      {children}
-    </th>
-  );
-}
-
-function Td({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: 12, fontSize: 13 }}>{children}</td>;
 }
