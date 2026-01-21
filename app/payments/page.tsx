@@ -3,11 +3,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-type MemberMini = {
-  member_code: string | null;
-  name: string | null;
-};
+type MemberJoin = { member_code: string | null; name: string | null };
 
+// NOTE: Some Supabase joins return an ARRAY even for 1-to-1 relationships.
+// Your Vercel error earlier showed `members` was an array.
+// So we type it as MemberJoin[] and we always use members?.[0].
 type PaymentRow = {
   id: string;
   member_id: string;
@@ -17,9 +17,7 @@ type PaymentRow = {
   status: string | null;
   created_at: string;
   paid_at: string | null;
-
-  // ✅ FIX: Supabase join can come back as object OR array depending on relationship
-  members?: MemberMini | MemberMini[] | null;
+  members?: MemberJoin[] | null;
 };
 
 function peso(n?: number | null) {
@@ -47,7 +45,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // UI filters
+  // Filters
   const [search, setSearch] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -100,11 +98,9 @@ export default function PaymentsPage() {
     const s = search.trim().toLowerCase();
 
     return rows.filter((r) => {
-      // ✅ FIX: normalize member join
-      const member = Array.isArray(r.members) ? r.members[0] : r.members;
-
-      const memberCode = (member?.member_code ?? "").toLowerCase();
-      const memberName = (member?.name ?? "").toLowerCase();
+      const m0 = r.members?.[0];
+      const memberCode = (m0?.member_code ?? "").toLowerCase();
+      const memberName = (m0?.name ?? "").toLowerCase();
       const pkg = r.package_name ?? "";
       const st = (r.status ?? "").toLowerCase();
 
@@ -128,7 +124,6 @@ export default function PaymentsPage() {
     const paidToday = rows.filter(
       (r) => (r.status ?? "").toLowerCase() === "paid" && isToday(r.paid_at)
     );
-
     const overdue = pending.filter((r) => {
       const created = new Date(r.created_at).getTime();
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
@@ -143,21 +138,39 @@ export default function PaymentsPage() {
     };
   }, [rows]);
 
-  async function markAsPaid(paymentId: string) {
+  async function markAsPaid(payment: PaymentRow) {
+    const paymentId = payment.id;
+    const memberId = payment.member_id;
+    const amount = payment.amount ?? 0;
+
     try {
       setMarking((m) => ({ ...m, [paymentId]: true }));
       setError(null);
 
-      const { error } = await supabase
+      const nowIso = new Date().toISOString();
+
+      // 1) Update payments table
+      const { error: payErr } = await supabase
         .from("payments")
-        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .update({ status: "paid", paid_at: nowIso })
         .eq("id", paymentId);
 
-      if (error) throw error;
+      if (payErr) throw payErr;
 
+      // 2) Update member summary fields (so dashboard / member page can show real status)
+      const { error: memErr } = await supabase
+        .from("members")
+        .update({
+          payment_status: "paid",
+          last_paid_at: nowIso,
+          last_paid_amount: amount,
+        })
+        .eq("id", memberId);
+
+      if (memErr) throw memErr;
+
+      // Refresh list
       await fetchPayments();
-      // optional: quick feedback
-      // alert("Marked as PAID ✅");
     } catch (e: any) {
       setError(e?.message ?? "Failed to mark as paid.");
     } finally {
@@ -266,12 +279,10 @@ export default function PaymentsPage() {
             ) : (
               <div className="divide-y divide-black/10">
                 {filtered.map((r) => {
-                  // ✅ FIX: normalize member join again (for display)
-                  const member = Array.isArray(r.members) ? r.members[0] : r.members;
-
                   const status = (r.status ?? "pending").toLowerCase();
                   const isPaid = status === "paid";
                   const busy = !!marking[r.id];
+                  const m0 = r.members?.[0];
 
                   return (
                     <div
@@ -279,9 +290,9 @@ export default function PaymentsPage() {
                       className="grid grid-cols-12 items-center px-4 py-4 text-sm"
                     >
                       <div className="col-span-3">
-                        <div className="font-bold">{member?.name ?? "—"}</div>
+                        <div className="font-bold">{m0?.name ?? "—"}</div>
                         <div className="text-xs text-gray-600">
-                          ID: {member?.member_code ?? "—"}
+                          ID: {m0?.member_code ?? "—"}
                         </div>
                       </div>
 
@@ -313,7 +324,7 @@ export default function PaymentsPage() {
                       <div className="col-span-1 flex justify-end">
                         <button
                           type="button"
-                          onClick={() => markAsPaid(r.id)}
+                          onClick={() => markAsPaid(r)}
                           disabled={isPaid || busy}
                           className={
                             "rounded-2xl px-4 py-2 text-xs font-bold text-white " +
@@ -337,8 +348,10 @@ export default function PaymentsPage() {
           <div className="mt-6 rounded-2xl border border-black/20 bg-white p-4">
             <div className="font-bold">Notes</div>
             <div className="text-sm text-gray-700">
-              “Mark as Paid” updates Supabase: <code>status</code> and{" "}
-              <code>paid_at</code>.
+              “Mark as Paid” updates:
+              <span className="font-semibold"> payments.status + payments.paid_at</span>
+              {" "}AND{" "}
+              <span className="font-semibold">members.payment_status + members.last_paid_at + members.last_paid_amount</span>.
             </div>
           </div>
         </section>
