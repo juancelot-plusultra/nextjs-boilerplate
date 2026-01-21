@@ -43,7 +43,12 @@ export default function DashboardPage() {
             <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
               Add Member
             </button>
-
+<a
+  href="/payments"
+  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
+>
+  Payments
+</a>
             <a
               href="/checkin"
               className="rounded-xl bg-[#f37120] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
