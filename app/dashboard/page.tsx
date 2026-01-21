@@ -12,10 +12,9 @@ type PaymentRow = {
   status: string | null;
   created_at: string;
   paid_at: string | null;
-  members?: {
-    member_code: string | null;
-    name: string | null;
-  } | null;
+
+  // ✅ FIX: Supabase join often returns an ARRAY
+  members?: { member_code: string | null; name: string | null }[] | null;
 };
 
 function peso(n?: number | null) {
@@ -59,6 +58,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
 
+    // NOTE: "members:members(...)" returns members as array sometimes
     const { data, error } = await supabase
       .from("payments")
       .select(
@@ -80,10 +80,12 @@ export default function DashboardPage() {
     if (error) {
       setError(error.message);
       setRows([]);
-    } else {
-      setRows((data ?? []) as PaymentRow[]);
+      setLoading(false);
+      return;
     }
 
+    // ✅ Normalize to PaymentRow[]
+    setRows((data ?? []) as unknown as PaymentRow[]);
     setLoading(false);
   }
 
@@ -97,7 +99,6 @@ export default function DashboardPage() {
       (r) => (r.status ?? "").toLowerCase() === "paid" && isToday(r.paid_at)
     );
 
-    // basic overdue: pending older than 7 days
     const overdue = pending.filter((r) => {
       const created = new Date(r.created_at).getTime();
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
@@ -182,7 +183,10 @@ export default function DashboardPage() {
                 {rows.map((r) => {
                   const status = (r.status ?? "pending").toLowerCase();
                   const isPaid = status === "paid";
-                  const code = r.members?.member_code ?? "";
+
+                  // ✅ take the first joined member
+                  const m = r.members?.[0] ?? null;
+                  const code = m?.member_code ?? "";
 
                   return (
                     <div
@@ -190,7 +194,7 @@ export default function DashboardPage() {
                       className="grid grid-cols-12 items-center px-4 py-4 text-sm"
                     >
                       <div className="col-span-3">
-                        <div className="font-bold">{r.members?.name ?? "—"}</div>
+                        <div className="font-bold">{m?.name ?? "—"}</div>
                         <div className="text-xs text-gray-600 flex items-center gap-2">
                           <span>ID: {code || "—"}</span>
                           {code ? (
