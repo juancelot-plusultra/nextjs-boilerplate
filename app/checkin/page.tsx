@@ -1,332 +1,268 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-type Member = {
-  id: string;
-  name: string;
-  packageName: string;
-  totalSessions: number;
-  used: number;
-  left: number;
-  lastCheckIn?: string;
-};
-
-type CheckInLog = {
-  id: string;
-  ts: string;
-  type: "check-in";
-  leftAfter: number;
-  staff: string;
-};
+import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function CheckInPage() {
-  // Mock members (replace later with Supabase)
-  const [members, setMembers] = useState<Record<string, Member>>({
-    M001: {
-      id: "M001",
-      name: "Juan Dela Cruz",
-      packageName: "24 Sessions (Staggered)",
-      totalSessions: 24,
-      used: 23,
-      left: 1,
-      lastCheckIn: "2026-01-11 10:15",
-    },
-    M002: {
-      id: "M002",
-      name: "Belle",
-      packageName: "24 Sessions (Full)",
-      totalSessions: 24,
-      used: 10,
-      left: 14,
-      lastCheckIn: "2026-01-18 18:02",
-    },
-  });
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const [logs, setLogs] = useState<CheckInLog[]>([]);
-  const [memberId, setMemberId] = useState("");
-  const [staff, setStaff] = useState("Coach/Staff");
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>("Starting camera...");
+  const [notes, setNotes] = useState<string>("Conditioning session");
+  const [lastCode, setLastCode] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
-  const normalizedId = useMemo(() => memberId.trim().toUpperCase(), [memberId]);
-  const found = members[normalizedId];
+  // Prevent double scans
+  const lastScanTsRef = useRef<number>(0);
 
-  function nowStamp() {
-    const d = new Date();
-    // simple local time string
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-      d.getHours()
-    )}:${pad(d.getMinutes())}`;
+  useEffect(() => {
+    (async () => {
+      // 1) Confirm logged in + role
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData?.user) {
+        setStatus("Not logged in. Go to login page first.");
+        return;
+      }
+
+      const { data: profile, error: profErr } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profErr) {
+        setStatus("Profile error: " + profErr.message);
+        return;
+      }
+
+      setRole(profile?.role ?? null);
+      if (profile?.role !== "staff") {
+        setStatus("Access denied. This page is staff-only.");
+        return;
+      }
+
+      // 2) Start camera
+      await startCamera();
+    })();
+
+    return () => {
+      stopCamera();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function startCamera() {
+    try {
+      setStatus("Requesting camera permission...");
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      setStatus("Camera ready. Point at a member QR code.");
+
+      // 3) Start scanning loop
+      scanLoop();
+    } catch (e: any) {
+      setStatus("Camera error: " + (e?.message ?? "Unknown"));
+    }
   }
 
-  function handleCheckIn() {
-    setMsg(null);
-    setErr(null);
+  function stopCamera() {
+    try {
+      if (streamRef.current) {
+        for (const track of streamRef.current.getTracks()) track.stop();
+      }
+      streamRef.current = null;
+    } catch {}
+  }
 
-    if (!normalizedId) return setErr("Enter a Member ID (ex: M001).");
-    const m = members[normalizedId];
-    if (!m) return setErr(`No member found for ID: ${normalizedId}`);
-
-    if (m.left <= 0) {
-      return setErr("This member has 0 sessions left. Renew package before check-in.");
+  async function scanLoop() {
+    // Use BarcodeDetector (works great on Chrome/Android + HTTPS)
+    const AnyWindow = window as any;
+    if (!AnyWindow.BarcodeDetector) {
+      setStatus(
+        "BarcodeDetector not supported on this browser. Use Chrome on Android, or tell me and I’ll give the library version."
+      );
+      return;
     }
 
-    const leftAfter = m.left - 1;
+    const detector = new AnyWindow.BarcodeDetector({
+      formats: ["qr_code"],
+    });
 
-    // update member
-    setMembers((prev) => ({
-      ...prev,
-      [normalizedId]: {
-        ...m,
-        used: m.used + 1,
-        left: leftAfter,
-        lastCheckIn: nowStamp(),
-      },
-    }));
+    const tick = async () => {
+      if (!videoRef.current) return;
+      if (busy) return requestAnimationFrame(tick);
 
-    // add log
-    setLogs((prev) => [
-      {
-        id: crypto.randomUUID(),
-        ts: nowStamp(),
-        type: "check-in",
-        leftAfter,
-        staff: staff.trim() || "Staff",
-      },
-      ...prev,
-    ]);
+      const now = Date.now();
+      // Throttle scanning a bit
+      if (now - lastScanTsRef.current < 250) {
+        return requestAnimationFrame(tick);
+      }
+      lastScanTsRef.current = now;
 
-    setMsg(`✅ Check-in success for ${m.name}. Sessions left: ${leftAfter}`);
+      try {
+        const barcodes = await detector.detect(videoRef.current);
+        if (barcodes && barcodes.length > 0) {
+          const raw = (barcodes[0].rawValue ?? "").trim();
+          const code = normalizeMemberCode(raw);
+
+          if (code) {
+            setLastCode(code);
+            setStatus(`Scanned: ${code} — checking in...`);
+            await checkIn(code);
+          } else {
+            setStatus(`Scanned QR, but could not read a member code: "${raw}"`);
+          }
+        }
+      } catch (e: any) {
+        // Keep scanning even if a frame fails
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+  }
+
+  function normalizeMemberCode(raw: string) {
+    // Accept:
+    // "M001"
+    // "bearfit:M001"
+    // "member=M001"
+    // "https://.../?member=M001"
+    const s = raw.trim();
+
+    // direct match
+    const direct = s.match(/\bM\d{3,}\b/i);
+    if (direct?.[0]) return direct[0].toUpperCase();
+
+    // query param member=
+    try {
+      if (s.startsWith("http")) {
+        const url = new URL(s);
+        const m = url.searchParams.get("member");
+        if (m) {
+          const mm = m.match(/\bM\d{3,}\b/i);
+          if (mm?.[0]) return mm[0].toUpperCase();
+        }
+      }
+    } catch {}
+
+    return "";
+  }
+
+  async function checkIn(memberCode: string) {
+    if (busy) return;
+    setBusy(true);
+
+    try {
+      // Call the secure function
+      const { data, error } = await supabase.rpc("staff_qr_checkin", {
+        p_member_code: memberCode,
+        p_notes: notes || null,
+      });
+
+      if (error) throw error;
+
+      setStatus(
+        `✅ Checked in ${memberCode}. New sessions left: ${data?.new_sessions_left ?? "?"}`
+      );
+
+      // Small delay so it doesn’t instantly re-scan the same QR
+      await new Promise((r) => setTimeout(r, 1200));
+      setStatus("Camera ready. Point at a member QR code.");
+    } catch (e: any) {
+      setStatus("❌ Check-in failed: " + (e?.message ?? "Unknown"));
+      await new Promise((r) => setTimeout(r, 1200));
+      setStatus("Camera ready. Point at a member QR code.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a href="/" className="text-xl font-extrabold tracking-tight">
-            Bear<span className="text-[#f37120]">Fit</span>PH
+    <div className="min-h-screen bg-white">
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
+        <div className="text-xl font-extrabold">
+          Bear<span className="text-orange-500">Fit</span>PH
+        </div>
+
+        <div className="flex items-center gap-2">
+          <a
+            href="/dashboard"
+            className="rounded-full border border-black px-4 py-2 text-sm font-semibold"
+          >
+            Dashboard
           </a>
-          <div className="flex items-center gap-2">
-            <a
-              href="/dashboard"
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/members/M001"
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Member Profile
-            </a>
-          </div>
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              location.href = "/";
+            }}
+            className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Log out
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-10">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-500">Staff Tool</p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight">
-              Check-in
-              <span className="text-[#f37120]"> Station</span>
-            </h1>
-            <p className="mt-2 text-slate-600">
-              Enter / scan Member ID, then tap <span className="font-semibold">Check in</span>.
-            </p>
+      <main className="mx-auto w-full max-w-5xl px-4 pb-10">
+        <h1 className="text-2xl font-extrabold">Staff QR Check-In</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          Scan a member QR (contains <b>M001</b> etc). This will log the session
+          and deduct 1 session.
+        </p>
+
+        <div className="mt-4 rounded-3xl border-2 border-black p-4">
+          <div className="text-sm font-semibold text-gray-700">Status</div>
+          <div className="mt-1 text-sm">{status}</div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="text-xs font-bold uppercase text-gray-600">
+                Notes (optional)
+              </label>
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="mt-1 w-full rounded-2xl border border-black px-4 py-2 text-sm"
+                placeholder="e.g., Conditioning session"
+              />
+              <div className="mt-2 text-xs text-gray-600">
+                Last scanned: <b>{lastCode || "—"}</b>
+              </div>
+              <div className="mt-2 text-xs text-gray-600">
+                Role: <b>{role ?? "—"}</b>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-black bg-black">
+              <video
+                ref={videoRef}
+                className="h-[260px] w-full object-cover"
+                playsInline
+                muted
+              />
+            </div>
           </div>
 
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-          >
-            Back to Home
-          </a>
+          <div className="mt-4 text-xs text-gray-600">
+            ⚠️ Camera works only on <b>HTTPS</b> (Vercel is fine). Use Chrome on
+            Android for best results.
+          </div>
         </div>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-3">
-          {/* Input card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-bold">Scan / Enter</h2>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-xs font-semibold text-slate-500">
-                  Member ID
-                </label>
-                <input
-                  value={memberId}
-                  onChange={(e) => setMemberId(e.target.value)}
-                  placeholder="M001"
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-[#f37120]/40"
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Tip: QR can contain the Member ID (we’ll add QR scan later).
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-500">
-                  Staff Name
-                </label>
-                <input
-                  value={staff}
-                  onChange={(e) => setStaff(e.target.value)}
-                  placeholder="Coach/Staff"
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-[#f37120]/40"
-                />
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                onClick={handleCheckIn}
-                className="rounded-xl bg-[#f37120] px-5 py-3 text-sm font-bold text-white hover:opacity-90"
-              >
-                Check in (deduct 1)
-              </button>
-              <button
-                onClick={() => {
-                  setMemberId("");
-                  setMsg(null);
-                  setErr(null);
-                }}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
-              >
-                Clear
-              </button>
-            </div>
-
-            {err && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-                {err}
-              </div>
-            )}
-            {msg && (
-              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
-                {msg}
-              </div>
-            )}
-          </div>
-
-          {/* Member preview */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-bold">Member Preview</h2>
-
-            {!normalizedId ? (
-              <p className="mt-3 text-sm text-slate-600">
-                Enter a Member ID to preview details.
-              </p>
-            ) : !found ? (
-              <p className="mt-3 text-sm font-semibold text-red-700">
-                No member found for <span className="font-extrabold">{normalizedId}</span>
-              </p>
-            ) : (
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold text-slate-500">Name</p>
-                  <p className="mt-1 text-sm font-extrabold">{found.name}</p>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold text-slate-500">Package</p>
-                  <p className="mt-1 text-sm font-semibold">{found.packageName}</p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <MiniStat label="Used" value={String(found.used)} />
-                  <MiniStat label="Left" value={String(found.left)} highlight />
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold text-slate-500">Last Check-in</p>
-                  <p className="mt-1 text-sm font-semibold">
-                    {found.lastCheckIn ?? "—"}
-                  </p>
-                </div>
-
-                <a
-                  href={`/members/${found.id}`}
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-                >
-                  Open Profile
-                </a>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Logs */}
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold">Recent Check-ins</h2>
-            <span className="text-xs font-semibold text-slate-500">
-              Mock logs (Supabase next)
-            </span>
-          </div>
-
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Time</th>
-                  <th className="px-4 py-3 font-semibold">Member</th>
-                  <th className="px-4 py-3 font-semibold">Sessions Left After</th>
-                  <th className="px-4 py-3 font-semibold">Staff</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {logs.length === 0 ? (
-                  <tr>
-                    <td className="px-4 py-4 text-slate-600" colSpan={4}>
-                      No check-ins yet. Try Member ID <b>M001</b>.
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((l) => (
-                    <tr key={l.id} className="bg-white">
-                      <td className="px-4 py-3 text-slate-700">{l.ts}</td>
-                      <td className="px-4 py-3 font-semibold">{normalizedId || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-[#f37120]/10 px-3 py-1 text-xs font-bold text-[#f37120]">
-                          {l.leftAfter}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700">{l.staff}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
       </main>
-    </div>
-  );
-}
-
-function MiniStat({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-xs font-semibold text-slate-500">{label}</p>
-      <p
-        className={
-          "mt-1 text-2xl font-extrabold " + (highlight ? "text-[#f37120]" : "")
-        }
-      >
-        {value}
-      </p>
     </div>
   );
 }
