@@ -28,8 +28,8 @@ const slides: Slide[] = [
     key: "better-function",
     title: "Better Function",
     subtitle: "Move stronger in real life — pain-free, stable, and efficient.",
-    image:
-      "https://images.unsplash.com/photo-1526401485004-2aa6e39bba27?auto=format&fit=crop&w=1800&q=80",
+    // ✅ CHANGED: local image
+    image: "/onboarding/better-function.jpg",
   },
   {
     key: "better-fitness",
@@ -138,7 +138,6 @@ export default function OnboardingPage() {
                           {s.subtitle}
                         </p>
 
-                        {/* Welcome CTA */}
                         {s.key === "welcome" && (
                           <button
                             onClick={goNext}
@@ -148,7 +147,6 @@ export default function OnboardingPage() {
                           </button>
                         )}
 
-                        {/* Final CTA */}
                         {s.key === "better-fitness" && (
                           <button
                             onClick={() => {
@@ -161,7 +159,6 @@ export default function OnboardingPage() {
                           </button>
                         )}
 
-                        {/* FAQ trigger */}
                         <button
                           onClick={() => setShowFAQ(true)}
                           className="mt-4 text-sm text-white/70 underline"
@@ -206,7 +203,7 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            {/* FAQ Bottom Sheet */}
+            {/* FAQ Bottom Sheet (unchanged) */}
             {showFAQ && (
               <div className="fixed inset-0 z-50 bg-black/60">
                 <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] rounded-t-3xl bg-white text-black p-6 overflow-y-auto">
@@ -219,14 +216,14 @@ export default function OnboardingPage() {
                     a={[
                       "BearFit is all about science-based personalized training.",
                       "You'll get exclusive workout sessions with our team of certified coaches.",
-                      "We offer both in-house and online workout packages so you can train wherever works best for you.",
+                      "We offer both in-house and online workout packages.",
                     ]}
                   />
 
                   <FAQItem
                     q="How much are the monthly fees and are there any hidden costs?"
                     a={[
-                      "The great news is that BearFit doesn’t charge monthly fees at all!",
+                      "BearFit doesn’t charge monthly fees.",
                       "No joining fees. No lock-in contracts.",
                     ]}
                   />
@@ -235,25 +232,25 @@ export default function OnboardingPage() {
                     q="What do I get when I sign up for a workout package?"
                     a={[
                       "Full access to all gym equipment and amenities.",
-                      "A personalized workout program tailored to you.",
-                      "By-appointment-only sessions with your assigned coach.",
+                      "A personalized workout program.",
+                      "By-appointment-only sessions with your coach.",
                     ]}
                   />
 
                   <FAQItem
                     q="Where are your branches located?"
                     a={[
-                      "Sikatuna Village: 48 Malingap Street, Quezon City",
-                      "E. Rodriguez: G/F Puzon Building, 1118 E. Rodriguez Sr. Ave",
-                      "Cainta: Primark Town Center, 271 Ortigas Ave Ext, Rizal",
+                      "Sikatuna Village – 48 Malingap St, QC",
+                      "E. Rodriguez – Puzon Building, QC",
+                      "Cainta – Primark Town Center",
                     ]}
                   />
 
                   <FAQItem
                     q="What are your opening hours?"
                     a={[
-                      "Monday–Friday: 7 AM – 10 PM",
-                      "Saturday: 7 AM – 2 PM",
+                      "Mon–Fri: 7 AM – 10 PM",
+                      "Sat: 7 AM – 2 PM",
                       "Sessions are best booked in advance.",
                     ]}
                   />
