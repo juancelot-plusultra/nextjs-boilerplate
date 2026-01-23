@@ -17,6 +17,7 @@ const slides: Slide[] = [
     subtitle: "Train smarter with coach-guided movement.",
     image: "/onboarding/better-form.jpg",
   },
+  // add more slides later...
 ];
 
 export default function OnboardingPage() {
@@ -58,121 +59,133 @@ export default function OnboardingPage() {
   }
 
   return (
-    // Outer shell: on desktop we show side gutters so it feels like an app
+    // Dark side gutters always present; the "screen" sits centered
     <div className="min-h-screen w-full bg-black text-white">
-      {/* App frame wrapper:
-          - mobile: full width
-          - desktop: centered phone-like frame
+      {/*
+        App frame sizing rules:
+        - Mobile (<640px): full width (100vw)
+        - Tablet (640–1023px): slightly constrained (max 720px)
+        - Desktop (>=1024px): phone/app frame (max 520px) + side gutters
       */}
-      <div className="mx-auto min-h-screen w-full bg-black sm:max-w-[520px] sm:border-x sm:border-white/10">
-        {/* The actual "screen" */}
-        <div
-          className="relative min-h-screen w-full overflow-hidden"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Track */}
+      <div className="mx-auto min-h-screen w-full sm:max-w-[720px] lg:max-w-[520px]">
+        {/* Optional frame only on desktop */}
+        <div className="min-h-screen w-full lg:border-x lg:border-white/10">
           <div
-            className="absolute inset-0 flex transition-transform duration-300 ease-out"
-            style={trackStyle}
+            className="relative min-h-screen w-full overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
-            {slides.map((s) => (
-              <div key={s.key} className="relative min-h-screen w-full flex-shrink-0">
-                <Image
-                  src={s.image}
-                  alt={s.title}
-                  fill
-                  priority={s.key === slides[index]?.key}
-                  // KEY FIX: tell Next different sizes for mobile/tablet/desktop
-                  // Desktop gets the frame width, not 100vw.
-                  sizes="(min-width: 640px) 520px, 100vw"
-                  className="object-cover"
-                />
-
-                {/* Readability overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
-
-                {/* Top area with safe padding */}
+            {/* Slides track */}
+            <div
+              className="absolute inset-0 flex transition-transform duration-300 ease-out"
+              style={trackStyle}
+            >
+              {slides.map((s) => (
                 <div
-                  className="absolute left-0 right-0 top-0 z-10"
-                  style={{
-                    paddingTop: "max(env(safe-area-inset-top), 16px)",
-                  }}
+                  key={s.key}
+                  className="relative min-h-screen w-full flex-shrink-0"
                 >
-                  <div className="px-6 pt-2">
-                    <div className="text-lg font-extrabold">
-                      Bear<span className="text-orange-500">Fit</span>PH
+                  <Image
+                    src={s.image}
+                    alt={s.title}
+                    fill
+                    priority={s.key === slides[index]?.key}
+                    /*
+                      IMPORTANT:
+                      - Mobile: 100vw
+                      - Tablet: up to 720px
+                      - Desktop: 520px frame
+                    */
+                    sizes="(min-width: 1024px) 520px, (min-width: 640px) 720px, 100vw"
+                    className="object-cover"
+                  />
+
+                  {/* Readability overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+
+                  {/* Top safe area */}
+                  <div
+                    className="absolute left-0 right-0 top-0 z-10"
+                    style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}
+                  >
+                    <div className="px-6 pt-2">
+                      <div className="text-lg font-extrabold">
+                        Bear<span className="text-orange-500">Fit</span>PH
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom text */}
+                  <div
+                    className="absolute left-0 right-0 bottom-0 z-10 px-6"
+                    style={{
+                      paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
+                    }}
+                  >
+                    <div className="pb-16">
+                      <h1 className="text-3xl font-extrabold">{s.title}</h1>
+                      <p className="mt-2 max-w-md text-white/80">{s.subtitle}</p>
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Bottom text */}
-                <div
-                  className="absolute left-0 right-0 bottom-0 z-10 px-6"
-                  style={{
-                    paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
-                  }}
+            {/* Controls */}
+            <div
+              className="absolute inset-x-0 bottom-0 z-20 px-6"
+              style={{
+                paddingBottom: "max(env(safe-area-inset-bottom), 16px)",
+              }}
+            >
+              <div className="flex items-center justify-between pb-4">
+                <button
+                  type="button"
+                  onClick={skip}
+                  className="text-sm font-semibold text-white/70 hover:text-white"
                 >
-                  <div className="pb-16">
-                    <h1 className="text-3xl font-extrabold">{s.title}</h1>
-                    <p className="mt-2 max-w-md text-white/80">{s.subtitle}</p>
-                  </div>
+                  SKIP
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {slides.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      aria-label={`Go to slide ${i + 1}`}
+                      onClick={() => setIndex(i)}
+                      className={
+                        "h-2 w-2 rounded-full transition " +
+                        (i === index
+                          ? "bg-white"
+                          : "bg-white/40 hover:bg-white/70")
+                      }
+                    />
+                  ))}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => (isLast ? null : goNext())}
+                  disabled={isLast}
+                  className={
+                    "text-sm font-semibold " +
+                    (isLast
+                      ? "text-white/30 cursor-not-allowed"
+                      : "text-white/80 hover:text-white")
+                  }
+                >
+                  NEXT
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Bottom nav row */}
-          <div
-            className="absolute inset-x-0 bottom-0 z-20 px-6"
-            style={{
-              paddingBottom: "max(env(safe-area-inset-bottom), 16px)",
-            }}
-          >
-            <div className="flex items-center justify-between pb-4">
-              <button
-                type="button"
-                onClick={skip}
-                className="text-sm font-semibold text-white/70 hover:text-white"
-              >
-                SKIP
-              </button>
-
-              <div className="flex items-center gap-2">
-                {slides.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    aria-label={`Go to slide ${i + 1}`}
-                    onClick={() => setIndex(i)}
-                    className={
-                      "h-2 w-2 rounded-full transition " +
-                      (i === index ? "bg-white" : "bg-white/40 hover:bg-white/70")
-                    }
-                  />
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => (isLast ? null : goNext())}
-                disabled={isLast}
-                className={
-                  "text-sm font-semibold " +
-                  (isLast
-                    ? "text-white/30 cursor-not-allowed"
-                    : "text-white/80 hover:text-white")
-                }
-              >
-                NEXT
-              </button>
+            {/* Optional: keyboard nav for desktop */}
+            <div className="sr-only" aria-hidden="true">
+              Use swipe or click dots.
             </div>
           </div>
-
-          {/* Desktop-only subtle backdrop outside frame (optional visual polish)
-              This is handled by the parent bg-black + frame borders.
-          */}
         </div>
       </div>
     </div>
