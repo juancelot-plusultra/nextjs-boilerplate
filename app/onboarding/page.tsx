@@ -10,80 +10,49 @@ const slides = [
     subtitle: "Train smarter with coach-guided movement.",
     image: "/onboarding/better-form.png",
   },
-  // add more slides later
 ];
 
 export default function OnboardingPage() {
-  const [i, setI] = useState(0);
-  const slide = slides[i];
+  const [index] = useState(0);
+  const slide = slides[index];
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      {/* App-like centered frame (phone feel on desktop/tablet) */}
-      <div className="mx-auto min-h-screen w-full max-w-[430px] bg-black">
-        <div className="relative min-h-screen overflow-hidden">
-          {/* Background image */}
+    <div className="min-h-screen bg-black flex justify-center">
+      {/* App Frame */}
+      <div className="relative w-full max-w-[430px] min-h-screen bg-black overflow-hidden">
+        
+        {/* Background Image */}
+        <div className="absolute inset-0">
           <Image
             src={slide.image}
             alt={slide.title}
             fill
             priority
+            sizes="(max-width: 768px) 100vw, 430px"
             className="object-cover"
-            sizes="(max-width: 430px) 100vw, 430px"
           />
+        </div>
 
-          {/* Gradient overlay for text readability */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/80" />
+        {/* Dark gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-          {/* Top area (optional logo) */}
-          <div className="absolute left-0 right-0 top-0 p-5">
-            <div className="text-white/90 text-lg font-extrabold">
-              Bear<span className="text-orange-500">Fit</span>PH
-            </div>
-          </div>
+        {/* Top brand */}
+        <div className="relative z-10 p-6 text-white font-bold text-lg">
+          BearFitPH
+        </div>
 
-          {/* Bottom content */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 pb-8 text-white">
-            <h1 className="text-3xl font-extrabold leading-tight">
-              {slide.title}
-            </h1>
-            <p className="mt-2 text-white/85">{slide.subtitle}</p>
+        {/* Bottom content */}
+        <div className="relative z-10 flex flex-col justify-end min-h-screen p-6 text-white">
+          <h1 className="text-3xl font-bold">{slide.title}</h1>
+          <p className="mt-2 text-white/80">{slide.subtitle}</p>
 
-            {/* Dots + buttons */}
-            <div className="mt-6 flex items-center justify-between">
-              <button
-                className="text-sm font-semibold text-white/80"
-                onClick={() => (window.location.href = "/login")}
-              >
-                Skip
-              </button>
+          <button className="mt-6 w-full bg-orange-500 hover:bg-orange-600 transition rounded-xl py-4 font-semibold">
+            Get Started
+          </button>
 
-              <div className="flex items-center gap-2">
-                {slides.map((_, idx) => (
-                  <span
-                    key={idx}
-                    className={
-                      "h-2 w-2 rounded-full " +
-                      (idx === i ? "bg-white" : "bg-white/35")
-                    }
-                  />
-                ))}
-              </div>
-
-              <button
-                className="rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white"
-                onClick={() => {
-                  if (i < slides.length - 1) setI(i + 1);
-                  else window.location.href = "/login";
-                }}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-
-          {/* Safe-area padding for iPhone notches */}
-          <div className="absolute inset-x-0 bottom-0 h-[env(safe-area-inset-bottom)]" />
+          <button className="mt-3 text-sm text-white/60">
+            Skip
+          </button>
         </div>
       </div>
     </div>
