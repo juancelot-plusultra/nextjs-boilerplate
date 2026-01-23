@@ -31,4 +31,15 @@ export default function RootLayout({
       </body>
     </html>
   );
+export const metadata = {
+  title: "BearFitPH",
+  description: "BearFitPH member portal",
+};
+
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 }
