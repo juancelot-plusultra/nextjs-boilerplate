@@ -90,76 +90,90 @@ export default function OnboardingPage() {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
-            {/* Slides */}
+            {/* Slides track */}
             <div
               className="absolute inset-0 flex transition-transform duration-300 ease-out"
               style={trackStyle}
             >
-              {slides.map((s) => (
-                <div
-                  key={s.key}
-                  className="relative min-h-screen w-full flex-shrink-0"
-                >
-                  {/* Background */}
-                  {s.image ? (
-                    <Image
-                      src={s.image}
-                      alt={s.title}
-                      fill
-                      priority
-                      sizes="(min-width:1024px) 520px, (min-width:640px) 720px, 100vw"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black" />
-                  )}
+              {slides.map((s, i) => {
+                const active = i === index;
 
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
+                return (
+                  <div
+                    key={s.key}
+                    className="relative min-h-screen w-full flex-shrink-0"
+                  >
+                    {/* Background */}
+                    {s.image ? (
+                      <Image
+                        src={s.image}
+                        alt={s.title}
+                        fill
+                        priority={active}
+                        sizes="(min-width:1024px) 520px, (min-width:640px) 720px, 100vw"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black" />
+                    )}
 
-                  {/* Brand */}
-                  <div className="absolute top-0 left-0 right-0 px-6 pt-6 z-10">
-                    <div className="text-lg font-extrabold">
-                      Bear<span className="text-orange-500">Fit</span>PH
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
+
+                    {/* Brand */}
+                    <div className="absolute top-0 left-0 right-0 px-6 pt-6 z-10">
+                      <div className="text-lg font-extrabold text-center">
+                        Bear<span className="text-orange-500">Fit</span>PH
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 px-6 pb-28 z-10">
+                      <div
+                        className={`mx-auto max-w-md text-center transition-all duration-500 ease-out ${
+                          active
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-0 translate-y-4"
+                        }`}
+                      >
+                        <h1 className="text-3xl font-extrabold">
+                          {s.title}
+                        </h1>
+
+                        <p className="mt-3 whitespace-pre-line text-white/80">
+                          {s.subtitle}
+                        </p>
+
+                        {/* Welcome CTA */}
+                        {s.key === "welcome" && (
+                          <button
+                            onClick={goNext}
+                            className="mt-6 w-full rounded-2xl bg-orange-500 px-5 py-4 text-base font-extrabold text-white hover:bg-orange-600 active:scale-[0.99]"
+                          >
+                            Start
+                          </button>
+                        )}
+
+                        {/* Final CTA */}
+                        {s.key === "better-fitness" && (
+                          <button
+                            onClick={() => {
+                              localStorage.setItem("bf_onboarded", "1");
+                              router.push("/get-started");
+                            }}
+                            className="mt-6 w-full rounded-2xl bg-orange-500 px-5 py-4 text-base font-extrabold text-white hover:bg-orange-600 active:scale-[0.99]"
+                          >
+                            Free Assessment — Get Started Now
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 px-6 pb-28 z-10">
-                    <h1 className="text-3xl font-extrabold">{s.title}</h1>
-
-                    <p className="mt-3 max-w-md whitespace-pre-line text-white/80">
-                      {s.subtitle}
-                    </p>
-
-                    {/* Welcome CTA */}
-                    {s.key === "welcome" && (
-                      <button
-                        onClick={goNext}
-                        className="mt-6 w-full rounded-2xl bg-orange-500 px-5 py-4 text-base font-extrabold text-white hover:bg-orange-600 active:scale-[0.99]"
-                      >
-                        Start
-                      </button>
-                    )}
-
-                    {/* Final CTA */}
-                    {s.key === "better-fitness" && (
-                      <button
-                        onClick={() => {
-                          localStorage.setItem("bf_onboarded", "1");
-                          router.push("/get-started");
-                        }}
-                        className="mt-6 w-full rounded-2xl bg-orange-500 px-5 py-4 text-base font-extrabold text-white hover:bg-orange-600 active:scale-[0.99]"
-                      >
-                        Free Assessment — Get Started Now
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Bottom nav */}
+            {/* Bottom navigation */}
             <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 z-20">
               <div className="flex items-center justify-between">
                 <button
@@ -174,7 +188,7 @@ export default function OnboardingPage() {
                     <button
                       key={i}
                       onClick={() => setIndex(i)}
-                      className={`h-2.5 w-2.5 rounded-full ${
+                      className={`h-2.5 w-2.5 rounded-full transition ${
                         i === index ? "bg-white" : "bg-white/40"
                       }`}
                     />
