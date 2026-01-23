@@ -15,7 +15,7 @@ const slides: Slide[] = [
     key: "better-form",
     title: "Better Form",
     subtitle: "Train smarter with coach-guided movement.",
-    image: "/onboarding/better-form.jpg",
+    image: "/onboarding/better-form.png",
   },
   // Add more slides later:
   // { key: "better-function", title: "Better Function", subtitle: "Move pain-free and stronger daily.", image: "/onboarding/better-function.jpg" },
