@@ -25,7 +25,7 @@ export default function OnboardingPage() {
       {
         title: "Welcome to BearFitPH",
         subtitle:
-          "Science-based, coach-guided training built for real people. Start your journey with a free assessment.",
+          "Upgrade your training at BearFitPH with coach-guided programs rooted in science and built for your reality. Experience the difference of Better Form | Better Function | Better Fitness. Start your journey with a free assessment.",
         image: "/onboarding/welcome.jpg",
       },
       {
@@ -113,14 +113,14 @@ export default function OnboardingPage() {
     const clickable = "free assessment";
     const idx = text.toLowerCase().indexOf(clickable);
 
-    if (idx === -1) return <p className="text-white/85">{text}</p>;
+    if (idx === -1) return <p className="text-white/85 text-center">{text}</p>;
 
     const before = text.slice(0, idx);
     const phrase = text.slice(idx, idx + clickable.length);
     const after = text.slice(idx + clickable.length);
 
     return (
-      <p className="text-white/85">
+      <p className="text-white/85 text-center">
         {before}
         <button
           type="button"
