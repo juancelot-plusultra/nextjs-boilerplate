@@ -47,7 +47,7 @@ export default function OnboardingPage() {
     []
   );
 
-  // ===== FAQ content (YOUR TEXT) =====
+  // ===== FAQ content =====
   const faqs = useMemo(
     () => [
       {
@@ -225,17 +225,11 @@ export default function OnboardingPage() {
               {/* Overlay for readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
-              {/* Header */}
+              {/* Header (NO FAQ button anymore) */}
               <div className="absolute inset-x-0 top-0 px-5 pt-5 flex items-center justify-between text-white">
                 <div className="font-semibold tracking-wide">
                   Bear<span className="text-[#F37120]">Fit</span>PH
                 </div>
-                <button
-                  onClick={() => setFaqOpen(true)}
-                  className="text-sm rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/15"
-                >
-                  FAQ
-                </button>
               </div>
 
               {/* Centered text */}
@@ -245,9 +239,19 @@ export default function OnboardingPage() {
                   className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                 >
                   <h1 className="text-3xl font-bold mb-3">{slide.title}</h1>
+
                   <p className="text-white/85 text-base leading-relaxed">
                     {slide.subtitle}
                   </p>
+
+                  {/* ✅ New FAQ trigger under subtitle (every slide) */}
+                  <button
+                    type="button"
+                    onClick={() => setFaqOpen(true)}
+                    className="mt-3 text-sm text-white/80 underline underline-offset-4 hover:text-white"
+                  >
+                    Questions? Read the FAQs
+                  </button>
 
                   {slide.cta && (
                     <button
@@ -291,7 +295,7 @@ export default function OnboardingPage() {
           </button>
         </div>
 
-        {/* FAQ Drawer */}
+        {/* FAQ Drawer (same behavior/effects) */}
         {faqOpen && (
           <div className="absolute inset-0 z-50">
             <button
