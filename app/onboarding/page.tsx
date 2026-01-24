@@ -1,13 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 type Slide = {
   title: string;
@@ -78,7 +72,7 @@ export default function OnboardingPage() {
     window.location.href = START_PAGE;
   };
 
-  // Swipe handling
+  // Swipe
   const startX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     if (faqOpen) return;
@@ -100,44 +94,46 @@ export default function OnboardingPage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      {/* Animation CSS */}
       <style>{`
         @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(16px); }
+          from { opacity: 0; transform: translateY(14px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .fade-slide {
-          animation: fadeSlideUp 0.6s ease-out;
+          animation: fadeSlideUp 0.5s ease-out;
         }
       `}</style>
 
       <div className="relative w-full h-full bg-black overflow-hidden md:max-w-[430px] md:mx-auto md:rounded-2xl">
+        {/* SLIDES */}
         <div
           className="flex h-full transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((slide, i) => (
             <div key={i} className="relative w-full h-full flex-shrink-0">
-              <Image src={slide.image} alt={slide.title} fill className="object-cover" />
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                fill
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
               <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
                 <div key={index} className="fade-slide">
-                  {/* 🔽 tighter spacing */}
                   <h1 className="text-3xl font-bold mb-1">{slide.title}</h1>
 
+                  {/* WELCOME CONTENT */}
                   {i === 0 && (
-                    <p className="font-bold italic mb-2">
-                      Better Form | Better Function | Better Fitness
-                    </p>
-                  )}
-
-                  {i === 0 ? (
-                    <div className="space-y-2">
-                      {/* 🔽 one-liner */}
-                      <p className="text-white/85">
+                    <>
+                      <p className="font-bold italic mb-2">
+                        Better Form | Better Function | Better Fitness
+                      </p>
+                      <p className="text-white/85 mb-2">
                         No guesswork — just coach-guided, science-based results.
                       </p>
-
                       <p className="text-white/85">
                         Book your free{" "}
                         <button
@@ -148,13 +144,19 @@ export default function OnboardingPage() {
                         </button>
                         .
                       </p>
-                    </div>
-                  ) : (
+                    </>
+                  )}
+
+                  {/* NORMAL SLIDES */}
+                  {i !== 0 && !slide.cta && (
                     <p className="text-white/85">{slide.subtitle}</p>
                   )}
 
+                  {/* CTA SLIDE */}
                   {slide.cta && (
                     <>
+                      <p className="text-white/85">{slide.subtitle}</p>
+
                       <button
                         onClick={() => setFaqOpen(true)}
                         className="mt-3 text-sm underline text-white/80"
@@ -176,6 +178,7 @@ export default function OnboardingPage() {
           ))}
         </div>
 
+        {/* NAV */}
         <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between text-white">
           <button onClick={skip}>Skip</button>
           <div className="flex gap-2">
@@ -192,7 +195,54 @@ export default function OnboardingPage() {
             Next
           </button>
         </div>
+
+        {/* 🔒 FULL FAQ OVERLAY — RESTORED */}
+        {faqOpen && (
+          <div className="absolute inset-0 z-50 bg-black/70">
+            <button
+              className="absolute inset-0"
+              onClick={() => setFaqOpen(false)}
+            />
+            <div className="absolute inset-x-0 bottom-0 md:inset-y-0 md:m-auto md:max-w-[430px] bg-[#0b0b0b] rounded-t-2xl md:rounded-2xl p-5 overflow-y-auto max-h-[85vh]">
+              <h2 className="text-lg font-bold mb-4 text-white">
+                Getting Started with BearFit
+              </h2>
+
+              <FaqItem q="What can I expect from BearFit?">
+                Science-based personalized training with certified coaches.
+              </FaqItem>
+              <FaqItem q="Are there monthly fees?">
+                No monthly fees, no lock-in contracts.
+              </FaqItem>
+              <FaqItem q="What do I get in a package?">
+                Full gym access, personalized programs, by-appointment coaching.
+              </FaqItem>
+              <FaqItem q="Where are you located?">
+                Quezon City (Sikatuna & E. Rodriguez) and Cainta (Primark).
+              </FaqItem>
+              <FaqItem q="Do I need to book ahead?">
+                Yes — sessions are by appointment to guarantee quality.
+              </FaqItem>
+
+              <button
+                onClick={() => setFaqOpen(false)}
+                className="mt-4 w-full rounded-full border border-white/20 py-2 text-white"
+              >
+                Close FAQs
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+function FaqItem({ q, children }: { q: string; children: ReactNode }) {
+  return (
+    <div className="mb-3">
+      <div className="font-semibold text-white">{q}</div>
+      <div className="text-white/80 text-sm">{children}</div>
     </div>
   );
 }
