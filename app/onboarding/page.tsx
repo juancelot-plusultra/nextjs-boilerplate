@@ -24,7 +24,8 @@ export default function OnboardingPage() {
     () => [
       {
         title: "Welcome to BearFitPH",
-        subtitle: "welcome", // handled specially below
+        subtitle:
+          "No guesswork. Just coach-guided, science-based results. Better Form | Better Function | Better Fitness. Book your free assessment.",
         image: "/onboarding/welcome.jpg",
       },
       {
@@ -56,6 +57,7 @@ export default function OnboardingPage() {
   const [faqOpen, setFaqOpen] = useState(false);
   const [ready, setReady] = useState(false);
 
+  // Preview / reset handling
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -107,6 +109,33 @@ export default function OnboardingPage() {
     if (diff > 50) prev();
   };
 
+  // Welcome slide content exactly as you requested
+  const renderWelcomeBlock = () => {
+    return (
+      <div className="space-y-3">
+        <p className="text-white/85 text-center">
+          No guesswork. Just coach-guided, science-based results.
+        </p>
+
+        <p className="text-center font-bold italic text-white">
+          Better Form | Better Function | Better Fitness.
+        </p>
+
+        <p className="text-white/85 text-center">
+          Book your free{" "}
+          <button
+            type="button"
+            onClick={() => goTo(slides.length - 1)}
+            className="underline underline-offset-4 font-semibold text-white"
+          >
+            assessment
+          </button>
+          .
+        </p>
+      </div>
+    );
+  };
+
   if (!ready) return null;
 
   return (
@@ -116,7 +145,6 @@ export default function OnboardingPage() {
       onTouchEnd={onTouchEnd}
     >
       <div className="relative w-full h-full bg-black overflow-hidden md:max-w-[430px] md:mx-auto md:rounded-2xl">
-        {/* SLIDER */}
         <div
           className="flex h-full transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
@@ -128,65 +156,51 @@ export default function OnboardingPage() {
                 alt={slide.title}
                 fill
                 className="object-cover"
+                priority={i === 0}
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
               <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
-                <h1 className="text-3xl font-bold mb-4">{slide.title}</h1>
+                {/* ✅ TEXT ANIMATION: re-triggers whenever slide changes */}
+                <div
+                  key={index}
+                  className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                >
+                  <h1 className="text-3xl font-bold mb-4">{slide.title}</h1>
 
-                {/* ✅ WELCOME SLIDE CUSTOM CONTENT */}
-                {i === 0 ? (
-                  <div className="space-y-3">
-                    <p className="text-white/85">
-                      No guesswork. Just coach-guided, science-based results.
-                    </p>
+                  {i === 0 ? (
+                    renderWelcomeBlock()
+                  ) : (
+                    <p className="text-white/85">{slide.subtitle}</p>
+                  )}
 
-                    <p className="font-bold italic">
-                      Better Form | Better Function | Better Fitness.
-                    </p>
+                  {/* ✅ FAQ link ONLY on CTA slide */}
+                  {slide.cta && (
+                    <button
+                      type="button"
+                      onClick={() => setFaqOpen(true)}
+                      className="mt-3 text-sm underline text-white/80"
+                    >
+                      No guesswork, just gains. Get the facts here.
+                    </button>
+                  )}
 
-                    <p className="text-white/85">
-                      Book your{" "}
-                      <button
-                        onClick={() => goTo(slides.length - 1)}
-                        className="underline underline-offset-4 font-semibold"
-                      >
-                        free assessment
-                      </button>
-                      .
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-white/85">{slide.subtitle}</p>
-                )}
-
-                {/* FAQ link ONLY on Free Assessment slide */}
-                {slide.cta && (
-                  <button
-                    type="button"
-                    onClick={() => setFaqOpen(true)}
-                    className="mt-3 text-sm underline text-white/80"
-                  >
-                    No guesswork, just gains. Get the facts here.
-                  </button>
-                )}
-
-                {slide.cta && (
-                  <button
-                    type="button"
-                    onClick={completeOnboarding}
-                    className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                  >
-                    Get Started – Free Assessment
-                  </button>
-                )}
+                  {slide.cta && (
+                    <button
+                      type="button"
+                      onClick={completeOnboarding}
+                      className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+                    >
+                      Get Started – Free Assessment
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Bottom controls */}
         <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between text-white">
           <button type="button" onClick={skip}>
             Skip
@@ -213,7 +227,7 @@ export default function OnboardingPage() {
           </button>
         </div>
 
-        {/* FAQ overlay (unchanged) */}
+        {/* ✅ FAQ OVERLAY — FULL VERSION RESTORED */}
         {faqOpen && (
           <div className="absolute inset-0 z-50">
             <button
@@ -223,22 +237,92 @@ export default function OnboardingPage() {
               aria-label="Close FAQs"
             />
 
-            <div className="absolute inset-x-0 bottom-0 md:inset-y-0 md:m-auto md:h-[80%] md:max-w-[430px]">
+            <div className="absolute inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:right-0 md:left-0 md:m-auto md:h-[80%] md:max-w-[430px]">
               <div className="relative h-[78vh] md:h-full w-full rounded-t-2xl md:rounded-2xl bg-[#0b0b0b] border border-white/10 overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                  <div className="text-white font-semibold">
-                    Getting Started with BearFit
+                  <div>
+                    <div className="text-white font-semibold text-lg">
+                      Getting Started with BearFit
+                    </div>
+                    <div className="text-white/60 text-sm">
+                      Quick answers before you book.
+                    </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setFaqOpen(false)}
-                    className="text-white/70 hover:text-white text-sm"
+                    className="text-white/70 hover:text-white text-sm px-3 py-2 rounded-lg"
                   >
                     Close
                   </button>
                 </div>
 
-                <div className="p-5 text-white/80 text-sm">
-                  FAQs content stays the same as before.
+                <div className="p-5 space-y-3 overflow-y-auto h-[calc(78vh-64px)] md:h-[calc(100%-64px)]">
+                  <FaqItem q="1. What can I expect from BearFit and what services do you offer?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>BearFit is all about science-based personalized training.</li>
+                      <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
+                      <li>We offer both in-house and online workout packages so you can train wherever works best for you.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="2. How much are the monthly fees and are there any hidden costs?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
+                      <li>You don&apos;t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="3. What do I actually get when I sign up for a workout package?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
+                      <li>You’ll receive a personalized workout program tailored specifically to you.</li>
+                      <li>Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="4. Where exactly are your branches located?">
+                    <div className="space-y-2">
+                      <div className="text-white/85">
+                        We have two spots in <b>Quezon City</b>:
+                      </div>
+                      <ul className="list-disc pl-5 space-y-2">
+                        <li>
+                          <b>Sikatuna Village:</b> 48 Malingap Street.
+                        </li>
+                        <li>
+                          <b>E. Rodriguez:</b> G/F of the Puzon Building, 1118 E. Rodriguez Sr. Avenue.
+                        </li>
+                      </ul>
+
+                      <div className="text-white/85 mt-3">
+                        We also have a location in <b>Cainta</b>:
+                      </div>
+                      <ul className="list-disc pl-5 space-y-2">
+                        <li>
+                          <b>Primark Town Center Cainta:</b> 271 Ortigas Ave Ext, Cainta, Rizal.
+                        </li>
+                      </ul>
+                    </div>
+                  </FaqItem>
+
+                  <FaqItem q="5. What are your opening hours, and do I need to book ahead?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>We are open Monday through Saturday to fit your schedule.</li>
+                      <li>Mon–Fri: 7 AM to 10 PM; Sat: 7 AM to 2 PM.</li>
+                      <li>
+                        <b>Pro tip:</b> It’s best to schedule your sessions in advance to make sure you get the time slot you want!
+                      </li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="6. What kind of equipment and extra perks do you have?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>We’re well-equipped with a variety of strength and resistance training gear, plus equipment for Muay Thai and boxing.</li>
+                      <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
+                      <li>For your comfort, we have shower rooms, a lounge area, a bicycle rack, drinking water, and even free WiFi.</li>
+                    </ul>
+                  </FaqItem>
                 </div>
               </div>
             </div>
@@ -252,10 +336,10 @@ export default function OnboardingPage() {
 function FaqItem({ q, children }: { q: string; children: ReactNode }) {
   return (
     <details className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-      <summary className="cursor-pointer text-white font-semibold">
-        {q}
-      </summary>
-      <div className="mt-3 text-white/80 text-sm">{children}</div>
+      <summary className="cursor-pointer text-white font-semibold">{q}</summary>
+      <div className="mt-3 text-white/80 text-sm leading-relaxed">
+        {children}
+      </div>
     </details>
   );
 }
