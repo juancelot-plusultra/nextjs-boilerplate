@@ -16,32 +16,11 @@ const START_PAGE = "/get-started";
 export default function OnboardingPage() {
   const slides: Slide[] = useMemo(
     () => [
-      {
-        title: "Welcome to BearFitPH",
-        subtitle: "",
-        image: "/onboarding/welcome.jpg",
-      },
-      {
-        title: "Better Form",
-        subtitle: "Train smarter with coach-guided movement.",
-        image: "/onboarding/better-form.jpg",
-      },
-      {
-        title: "Better Function",
-        subtitle: "Move better in everyday life, not just in the gym.",
-        image: "/onboarding/better-function.jpg",
-      },
-      {
-        title: "Better Fitness",
-        subtitle: "Build strength, confidence, and consistency.",
-        image: "/onboarding/better-fitness.jpg",
-      },
-      {
-        title: "Free Assessment",
-        subtitle: "Your journey starts here. Let’s get moving.",
-        image: "/onboarding/cta.jpg",
-        cta: true,
-      },
+      { title: "Welcome to BearFitPH", subtitle: "", image: "/onboarding/welcome.jpg" },
+      { title: "Better Form", subtitle: "Train smarter with coach-guided movement.", image: "/onboarding/better-form.jpg" },
+      { title: "Better Function", subtitle: "Move better in everyday life, not just in the gym.", image: "/onboarding/better-function.jpg" },
+      { title: "Better Fitness", subtitle: "Build strength, confidence, and consistency.", image: "/onboarding/better-fitness.jpg" },
+      { title: "Free Assessment", subtitle: "Your journey starts here. Let’s get moving.", image: "/onboarding/cta.jpg", cta: true },
     ],
     []
   );
@@ -50,21 +29,16 @@ export default function OnboardingPage() {
   const [faqOpen, setFaqOpen] = useState(false);
   const [ready, setReady] = useState(false);
 
-  /* ✅ PREVIEW + RESET LOGIC (FIXED) */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get("reset") === "1") {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-
+    if (params.get("reset") === "1") localStorage.removeItem(STORAGE_KEY);
     if (params.get("preview") === "1") {
       setReady(true);
       return;
     }
 
-    const done = localStorage.getItem(STORAGE_KEY) === "1";
-    if (done) {
+    if (localStorage.getItem(STORAGE_KEY) === "1") {
       window.location.replace(START_PAGE);
       return;
     }
@@ -72,12 +46,9 @@ export default function OnboardingPage() {
     setReady(true);
   }, []);
 
-  const isLast = index === slides.length - 1;
   const goTo = (i: number) =>
     setIndex(Math.max(0, Math.min(slides.length - 1, i)));
-
-  const next = () => !isLast && goTo(index + 1);
-  const prev = () => index > 0 && goTo(index - 1);
+  const next = () => index < slides.length - 1 && goTo(index + 1);
   const skip = () => goTo(slides.length - 1);
 
   const completeOnboarding = () => {
@@ -85,29 +56,22 @@ export default function OnboardingPage() {
     window.location.href = START_PAGE;
   };
 
-  /* Swipe */
   const startX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
-    if (faqOpen) return;
-    startX.current = e.touches[0].clientX;
+    if (!faqOpen) startX.current = e.touches[0].clientX;
   };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (faqOpen || startX.current === null) return;
     const diff = e.changedTouches[0].clientX - startX.current;
     startX.current = null;
     if (diff < -50) next();
-    if (diff > 50) prev();
+    if (diff > 50) setIndex(Math.max(0, index - 1));
   };
 
   if (!ready) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black flex justify-center items-center"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* Animation */}
+    <div className="fixed inset-0 bg-black flex justify-center items-center" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <style>{`
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(14px); }
@@ -116,12 +80,8 @@ export default function OnboardingPage() {
         .fade-slide { animation: fadeSlideUp .5s ease-out; }
       `}</style>
 
-      <div className="relative w-full h-full bg-black overflow-hidden md:max-w-[430px] md:mx-auto md:rounded-2xl">
-        {/* SLIDES */}
-        <div
-          className="flex h-full transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
+      <div className="relative w-full h-full md:max-w-[430px] bg-black overflow-hidden md:rounded-2xl">
+        <div className="flex h-full transition-transform duration-500" style={{ transform: `translateX(-${index * 100}%)` }}>
           {slides.map((slide, i) => (
             <div key={i} className="relative w-full h-full flex-shrink-0">
               <Image src={slide.image} alt={slide.title} fill className="object-cover" />
@@ -131,49 +91,28 @@ export default function OnboardingPage() {
                 <div key={index} className="fade-slide">
                   <h1 className="text-3xl font-bold mb-1">{slide.title}</h1>
 
-                  {/* WELCOME */}
                   {i === 0 && (
                     <>
-                      <p className="font-bold italic mb-2">
-                        Better Form | Better Function | Better Fitness
-                      </p>
-                      <p className="text-white/85 mb-2">
-                        No guesswork — just coach-guided, science-based results.
-                      </p>
+                      <p className="font-bold italic mb-2">Better Form | Better Function | Better Fitness</p>
+                      <p className="text-white/85 mb-2">No guesswork — just coach-guided, science-based results.</p>
                       <p className="text-white/85">
                         Book your free{" "}
-                        <button
-                          onClick={() => goTo(slides.length - 1)}
-                          className="underline font-semibold"
-                        >
+                        <button onClick={() => goTo(slides.length - 1)} className="underline font-semibold">
                           assessment
-                        </button>
-                        .
+                        </button>.
                       </p>
                     </>
                   )}
 
-                  {/* NORMAL */}
-                  {i !== 0 && !slide.cta && (
-                    <p className="text-white/85">{slide.subtitle}</p>
-                  )}
+                  {i !== 0 && !slide.cta && <p className="text-white/85">{slide.subtitle}</p>}
 
-                  {/* CTA */}
                   {slide.cta && (
                     <>
                       <p className="text-white/85">{slide.subtitle}</p>
-
-                      <button
-                        onClick={() => setFaqOpen(true)}
-                        className="mt-3 text-sm underline text-white/80"
-                      >
+                      <button onClick={() => setFaqOpen(true)} className="mt-3 text-sm underline text-white/80">
                         No guesswork, just gains. Get the facts here.
                       </button>
-
-                      <button
-                        onClick={completeOnboarding}
-                        className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                      >
+                      <button onClick={completeOnboarding} className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black">
                         Get Started – Free Assessment
                       </button>
                     </>
@@ -189,72 +128,44 @@ export default function OnboardingPage() {
           <button onClick={skip}>Skip</button>
           <div className="flex gap-2">
             {slides.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 w-2 rounded-full ${
-                  i === index ? "bg-white" : "bg-white/40"
-                }`}
-              />
+              <span key={i} className={`h-2 w-2 rounded-full ${i === index ? "bg-white" : "bg-white/40"}`} />
             ))}
           </div>
-          <button onClick={next} disabled={isLast} className={isLast ? "opacity-40" : ""}>
-            Next
-          </button>
+          <button onClick={next}>Next</button>
         </div>
 
-        {/* FULL FAQ OVERLAY */}
+        {/* FAQ MODAL */}
         {faqOpen && (
-          <div className="absolute inset-0 z-50 bg-black/70">
-            <button className="absolute inset-0" onClick={() => setFaqOpen(false)} />
-            <div className="absolute inset-x-0 bottom-0 md:inset-y-0 md:m-auto md:max-w-[430px] bg-[#0b0b0b] rounded-t-2xl md:rounded-2xl p-5 overflow-y-auto max-h-[85vh]">
-              <h2 className="text-lg font-bold mb-4 text-white">
-                Getting Started with BearFit
-              </h2>
+          <div className="absolute inset-0 z-50">
+            {/* backdrop */}
+            <div className="absolute inset-0 bg-black/70" onClick={() => setFaqOpen(false)} />
 
-              <FaqItem q="1. What can I expect from BearFit and what services do you offer?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Science-based personalized training.</li>
-                  <li>Exclusive sessions with certified coaches.</li>
-                  <li>In-house and online workout packages.</li>
-                </ul>
+            {/* panel */}
+            <div className="absolute inset-x-0 bottom-0 md:inset-y-0 md:m-auto md:max-w-[430px] bg-[#0b0b0b] rounded-t-2xl md:rounded-2xl p-5 max-h-[85vh] overflow-y-auto text-white">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-lg">Getting Started with BearFit</h2>
+                <button onClick={() => setFaqOpen(false)} className="text-sm underline">
+                  Close
+                </button>
+              </div>
+
+              <FaqItem q="1. What can I expect from BearFit?">
+                Science-based personalized training with certified coaches.
               </FaqItem>
-
-              <FaqItem q="2. How much are the monthly fees?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>No monthly fees.</li>
-                  <li>No lock-in contracts.</li>
-                </ul>
+              <FaqItem q="2. Are there monthly fees?">
+                No monthly fees. No lock-in contracts.
               </FaqItem>
-
               <FaqItem q="3. What do I get when I sign up?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Full gym access.</li>
-                  <li>Personalized workout programs.</li>
-                  <li>By-appointment coaching.</li>
-                </ul>
+                Full gym access, personalized programs, by-appointment coaching.
               </FaqItem>
-
-              <FaqItem q="4. Where are your branches located?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Sikatuna Village – 48 Malingap St.</li>
-                  <li>E. Rodriguez – Puzon Bldg.</li>
-                  <li>Primark Cainta – Ortigas Ave Ext.</li>
-                </ul>
+              <FaqItem q="4. Where are you located?">
+                QC (Sikatuna & E. Rodriguez) and Cainta (Primark).
               </FaqItem>
-
               <FaqItem q="5. Opening hours?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Mon–Fri: 7 AM–10 PM</li>
-                  <li>Sat: 7 AM–2 PM</li>
-                </ul>
+                Mon–Fri 7AM–10PM, Sat 7AM–2PM.
               </FaqItem>
-
               <FaqItem q="6. Equipment & perks?">
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Strength & combat equipment.</li>
-                  <li>Showers, lounge, bike rack.</li>
-                  <li>Free WiFi & drinking water.</li>
-                </ul>
+                Strength + combat gear, showers, lounge, bike rack, free WiFi.
               </FaqItem>
             </div>
           </div>
@@ -266,8 +177,8 @@ export default function OnboardingPage() {
 
 function FaqItem({ q, children }: { q: string; children: ReactNode }) {
   return (
-    <div className="mb-4">
-      <div className="font-semibold text-white">{q}</div>
+    <div className="mb-3">
+      <div className="font-semibold">{q}</div>
       <div className="text-white/80 text-sm">{children}</div>
     </div>
   );
