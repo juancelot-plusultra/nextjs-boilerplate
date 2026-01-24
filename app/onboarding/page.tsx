@@ -100,9 +100,7 @@ export default function OnboardingPage() {
           from { opacity: 0; transform: translateY(14px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .fade-slide {
-          animation: fadeSlideUp 0.5s ease-out;
-        }
+        .fade-slide { animation: fadeSlideUp 0.5s ease-out; }
       `}</style>
 
       <div className="relative w-full h-full bg-black overflow-hidden md:max-w-[430px] md:mx-auto md:rounded-2xl">
@@ -125,7 +123,7 @@ export default function OnboardingPage() {
                 <div key={index} className="fade-slide">
                   <h1 className="text-3xl font-bold mb-1">{slide.title}</h1>
 
-                  {/* WELCOME CONTENT */}
+                  {/* WELCOME */}
                   {i === 0 && (
                     <>
                       <p className="font-bold italic mb-2">
@@ -191,45 +189,115 @@ export default function OnboardingPage() {
               />
             ))}
           </div>
-          <button onClick={next} disabled={isLast} className={isLast ? "opacity-40" : ""}>
+          <button
+            onClick={next}
+            disabled={isLast}
+            className={isLast ? "opacity-40" : ""}
+          >
             Next
           </button>
         </div>
 
-        {/* 🔒 FULL FAQ OVERLAY — RESTORED */}
+        {/* ✅ FULL FAQ OVERLAY (COMPLETE) */}
         {faqOpen && (
-          <div className="absolute inset-0 z-50 bg-black/70">
+          <div className="absolute inset-0 z-50">
+            {/* backdrop */}
             <button
-              className="absolute inset-0"
+              type="button"
+              className="absolute inset-0 bg-black/70"
               onClick={() => setFaqOpen(false)}
+              aria-label="Close FAQs"
             />
-            <div className="absolute inset-x-0 bottom-0 md:inset-y-0 md:m-auto md:max-w-[430px] bg-[#0b0b0b] rounded-t-2xl md:rounded-2xl p-5 overflow-y-auto max-h-[85vh]">
-              <h2 className="text-lg font-bold mb-4 text-white">
-                Getting Started with BearFit
-              </h2>
 
-              <FaqItem q="What can I expect from BearFit?">
-                Science-based personalized training with certified coaches.
-              </FaqItem>
-              <FaqItem q="Are there monthly fees?">
-                No monthly fees, no lock-in contracts.
-              </FaqItem>
-              <FaqItem q="What do I get in a package?">
-                Full gym access, personalized programs, by-appointment coaching.
-              </FaqItem>
-              <FaqItem q="Where are you located?">
-                Quezon City (Sikatuna & E. Rodriguez) and Cainta (Primark).
-              </FaqItem>
-              <FaqItem q="Do I need to book ahead?">
-                Yes — sessions are by appointment to guarantee quality.
-              </FaqItem>
+            {/* panel */}
+            <div className="absolute inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:right-0 md:left-0 md:m-auto md:h-[80%] md:max-w-[430px]">
+              <div className="relative h-[78vh] md:h-full w-full rounded-t-2xl md:rounded-2xl bg-[#0b0b0b] border border-white/10 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                  <div>
+                    <div className="text-white font-semibold text-lg">
+                      Getting Started with BearFit
+                    </div>
+                    <div className="text-white/60 text-sm">
+                      Quick answers before you book.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFaqOpen(false)}
+                    className="text-white/70 hover:text-white text-sm px-3 py-2 rounded-lg"
+                  >
+                    Close
+                  </button>
+                </div>
 
-              <button
-                onClick={() => setFaqOpen(false)}
-                className="mt-4 w-full rounded-full border border-white/20 py-2 text-white"
-              >
-                Close FAQs
-              </button>
+                <div className="p-5 space-y-3 overflow-y-auto h-[calc(78vh-64px)] md:h-[calc(100%-64px)]">
+                  <FaqItem q="1. What can I expect from BearFit and what services do you offer?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>BearFit is all about science-based personalized training.</li>
+                      <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
+                      <li>We offer both in-house and online workout packages so you can train wherever works best for you.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="2. How much are the monthly fees and are there any hidden costs?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
+                      <li>You don’t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="3. What do I actually get when I sign up for a workout package?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
+                      <li>You’ll receive a personalized workout program tailored specifically to you.</li>
+                      <li>Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.</li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="4. Where exactly are your branches located?">
+                    <div className="space-y-2">
+                      <div className="text-white/85">
+                        We have two spots in <b>Quezon City</b>:
+                      </div>
+                      <ul className="list-disc pl-5 space-y-2">
+                        <li>
+                          <b>Sikatuna Village:</b> 48 Malingap Street.
+                        </li>
+                        <li>
+                          <b>E. Rodriguez:</b> We are also on the G/F of the Puzon Building, 1118 E. Rodriguez Sr. Avenue.
+                        </li>
+                      </ul>
+
+                      <div className="text-white/85 mt-3">
+                        We also have a location in <b>Cainta</b>:
+                      </div>
+                      <ul className="list-disc pl-5 space-y-2">
+                        <li>
+                          <b>Primark Town Center Cainta:</b> 271 Ortigas Ave Ext, Cainta, Rizal.
+                        </li>
+                      </ul>
+                    </div>
+                  </FaqItem>
+
+                  <FaqItem q="5. What are your opening hours, and do I need to book ahead?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>We are open Monday through Saturday to fit your schedule.</li>
+                      <li>From Monday to Friday, we&apos;re open from 7 AM to 10 PM, and on Saturdays, we&apos;re here from 7 AM to 2 PM.</li>
+                      <li>
+                        <b>Pro tip:</b> It’s best to schedule your sessions in advance to make sure you get the time slot you want!
+                      </li>
+                    </ul>
+                  </FaqItem>
+
+                  <FaqItem q="6. What kind of equipment and extra perks do you have?">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>We’re well-equipped with a variety of strength and resistance training gear, plus equipment for Muay Thai and boxing.</li>
+                      <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
+                      <li>For your comfort, we have shower rooms, a lounge area, a bicycle rack, drinking water, and even free WiFi.</li>
+                    </ul>
+                  </FaqItem>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -240,9 +308,11 @@ export default function OnboardingPage() {
 
 function FaqItem({ q, children }: { q: string; children: ReactNode }) {
   return (
-    <div className="mb-3">
-      <div className="font-semibold text-white">{q}</div>
-      <div className="text-white/80 text-sm">{children}</div>
-    </div>
+    <details className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+      <summary className="cursor-pointer text-white font-semibold">{q}</summary>
+      <div className="mt-3 text-white/80 text-sm leading-relaxed">
+        {children}
+      </div>
+    </details>
   );
 }
