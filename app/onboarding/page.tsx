@@ -129,14 +129,32 @@ export default function OnboardingPage() {
 
               <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
                 <h1 className="text-3xl font-bold mb-3">{slide.title}</h1>
-                <p className="text-white/85">{slide.subtitle}</p>
 
-                <button
-                  onClick={() => setFaqOpen(true)}
-                  className="mt-3 text-sm underline text-white/80"
-                >
-                  Questions? Read the FAQs
-                </button>
+                {/* ✅ CHANGE #3: hyperlink on Welcome slide only */}
+                {i === 0 ? (
+                  <p className="text-white/85">
+                    Science-based, coach-guided training built for real people.{" "}
+                    <button
+                      onClick={() => goTo(slides.length - 1)}
+                      className="underline underline-offset-4 font-semibold text-white"
+                    >
+                      Start your journey with a free assessment
+                    </button>
+                    .
+                  </p>
+                ) : (
+                  <p className="text-white/85">{slide.subtitle}</p>
+                )}
+
+                {/* ✅ CHANGE #1 & #2: Remove FAQ everywhere, keep only on Free Assessment slide with new text */}
+                {slide.cta && (
+                  <button
+                    onClick={() => setFaqOpen(true)}
+                    className="mt-3 text-sm underline text-white/80"
+                  >
+                    No guesswork, just gains. Get the facts here.
+                  </button>
+                )}
 
                 {slide.cta && (
                   <>
@@ -145,14 +163,6 @@ export default function OnboardingPage() {
                       className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
                     >
                       Get Started – Free Assessment
-                    </button>
-
-                    {/* ✅ NEW: Back to onboarding */}
-                    <button
-                      onClick={prev}
-                      className="mt-4 text-sm text-white/70 underline underline-offset-4 hover:text-white"
-                    >
-                      ← Back to onboarding
                     </button>
                   </>
                 )}
