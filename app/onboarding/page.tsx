@@ -12,6 +12,10 @@ type Slide = {
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
 
+// ✅ CHANGE THIS IF YOUR PAGE IS DIFFERENT
+const START_PAGE = "/get-started"; // <- your free assessment page route
+const AFTER_ONBOARDING_REDIRECT = START_PAGE; // where to go if already onboarded
+
 export default function OnboardingPage() {
   // ===== Slides =====
   const slides: Slide[] = useMemo(
@@ -113,7 +117,7 @@ export default function OnboardingPage() {
     try {
       const done = localStorage.getItem(STORAGE_KEY) === "1";
       if (done) {
-        window.location.replace("/login"); // change if needed
+        window.location.replace(AFTER_ONBOARDING_REDIRECT);
         return;
       }
     } catch {}
@@ -135,11 +139,12 @@ export default function OnboardingPage() {
 
   const skip = () => goTo(slides.length - 1);
 
+  // ✅ THIS is the button behavior (now goes to /get-started)
   const completeOnboarding = () => {
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {}
-    window.location.href = "/free-assessment"; // change if needed
+    window.location.href = START_PAGE;
   };
 
   // ===== Swipe Gesture (Touch + Mouse) =====
@@ -197,7 +202,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="fixed inset-0 bg-black flex justify-center items-center">
-      {/* Phone frame on desktop, full screen on mobile */}
       <div
         className="relative w-full h-full bg-black overflow-hidden
                    md:max-w-[430px] md:mx-auto md:rounded-2xl md:ring-1 md:ring-white/10"
@@ -206,7 +210,6 @@ export default function OnboardingPage() {
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
       >
-        {/* Slider row */}
         <div
           className="flex h-full transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
@@ -222,17 +225,14 @@ export default function OnboardingPage() {
                 sizes="(max-width: 768px) 100vw, 430px"
               />
 
-              {/* Overlay for readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
-              {/* Header (NO FAQ button anymore) */}
               <div className="absolute inset-x-0 top-0 px-5 pt-5 flex items-center justify-between text-white">
                 <div className="font-semibold tracking-wide">
                   Bear<span className="text-[#F37120]">Fit</span>PH
                 </div>
               </div>
 
-              {/* Centered text */}
               <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
                 <div
                   key={`text-${index}`}
@@ -244,7 +244,6 @@ export default function OnboardingPage() {
                     {slide.subtitle}
                   </p>
 
-                  {/* ✅ New FAQ trigger under subtitle (every slide) */}
                   <button
                     type="button"
                     onClick={() => setFaqOpen(true)}
@@ -267,7 +266,6 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        {/* Bottom controls */}
         <div className="absolute inset-x-0 bottom-6 px-6 flex items-center justify-between text-white">
           <button onClick={skip} className="text-sm opacity-70 hover:opacity-100">
             Skip
@@ -295,7 +293,6 @@ export default function OnboardingPage() {
           </button>
         </div>
 
-        {/* FAQ Drawer (same behavior/effects) */}
         {faqOpen && (
           <div className="absolute inset-0 z-50">
             <button
@@ -336,7 +333,6 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Hint */}
         <div className="absolute left-1/2 -translate-x-1/2 bottom-16 text-xs text-white/50">
           Swipe left/right
         </div>
