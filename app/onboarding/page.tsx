@@ -2,20 +2,15 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 const slides = [
   {
-    key: "welcome",
     title: "Welcome to BearFitPH",
     subtitle: (
       <>
         Start your journey with a{" "}
-        <a
-          href="/get-started"
-          className="underline font-semibold text-white"
-        >
+        <a href="/get-started" className="underline font-semibold">
           Free Assessment
         </a>
       </>
@@ -23,25 +18,21 @@ const slides = [
     image: "/onboarding/welcome.jpg",
   },
   {
-    key: "better-form",
     title: "Better Form",
     subtitle: "Train smarter with coach-guided movement.",
     image: "/onboarding/better-form.jpg",
   },
   {
-    key: "better-function",
     title: "Better Function",
     subtitle: "Move better, feel stronger every day.",
     image: "/onboarding/better-function.jpg",
   },
   {
-    key: "better-fitness",
     title: "Better Fitness",
     subtitle: "Build strength that lasts.",
     image: "/onboarding/better-fitness.jpg",
   },
   {
-    key: "assessment",
     title: "Free Assessment",
     subtitle: "No guesswork, just gains. Get the facts here",
     image: "/onboarding/free-assessment.jpg",
@@ -55,28 +46,25 @@ export default function OnboardingPage() {
   const slide = slides[index];
 
   return (
-    <div className="fixed inset-0 bg-black flex justify-center">
+    <div
+      className="fixed inset-0 bg-black flex justify-center"
+      onTouchStart={(e) => (window as any).startX = e.touches[0].clientX}
+      onTouchEnd={(e) => {
+        const diff = (window as any).startX - e.changedTouches[0].clientX;
+        if (diff > 50 && index < slides.length - 1) setIndex(index + 1);
+        if (diff < -50 && index > 0) setIndex(index - 1);
+      }}
+    >
       <div className="relative w-full max-w-md h-full overflow-hidden">
         {/* Image */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={slide.key}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0"
-          >
-            <Image
-              src={slide.image}
-              alt={slide.title}
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          </motion.div>
-        </AnimatePresence>
+        <Image
+          src={slide.image}
+          alt={slide.title}
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
 
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-end px-6 pb-10 text-white text-center">
@@ -105,7 +93,7 @@ export default function OnboardingPage() {
             </button>
           ) : (
             <button
-              onClick={() => setIndex((prev) => Math.min(prev + 1, slides.length - 1))}
+              onClick={() => setIndex(index + 1)}
               className="text-white/80 text-sm"
             >
               Next
