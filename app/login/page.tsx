@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  async function handleLogin() {
     setLoading(true);
     setError(null);
 
@@ -21,69 +23,96 @@ export default function LoginPage() {
       password,
     });
 
-    if (error || !data.user) {
-      setError(error?.message ?? "Login failed");
+    if (error) {
+      setError(error.message);
       setLoading(false);
       return;
     }
 
-    // Fetch profile
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    if (profileError || !profile) {
-      setError("Profile not found");
-      setLoading(false);
-      return;
-    }
-
-    // Redirect by role
-    if (profile.role === "staff") {
-      router.push("/dashboard");
-    } else {
-      router.push("/me");
-    }
+    // Redirect logic (member vs staff can be added later)
+    window.location.href = "/member/dashboard";
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleLogin}
-        className="w-full max-w-sm rounded-xl bg-white p-6 shadow"
-      >
-        <h1 className="mb-4 text-xl font-bold">Login</h1>
+    <div className="fixed inset-0 bg-black flex items-center justify-center">
+      {/* Animation styles */}
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up {
+          animation: fadeUp .5s ease-out forwards;
+        }
+      `}</style>
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="mb-3 w-full rounded border px-3 py-2"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          className="mb-3 w-full rounded border px-3 py-2"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        {error && (
-          <div className="mb-3 text-sm text-red-600">{error}</div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-orange-500 py-2 font-semibold text-white"
+      <div className="w-full h-full md:max-w-[430px] md:rounded-2xl bg-[#0b0b0b] flex items-center justify-center px-6">
+        <div
+          className={`w-full max-w-sm ${
+            mounted ? "fade-up" : "opacity-0"
+          }`}
         >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Bear<span className="text-[#F37120]">Fit</span>PH
+            </h1>
+            <p className="text-white/70 text-sm">
+              Welcome back. Let’s get you moving.
+            </p>
+          </div>
+
+          {/* Form */}
+          <div className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#F37120]"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#F37120]"
+            />
+
+            {error && (
+              <div className="text-red-400 text-sm text-center">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full rounded-full bg-[#F37120] py-3 font-semibold text-black disabled:opacity-60"
+            >
+              {loading ? "Logging in…" : "Log in"}
+            </button>
+          </div>
+
+          {/* Secondary actions */}
+          <div className="mt-6 text-center space-y-3 text-sm">
+            <button className="text-white/70 underline">
+              Forgot password?
+            </button>
+
+            <div className="text-white/50">
+              New here?{" "}
+              <a
+                href="/onboarding?preview=1"
+                className="underline text-white"
+              >
+                Book a free assessment
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
