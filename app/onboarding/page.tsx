@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const slides = [
   {
@@ -51,50 +50,37 @@ export default function OnboardingPage() {
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center">
-      {/* Desktop framing */}
       <div className="relative w-full h-full md:max-w-[420px] md:mx-auto md:rounded-2xl overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={slide.key}
-            className="absolute inset-0"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.35 }}
-          >
-            {/* Background image */}
-            <Image
-              src={slide.image}
-              alt={slide.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 420px"
-            />
+        {/* KEY: simple fade animation via key */}
+        <div key={slide.key} className="absolute inset-0 animate-fadeIn">
+          <Image
+            src={slide.image}
+            alt={slide.title}
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 420px"
+          />
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
 
-            {/* Content */}
-            <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
-              <h1 className="text-3xl font-bold mb-3">{slide.title}</h1>
-              <p className="text-white/85 text-base leading-relaxed">
-                {slide.subtitle}
-              </p>
+          <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
+            <h1 className="text-3xl font-bold mb-3">{slide.title}</h1>
+            <p className="text-white/85 text-base leading-relaxed">
+              {slide.subtitle}
+            </p>
 
-              {slide.cta && (
-                <a
-                  href="/login"
-                  className="inline-block mt-6 rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                >
-                  Get Started – Free Assessment
-                </a>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+            {slide.cta && (
+              <a
+                href="/login"
+                className="inline-block mt-6 rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+              >
+                Get Started – Free Assessment
+              </a>
+            )}
+          </div>
+        </div>
 
-        {/* Bottom controls */}
         <div className="absolute inset-x-0 bottom-6 px-6 flex items-center justify-between text-white">
           <button
             onClick={skip}
@@ -103,7 +89,6 @@ export default function OnboardingPage() {
             Skip
           </button>
 
-          {/* Dots */}
           <div className="flex gap-2">
             {slides.map((_, i) => (
               <span
@@ -124,6 +109,23 @@ export default function OnboardingPage() {
           </button>
         </div>
       </div>
+
+      {/* CSS animation helper */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.35s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
