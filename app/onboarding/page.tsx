@@ -121,22 +121,23 @@ export default function OnboardingPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
               <div className="absolute inset-x-0 bottom-24 px-6 text-center text-white">
-                {/* TEXT ANIMATION */}
                 <div key={index} className="fade-slide">
-                  <h1 className="text-3xl font-bold mb-2">{slide.title}</h1>
+                  {/* 🔽 tighter spacing */}
+                  <h1 className="text-3xl font-bold mb-1">{slide.title}</h1>
 
-                  {/* ✅ NEW LINE UNDER HEADER (WELCOME ONLY) */}
                   {i === 0 && (
-                    <p className="font-bold italic mb-4">
+                    <p className="font-bold italic mb-2">
                       Better Form | Better Function | Better Fitness
                     </p>
                   )}
 
                   {i === 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
+                      {/* 🔽 one-liner */}
                       <p className="text-white/85">
-                        No guesswork. Just coach-guided, science-based results.
+                        No guesswork — just coach-guided, science-based results.
                       </p>
+
                       <p className="text-white/85">
                         Book your free{" "}
                         <button
@@ -191,22 +192,6 @@ export default function OnboardingPage() {
             Next
           </button>
         </div>
-
-        {/* FAQ overlay stays EXACTLY as before */}
-        {faqOpen && (
-          <div className="absolute inset-0 z-50 bg-black/70 flex items-center justify-center">
-            <button
-              className="absolute inset-0"
-              onClick={() => setFaqOpen(false)}
-            />
-            <div className="relative bg-[#0b0b0b] rounded-2xl p-6 max-w-[430px] w-full text-white">
-              <h2 className="font-bold mb-4">Getting Started with BearFit</h2>
-              <p className="text-white/80 text-sm">
-                FAQs content unchanged.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
