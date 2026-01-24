@@ -14,7 +14,6 @@ const STORAGE_KEY = "bearfit_onboarded_v1";
 const START_PAGE = "/get-started";
 
 export default function OnboardingPage() {
-  // ===== Slides =====
   const slides: Slide[] = useMemo(
     () => [
       {
@@ -48,65 +47,23 @@ export default function OnboardingPage() {
     []
   );
 
-  // ===== FAQ content (unchanged) =====
-  const faqs = useMemo(
-    () => [
-      {
-        q: "1. What can I expect from BearFit and what services do you offer?",
-        a: [
-          "BearFit is all about science-based personalized training.",
-          "You'll get exclusive workout sessions with our team of certified coaches.",
-          "We offer both in-house and online workout packages so you can train wherever works best for you.",
-        ],
-      },
-      {
-        q: "2. How much are the monthly fees and are there any hidden costs?",
-        a: [
-          "The great news is that BearFit doesn’t charge monthly fees at all!",
-          "You don't have to worry about joining fees or being stuck in a 12-month lock-in contract.",
-        ],
-      },
-      {
-        q: "3. What do I actually get when I sign up for a workout package?",
-        a: [
-          "Each package is fully inclusive, giving you complete access to all gym equipment and amenities.",
-          "You’ll receive a personalized workout program tailored specifically to you.",
-          "Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.",
-        ],
-      },
-      {
-        q: "4. Where exactly are your branches located?",
-        a: [
-          "Sikatuna Village – 48 Malingap Street, QC",
-          "E. Rodriguez – G/F Puzon Building, QC",
-          "Cainta – Primark Town Center",
-        ],
-      },
-    ],
-    []
-  );
-
-  // ===== State =====
   const [index, setIndex] = useState(0);
   const [faqOpen, setFaqOpen] = useState(false);
   const [ready, setReady] = useState(false);
 
-  // ===== IMPORTANT: preview / reset handling =====
+  // Preview / reset handling
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    // Reset onboarding completely
     if (params.get("reset") === "1") {
       localStorage.removeItem(STORAGE_KEY);
     }
 
-    // Preview mode always shows onboarding
     if (params.get("preview") === "1") {
       setReady(true);
       return;
     }
 
-    // Normal behavior
     const done = localStorage.getItem(STORAGE_KEY) === "1";
     if (done) {
       window.location.replace(START_PAGE);
@@ -130,7 +87,7 @@ export default function OnboardingPage() {
     window.location.href = START_PAGE;
   };
 
-  // ===== Swipe =====
+  // Swipe handling
   const startX = useRef<number | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -182,12 +139,22 @@ export default function OnboardingPage() {
                 </button>
 
                 {slide.cta && (
-                  <button
-                    onClick={completeOnboarding}
-                    className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                  >
-                    Get Started – Free Assessment
-                  </button>
+                  <>
+                    <button
+                      onClick={completeOnboarding}
+                      className="block mt-6 w-full rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+                    >
+                      Get Started – Free Assessment
+                    </button>
+
+                    {/* ✅ NEW: Back to onboarding */}
+                    <button
+                      onClick={prev}
+                      className="mt-4 text-sm text-white/70 underline underline-offset-4 hover:text-white"
+                    >
+                      ← Back to onboarding
+                    </button>
+                  </>
                 )}
               </div>
             </div>
