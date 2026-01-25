@@ -25,7 +25,7 @@ export default function WelcomePage() {
     () => [
       {
         key: "welcome-video",
-        video: "/welcome/welcome.mp4",
+        video: "/welcome/welcome-bg.mp4",
         title: "EVERY SESSION BUILDS YOUR STORY.",
         subtitle: "Better Form | Better Function | Better Fitness.",
       },
