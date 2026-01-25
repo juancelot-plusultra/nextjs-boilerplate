@@ -2,12 +2,21 @@
 
 import { useMemo, useState } from "react";
 
-type TabKey = "home" | "schedule" | "chat" | "payments" | "profile";
+/**
+ * Dashboard with:
+ * - Animated tab transitions (slide/fade)
+ * - Badge counters (unread chat, unpaid balance, notifications)
+ * - Role switching (Member vs Staff) with different nav items
+ */
+
+type Role = "member" | "staff";
+type MemberTab = "home" | "schedule" | "chat" | "payments" | "profile";
+type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
+type TabKey = MemberTab | StaffTab;
 
 function dayLabel(i: number) {
   return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
 }
-
 function formatTime(d: Date) {
   const h = d.getHours();
   const m = d.getMinutes().toString().padStart(2, "0");
@@ -15,12 +24,10 @@ function formatTime(d: Date) {
   const ampm = h >= 12 ? "PM" : "AM";
   return `${hour12}.${m} ${ampm}`;
 }
-
 function formatDate(d: Date) {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${d.getDate()} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
 }
-
 function startOfWeekMonday(d: Date) {
   const copy = new Date(d);
   const day = copy.getDay(); // Sun=0
@@ -29,11 +36,11 @@ function startOfWeekMonday(d: Date) {
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
-
 function iconBase(cls = "") {
   return `h-6 w-6 ${cls}`;
 }
 
+/* -------------------- Icons -------------------- */
 function CalendarIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -44,7 +51,6 @@ function CalendarIcon() {
     </svg>
   );
 }
-
 function BellIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -55,7 +61,6 @@ function BellIcon() {
     </svg>
   );
 }
-
 function HomeIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -63,7 +68,6 @@ function HomeIcon() {
     </svg>
   );
 }
-
 function ScheduleIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -71,7 +75,6 @@ function ScheduleIcon() {
     </svg>
   );
 }
-
 function ChatIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -79,7 +82,6 @@ function ChatIcon() {
     </svg>
   );
 }
-
 function WalletIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -90,7 +92,6 @@ function WalletIcon() {
     </svg>
   );
 }
-
 function UserIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -98,7 +99,43 @@ function UserIcon() {
     </svg>
   );
 }
-
+function ClipboardIcon() {
+  return (
+    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm6 2H9v2h6V4Zm4 4H5v12h14V8Z"
+      />
+    </svg>
+  );
+}
+function UsersIcon() {
+  return (
+    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M16 11a4 4 0 1 0-3.999-4A4 4 0 0 0 16 11ZM8 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8 2c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4ZM8 13c-.44 0-.92.03-1.43.1C4.03 13.4 2 14.44 2 17v3h5v-3.2c0-1.86.98-3.02 2.37-3.8A10.2 10.2 0 0 0 8 13Z"
+      />
+    </svg>
+  );
+}
+function DumbbellIcon() {
+  return (
+    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M3 10h2V8a2 2 0 0 1 2-2h1v12H7a2 2 0 0 1-2-2v-2H3v-4Zm16 0h2v4h-2v2a2 2 0 0 1-2 2h-1V6h1a2 2 0 0 1 2 2v2Zm-4 1H9v2h6v-2Z"
+      />
+    </svg>
+  );
+}
+function ChartIcon() {
+  return (
+    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M4 19h16v2H2V3h2v16Zm4-8h2v6H8v-6Zm5-4h2v10h-2V7Zm5 6h2v4h-2v-4Z" />
+    </svg>
+  );
+}
 function ChevronRight() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -107,6 +144,7 @@ function ChevronRight() {
   );
 }
 
+/* -------------------- UI Primitives -------------------- */
 function Card({
   title,
   subtitle,
@@ -134,13 +172,53 @@ function Card({
   );
 }
 
-export default function DashboardPage() {
-  const [tab, setTab] = useState<TabKey>("home");
+function Badge({ value, color = "orange" }: { value: number; color?: "orange" | "red" | "blue" }) {
+  const bg =
+    color === "red" ? "bg-red-500" : color === "blue" ? "bg-blue-500" : "bg-[#F37120]";
+  if (value <= 0) return null;
+  return (
+    <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full ${bg} text-white text-[11px] font-bold flex items-center justify-center`}>
+      {value > 99 ? "99+" : value}
+    </span>
+  );
+}
 
+/* -------------------- Main Page -------------------- */
+export default function DashboardPage() {
   const now = new Date();
   const userName = "John";
   const greeting = now.getHours() < 12 ? "Good Morning" : now.getHours() < 18 ? "Good Afternoon" : "Good Evening";
 
+  // Role switching
+  const [role, setRole] = useState<Role>("member");
+
+  // Active tab + animation direction
+  const [tab, setTab] = useState<TabKey>("home");
+  const [animDir, setAnimDir] = useState<"left" | "right">("right");
+
+  const setTabAnimated = (next: TabKey) => {
+    if (next === tab) return;
+
+    const orderMember: MemberTab[] = ["home", "schedule", "chat", "payments", "profile"];
+    const orderStaff: StaffTab[] = ["home", "attendance", "clients", "sessions", "sales"];
+
+    const order = role === "member" ? (orderMember as TabKey[]) : (orderStaff as TabKey[]);
+    const cur = order.indexOf(tab);
+    const nxt = order.indexOf(next);
+
+    setAnimDir(nxt >= cur ? "right" : "left");
+    setTab(next);
+  };
+
+  const onSwitchRole = (r: Role) => {
+    setRole(r);
+
+    // Keep UX consistent: reset to home on role change
+    setAnimDir("right");
+    setTab("home");
+  };
+
+  // Week data (Home UI)
   const monday = startOfWeekMonday(now);
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -155,7 +233,7 @@ export default function DashboardPage() {
     return js === 0 ? 6 : js - 1;
   })();
 
-  // Demo schedule + goals (swap later with real data)
+  // Demo schedule + goals
   const upcoming = useMemo(
     () => [
       { when: "Today • 6:00 PM", what: "Coach Session — Better Form", where: "Sikatuna" },
@@ -174,15 +252,22 @@ export default function DashboardPage() {
     5: { title: "Recovery", detail: "Light cardio + mobility" },
     6: { title: "Rest Day", detail: "Walk + stretch" },
   };
-
   const todayGoal = goalsByDay[todayIdxMon0] ?? { title: "Training", detail: "Stay consistent" };
 
-  // Fake weather for UI (replace with API later)
+  // Fake weather for UI
   const location = "Marikina";
   const tempC = 28;
 
+  // Counters (badges)
+  const unreadChat = 3;
+  const unpaidBalancePhp = 980;
+  const notifCount = 2;
+
+  // Staff sample counters
+  const attendancePending = 5; // check-ins pending
+  const salesLeads = 2;
+
   // Payments demo
-  const balancePhp = 980;
   const packageName = "24 Sessions (Staggered)";
   const sessionsLeft = 9;
 
@@ -195,10 +280,11 @@ export default function DashboardPage() {
     []
   );
 
-  // ----------- Pages (tab content) -----------
-  const HomeTab = (
+  /* -------------------- Tab Content -------------------- */
+
+  const MemberHome = (
     <div className="space-y-6">
-      {/* Top header (like your Image 1) */}
+      {/* Top header + role toggle */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-full bg-white/80 shadow-sm ring-1 ring-black/5 overflow-hidden flex items-center justify-center">
@@ -211,8 +297,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <RoleSwitch role={role} onChange={onSwitchRole} />
+
           <button
-            onClick={() => setTab("schedule")}
+            onClick={() => setTabAnimated("schedule")}
             className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
             aria-label="Open schedule"
           >
@@ -220,12 +308,12 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={() => setTab("chat")}
+            onClick={() => setTabAnimated("chat")}
             className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
             aria-label="Open notifications"
           >
             <BellIcon />
-            <span className="absolute right-4 top-4 h-2.5 w-2.5 rounded-full bg-red-500" />
+            <Badge value={notifCount} color="red" />
           </button>
         </div>
       </div>
@@ -285,7 +373,7 @@ export default function DashboardPage() {
             <div className="mt-2 text-white/85 text-xl">{todayGoal.detail}</div>
 
             <button
-              onClick={() => setTab("schedule")}
+              onClick={() => setTabAnimated("schedule")}
               className="mt-6 rounded-2xl bg-white/15 px-4 py-3 text-white/95 text-left flex items-center justify-between"
             >
               <span>View schedule</span>
@@ -295,23 +383,20 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick actions row (app-feel) */}
+      {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card
-          title="Quick Actions"
-          subtitle="Fast shortcuts for members"
-        >
+        <Card title="Quick Actions" subtitle="Fast shortcuts for members">
           <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTab("schedule")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
+            <button onClick={() => setTabAnimated("schedule")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
               Book Session
             </button>
-            <button onClick={() => setTab("payments")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+            <button onClick={() => setTabAnimated("payments")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
               Pay Balance
             </button>
-            <button onClick={() => setTab("chat")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+            <button onClick={() => setTabAnimated("chat")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
               Message Coach
             </button>
-            <button onClick={() => setTab("profile")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+            <button onClick={() => setTabAnimated("profile")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
               My Profile
             </button>
           </div>
@@ -329,7 +414,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-3">
               <span className="text-black/60">Balance</span>
-              <span className="font-semibold">₱{balancePhp}</span>
+              <span className="font-semibold">₱{unpaidBalancePhp}</span>
             </div>
           </div>
         </Card>
@@ -337,10 +422,9 @@ export default function DashboardPage() {
     </div>
   );
 
-  const ScheduleTab = (
+  const MemberSchedule = (
     <div className="space-y-6">
-      <div className="text-4xl font-extrabold">Schedule</div>
-
+      <HeaderRow title="Schedule" role={role} onRoleChange={onSwitchRole} />
       <Card title="Upcoming Sessions" subtitle="Your next trainings">
         <div className="space-y-3">
           {upcoming.map((x, idx) => (
@@ -351,38 +435,16 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-
         <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">
           Book a new session
         </button>
-        <div className="mt-2 text-sm text-black/45 text-center">
-          (Connect to your booking system later)
-        </div>
-      </Card>
-
-      <Card title="Workout Plan" subtitle="Suggested focus this week">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Better Form</div>
-            <div className="mt-1 font-semibold">Technique & coaching cues</div>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Better Function</div>
-            <div className="mt-1 font-semibold">Mobility & daily movement</div>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Better Fitness</div>
-            <div className="mt-1 font-semibold">Strength & conditioning</div>
-          </div>
-        </div>
       </Card>
     </div>
   );
 
-  const ChatTab = (
+  const MemberChat = (
     <div className="space-y-6">
-      <div className="text-4xl font-extrabold">Chat</div>
-
+      <HeaderRow title="Chat" role={role} onRoleChange={onSwitchRole} />
       <Card title="Messages" subtitle="Coach support & updates">
         <div className="space-y-3">
           {threads.map((t, idx) => (
@@ -415,19 +477,15 @@ export default function DashboardPage() {
     </div>
   );
 
-  const PaymentsTab = (
+  const MemberPayments = (
     <div className="space-y-6">
-      <div className="text-4xl font-extrabold">Payments</div>
-
+      <HeaderRow title="Payments" role={role} onRoleChange={onSwitchRole} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Balance" subtitle="Amount due">
-          <div className="text-5xl font-extrabold">₱{balancePhp}</div>
+          <div className="text-5xl font-extrabold">₱{unpaidBalancePhp}</div>
           <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">
             Pay now
           </button>
-          <div className="mt-2 text-sm text-black/45 text-center">
-            (Hook up PayMongo/GCash/card later)
-          </div>
         </Card>
 
         <Card title="Package" subtitle="Your current plan">
@@ -439,84 +497,30 @@ export default function DashboardPage() {
             <div className="text-black/50">Sessions left</div>
             <div className="mt-1 text-lg font-semibold">{sessionsLeft}</div>
           </div>
-
           <button className="mt-5 w-full rounded-2xl bg-[#0b1220] py-4 font-semibold text-white">
             Buy more sessions
           </button>
         </Card>
       </div>
-
-      <Card title="History" subtitle="Recent transactions">
-        <div className="space-y-3">
-          {[
-            { date: "Jan 22", item: "24 Sessions Package", amt: "₱9,999" },
-            { date: "Jan 10", item: "Assessment Fee", amt: "₱499" },
-          ].map((p, idx) => (
-            <div key={idx} className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-              <div>
-                <div className="font-semibold">{p.item}</div>
-                <div className="text-black/50">{p.date}</div>
-              </div>
-              <div className="font-semibold">{p.amt}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 
-  const ProfileTab = (
+  const MemberProfile = (
     <div className="space-y-6">
-      <div className="text-4xl font-extrabold">Profile</div>
-
+      <HeaderRow title="Profile" role={role} onRoleChange={onSwitchRole} />
       <Card title="Member Info" subtitle="Your account">
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <span className="text-black/50">Name</span>
-            <span className="font-semibold">{userName}</span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <span className="text-black/50">Role</span>
-            <span className="font-semibold">Member</span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <span className="text-black/50">Home branch</span>
-            <span className="font-semibold">Sikatuna</span>
-          </div>
+          <RowItem label="Name" value={userName} />
+          <RowItem label="Role" value="Member" />
+          <RowItem label="Home branch" value="Sikatuna" />
         </div>
       </Card>
-
-      <Card title="Progress" subtitle="Quick view">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Streak</div>
-            <div className="mt-1 text-2xl font-extrabold">6</div>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Sessions this month</div>
-            <div className="mt-1 text-2xl font-extrabold">8</div>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-            <div className="text-black/50">Next goal</div>
-            <div className="mt-1 font-semibold">Better squat depth</div>
-          </div>
-        </div>
-      </Card>
-
       <Card title="Settings" subtitle="App preferences">
         <div className="space-y-3">
-          {[
-            { label: "Notifications", value: "On" },
-            { label: "Preferred Branch", value: "Sikatuna" },
-            { label: "Dark mode", value: "Auto" },
-          ].map((s, idx) => (
-            <div key={idx} className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-              <span className="font-semibold">{s.label}</span>
-              <span className="text-black/50">{s.value}</span>
-            </div>
-          ))}
+          <RowItem label="Notifications" value="On" />
+          <RowItem label="Preferred Branch" value="Sikatuna" />
+          <RowItem label="Dark mode" value="Auto" />
         </div>
-
         <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
           Log out
         </button>
@@ -524,65 +528,351 @@ export default function DashboardPage() {
     </div>
   );
 
-  const content = tab === "home" ? HomeTab : tab === "schedule" ? ScheduleTab : tab === "chat" ? ChatTab : tab === "payments" ? PaymentsTab : ProfileTab;
+  // ---------- STAFF PAGES ----------
+  const StaffHome = (
+    <div className="space-y-6">
+      <HeaderRow title="Staff Dashboard" role={role} onRoleChange={onSwitchRole} />
 
-  // ----------- Layout -----------
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card title="Today" subtitle="Quick ops snapshot">
+          <div className="space-y-3">
+            <RowItem label="Pending check-ins" value={String(attendancePending)} />
+            <RowItem label="Sessions today" value="12" />
+            <RowItem label="New leads" value={String(salesLeads)} />
+          </div>
+        </Card>
+
+        <Card title="Actions" subtitle="Fast shortcuts">
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => setTabAnimated("attendance")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
+              Check-in
+            </button>
+            <button onClick={() => setTabAnimated("clients")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+              Clients
+            </button>
+            <button onClick={() => setTabAnimated("sessions")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+              Sessions
+            </button>
+            <button onClick={() => setTabAnimated("sales")} className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
+              Sales
+            </button>
+          </div>
+        </Card>
+
+        <Card title="Notes" subtitle="What to prioritize">
+          <div className="text-black/55 leading-relaxed">
+            • Confirm assessments<br />
+            • Follow up inactive members<br />
+            • Update session deductions<br />
+            • Close leads for packages
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const StaffAttendance = (
+    <div className="space-y-6">
+      <HeaderRow title="Attendance" role={role} onRoleChange={onSwitchRole} />
+      <Card title="Quick Check-in" subtitle="Kiosk-friendly flow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Scan QR</button>
+          <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Search Member</button>
+        </div>
+        <div className="mt-5 space-y-3">
+          {[
+            { name: "Manny", status: "Arrived", time: "10:05 AM" },
+            { name: "Ria", status: "Arrived", time: "10:20 AM" },
+            { name: "Jed", status: "Booked", time: "11:00 AM" },
+          ].map((x, i) => (
+            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">{x.name}</div>
+                <div className="text-black/45">{x.time}</div>
+              </div>
+              <div className="text-black/60 font-semibold">{x.status}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+
+  const StaffClients = (
+    <div className="space-y-6">
+      <HeaderRow title="Clients" role={role} onRoleChange={onSwitchRole} />
+      <Card title="Member List" subtitle="Search + quick actions">
+        <div className="flex gap-2">
+          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search client…" />
+          <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Find</button>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {[
+            { name: "Sophia", plan: "24 Full", left: 6 },
+            { name: "Chich", plan: "24 Staggered", left: 4 },
+            { name: "Leo", plan: "48 Full", left: 19 },
+          ].map((x, i) => (
+            <button key={i} className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">{x.name}</div>
+                <div className="text-black/50">{x.plan} • {x.left} left</div>
+              </div>
+              <ChevronRight />
+            </button>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+
+  const StaffSessions = (
+    <div className="space-y-6">
+      <HeaderRow title="Sessions" role={role} onRoleChange={onSwitchRole} />
+      <Card title="Today’s Sessions" subtitle="Tap to mark complete">
+        <div className="space-y-3">
+          {[
+            { time: "6:00 PM", who: "Manny", type: "Coached Strength" },
+            { time: "7:00 PM", who: "Ria", type: "Mobility / Function" },
+            { time: "8:00 PM", who: "Jed", type: "Better Form" },
+          ].map((x, i) => (
+            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
+              <div>
+                <div className="text-black/50">{x.time}</div>
+                <div className="font-semibold">{x.who}</div>
+                <div className="text-black/50">{x.type}</div>
+              </div>
+              <button className="rounded-2xl bg-[#F37120] text-white px-4 py-3 font-semibold">
+                Complete
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+
+  const StaffSales = (
+    <div className="space-y-6">
+      <HeaderRow title="Sales" role={role} onRoleChange={onSwitchRole} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card title="Leads" subtitle="Follow up today">
+          <div className="space-y-3">
+            {[
+              { name: "Victor", stage: "Assessment booked" },
+              { name: "Karen", stage: "Considering 24 Full" },
+            ].map((x, i) => (
+              <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">{x.name}</div>
+                  <div className="text-black/50">{x.stage}</div>
+                </div>
+                <button className="rounded-2xl bg-[#0b1220] text-white px-4 py-3 font-semibold">Message</button>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card title="Revenue Snapshot" subtitle="This week">
+          <div className="space-y-3">
+            <RowItem label="Packages sold" value="7" />
+            <RowItem label="Assessments" value="14" />
+            <RowItem label="Projected revenue" value="₱72,000" />
+          </div>
+          <button className="mt-5 w-full rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
+            Create invoice
+          </button>
+        </Card>
+      </div>
+    </div>
+  );
+
+  // Choose content
+  const content = (() => {
+    if (role === "member") {
+      if (tab === "home") return MemberHome;
+      if (tab === "schedule") return MemberSchedule;
+      if (tab === "chat") return MemberChat;
+      if (tab === "payments") return MemberPayments;
+      return MemberProfile;
+    } else {
+      if (tab === "home") return StaffHome;
+      if (tab === "attendance") return StaffAttendance;
+      if (tab === "clients") return StaffClients;
+      if (tab === "sessions") return StaffSessions;
+      return StaffSales;
+    }
+  })();
+
+  // Nav config (role-based)
+  const navItems = role === "member"
+    ? ([
+        { key: "home", label: "Home", icon: <HomeIcon /> },
+        { key: "schedule", label: "Schedule", icon: <ScheduleIcon /> },
+        { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
+        { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
+        { key: "profile", label: "Profile", icon: <UserIcon /> },
+      ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
+    : ([
+        { key: "home", label: "Home", icon: <HomeIcon /> },
+        { key: "attendance", label: "Attend", icon: <ClipboardIcon />, badge: attendancePending, badgeColor: "blue" as const },
+        { key: "clients", label: "Clients", icon: <UsersIcon /> },
+        { key: "sessions", label: "Sessions", icon: <DumbbellIcon /> },
+        { key: "sales", label: "Sales", icon: <ChartIcon />, badge: salesLeads, badgeColor: "orange" as const },
+      ] as { key: StaffTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[]);
+
   return (
     <div className="min-h-screen bg-[#eef3fb] text-[#0b1220]">
       {/* main */}
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-6 pb-28">{content}</div>
+      <div className="mx-auto w-full max-w-[1100px] px-5 py-6 pb-28">
+        {/* Animated content wrapper */}
+        <div key={`${role}-${tab}`} className={`bf-pane ${animDir === "right" ? "bf-in-right" : "bf-in-left"}`}>
+          {content}
+        </div>
+      </div>
 
-      {/* bottom nav (app feel) */}
+      {/* bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1100px] px-5 pb-4">
           <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 px-4 py-3">
             <div className="grid grid-cols-5 gap-2">
-              <NavItem active={tab === "home"} label="Home" onClick={() => setTab("home")}>
-                <HomeIcon />
-              </NavItem>
-              <NavItem active={tab === "schedule"} label="Schedule" onClick={() => setTab("schedule")}>
-                <ScheduleIcon />
-              </NavItem>
-              <NavItem active={tab === "chat"} label="Chat" onClick={() => setTab("chat")}>
-                <ChatIcon />
-              </NavItem>
-              <NavItem active={tab === "payments"} label="Pay" onClick={() => setTab("payments")}>
-                <WalletIcon />
-              </NavItem>
-              <NavItem active={tab === "profile"} label="Profile" onClick={() => setTab("profile")}>
-                <UserIcon />
-              </NavItem>
+              {navItems.map((item) => (
+                <NavItem
+                  key={item.key}
+                  active={tab === item.key}
+                  label={item.label}
+                  onClick={() => setTabAnimated(item.key)}
+                  badge={item.badge}
+                  badgeColor={item.badgeColor}
+                >
+                  {item.icon}
+                </NavItem>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Animations */}
+      <style jsx global>{`
+        .bf-pane {
+          opacity: 0;
+          animation-duration: 260ms;
+          animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+          animation-fill-mode: forwards;
+          will-change: transform, opacity;
+        }
+        .bf-in-right {
+          animation-name: bfSlideInRight;
+        }
+        .bf-in-left {
+          animation-name: bfSlideInLeft;
+        }
+        @keyframes bfSlideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes bfSlideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
+/* -------------------- Helpers -------------------- */
 function NavItem({
   active,
   label,
   onClick,
+  badge = 0,
+  badgeColor = "orange",
   children,
 }: {
   active: boolean;
   label: string;
   onClick: () => void;
+  badge?: number;
+  badgeColor?: "orange" | "red" | "blue";
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
       className={[
-        "flex flex-col items-center justify-center gap-1 rounded-2xl py-2 transition",
+        "relative flex flex-col items-center justify-center gap-1 rounded-2xl py-2 transition",
         active ? "bg-[#F37120] text-white shadow-sm" : "text-black/55 hover:bg-black/5",
       ].join(" ")}
     >
       <div className={active ? "text-white" : "text-black/60"}>{children}</div>
+      <Badge value={badge ?? 0} color={badgeColor} />
       <div className={["text-xs font-semibold", active ? "text-white" : "text-black/45"].join(" ")}>
         {label}
       </div>
     </button>
+  );
+}
+
+function RowItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
+      <span className="text-black/50">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
+
+function HeaderRow({
+  title,
+  role,
+  onRoleChange,
+}: {
+  title: string;
+  role: Role;
+  onRoleChange: (r: Role) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="text-4xl font-extrabold">{title}</div>
+      <RoleSwitch role={role} onChange={onRoleChange} />
+    </div>
+  );
+}
+
+function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
+  return (
+    <div className="rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1 flex items-center">
+      <button
+        onClick={() => onChange("member")}
+        className={[
+          "px-3 py-2 rounded-full text-sm font-semibold transition",
+          role === "member" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
+        ].join(" ")}
+      >
+        Member
+      </button>
+      <button
+        onClick={() => onChange("staff")}
+        className={[
+          "px-3 py-2 rounded-full text-sm font-semibold transition",
+          role === "staff" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
+        ].join(" ")}
+      >
+        Staff
+      </button>
+    </div>
   );
 }
