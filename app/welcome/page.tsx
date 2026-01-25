@@ -10,6 +10,13 @@ type Slide = {
   image?: string;
   video?: string;
   cta?: boolean;
+
+  /**
+   * Focus point for cropping images using object-position.
+   * Format: "x% y%" (e.g. "60% 35%")
+   * This is what keeps the orange-border "safe area" visible on mobile.
+   */
+  focus?: string;
 };
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
@@ -29,29 +36,40 @@ export default function WelcomePage() {
         title: "EVERY SESSION BUILDS YOUR STORY.",
         subtitle: "Better Form | Better Function | Better Fitness.",
       },
+
+      // ✅ 4 IMAGE SLIDES WITH SAFE FOCUS (orange border focal area)
+      // Replace filenames with your real ones if needed
       {
         key: "better-form",
         title: "Better Form",
         subtitle: "Train smarter with coach-guided movement.",
         image: "/onboarding/better-form.jpg",
+        // deadlift scene — keep lifter + bar, reduce ceiling crop
+        focus: "60% 35%",
       },
       {
         key: "better-function",
         title: "Better Function",
         subtitle: "Move better in everyday life, not just in the gym.",
         image: "/onboarding/better-function.jpg",
+        // single-leg squat scene — keep coach + client interaction
+        focus: "55% 45%",
       },
       {
         key: "better-fitness",
         title: "Better Fitness",
         subtitle: "Build strength, confidence, and consistency.",
         image: "/onboarding/better-fitness.jpg",
+        // older client squat — keep face + bar visible
+        focus: "50% 40%",
       },
       {
         key: "free-assessment",
         title: "Free Assessment",
         subtitle: "Your journey starts here. Let’s get moving.",
         image: "/onboarding/cta.jpg",
+        // clipboard consult — preserve the interaction (right side)
+        focus: "65% 45%",
         cta: true,
       },
     ],
@@ -96,10 +114,7 @@ export default function WelcomePage() {
   const isVideoSlide = slides[index]?.key === "welcome-video";
 
   const clampGoTo = (i: number) => {
-    setIndex((prev) => {
-      const next = Math.max(0, Math.min(slides.length - 1, i));
-      return next;
-    });
+    setIndex(() => Math.max(0, Math.min(slides.length - 1, i)));
   };
 
   const next = () => {
@@ -220,7 +235,9 @@ export default function WelcomePage() {
       <div
         className={[
           "relative w-full h-full bg-black overflow-hidden",
-          isVideoSlide ? "md:rounded-none md:max-w-none" : "md:max-w-[430px] md:mx-auto md:rounded-2xl",
+          isVideoSlide
+            ? "md:rounded-none md:max-w-none"
+            : "md:max-w-[430px] md:mx-auto md:rounded-2xl",
         ].join(" ")}
       >
         {/* Slide track */}
@@ -232,7 +249,10 @@ export default function WelcomePage() {
             const active = i === index;
 
             return (
-              <div key={slide.key} className="relative w-full h-full flex-shrink-0">
+              <div
+                key={slide.key}
+                className="relative w-full h-full flex-shrink-0"
+              >
                 {/* Background media */}
                 {slide.video ? (
                   <>
@@ -255,6 +275,8 @@ export default function WelcomePage() {
                       alt={slide.title ?? "BearFitPH slide"}
                       fill
                       className="object-cover"
+                      // ✅ SAFE FOCUS: respects orange border focal area on mobile
+                      style={{ objectPosition: slide.focus ?? "50% 50%" }}
                       priority={i === 1}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
@@ -266,7 +288,9 @@ export default function WelcomePage() {
                   // VIDEO SLIDE LAYOUT: lower-left like your inspiration
                   <div className="absolute inset-0">
                     <div className="absolute left-6 bottom-20 right-6 max-w-[520px] text-white">
-                      <div className={`bf-anim ${active ? "bf-anim--in" : ""}`}>
+                      <div
+                        className={`bf-anim ${active ? "bf-anim--in" : ""}`}
+                      >
                         <div className="text-[#F37120] text-sm font-semibold tracking-wide mb-3">
                           Welcome to BearFitPH
                         </div>
@@ -290,7 +314,6 @@ export default function WelcomePage() {
                           </span>
                         </button>
 
-                        {/* Countdown label */}
                         <div className="mt-3 text-xs text-white/60">
                           Auto-advancing in {countdown}s
                         </div>
@@ -380,18 +403,28 @@ export default function WelcomePage() {
               <div className="mt-4 space-y-5 text-white/85 text-sm leading-relaxed">
                 <div>
                   <div className="font-semibold text-white">
-                    1. What can I expect from BearFit and what services do you offer?
+                    1. What can I expect from BearFit and what services do you
+                    offer?
                   </div>
                   <ul className="mt-2 list-disc pl-5 space-y-1">
-                    <li>BearFit is all about science-based personalized training.</li>
-                    <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
-                    <li>We offer both in-house and online workout packages so you can train wherever works best for you.</li>
+                    <li>
+                      BearFit is all about science-based personalized training.
+                    </li>
+                    <li>
+                      You&apos;ll get exclusive workout sessions with our team
+                      of certified coaches.
+                    </li>
+                    <li>
+                      We offer both in-house and online workout packages so you
+                      can train wherever works best for you.
+                    </li>
                   </ul>
                 </div>
 
                 <div>
                   <div className="font-semibold text-white">
-                    2. How much are the monthly fees and are there any hidden costs?
+                    2. How much are the monthly fees and are there any hidden
+                    costs?
                   </div>
                   <ul className="mt-2 list-disc pl-5 space-y-1">
                     <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
@@ -401,12 +434,22 @@ export default function WelcomePage() {
 
                 <div>
                   <div className="font-semibold text-white">
-                    3. What do I actually get when I sign up for a workout package?
+                    3. What do I actually get when I sign up for a workout
+                    package?
                   </div>
                   <ul className="mt-2 list-disc pl-5 space-y-1">
-                    <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
-                    <li>You’ll receive a personalized workout program tailored specifically to you.</li>
-                    <li>Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.</li>
+                    <li>
+                      Each package is fully inclusive, giving you complete
+                      access to all gym equipment and amenities.
+                    </li>
+                    <li>
+                      You’ll receive a personalized workout program tailored
+                      specifically to you.
+                    </li>
+                    <li>
+                      Your sessions are exclusive and by-appointment-only, so
+                      you always have dedicated time with your assigned coach.
+                    </li>
                   </ul>
                 </div>
 
@@ -418,16 +461,22 @@ export default function WelcomePage() {
                     <li>
                       We have two spots in Quezon City:
                       <div className="mt-1">
-                        <span className="font-semibold">Sikatuna Village:</span> 48 Malingap Street
+                        <span className="font-semibold">Sikatuna Village:</span>{" "}
+                        48 Malingap Street
                       </div>
                       <div>
-                        <span className="font-semibold">E. Rodriguez:</span> G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
+                        <span className="font-semibold">E. Rodriguez:</span>{" "}
+                        G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
                       </div>
                     </li>
                     <li>
-                      We also have a location in <span className="font-semibold">Cainta</span>:
+                      We also have a location in{" "}
+                      <span className="font-semibold">Cainta</span>:
                       <div className="mt-1">
-                        <span className="font-semibold">Primark Town Center Cainta:</span> 271 Ortigas Ave Ext, Cainta, Rizal
+                        <span className="font-semibold">
+                          Primark Town Center Cainta:
+                        </span>{" "}
+                        271 Ortigas Ave Ext, Cainta, Rizal
                       </div>
                     </li>
                   </ul>
@@ -440,7 +489,11 @@ export default function WelcomePage() {
                   <ul className="mt-2 list-disc pl-5 space-y-1">
                     <li>We are open Monday through Saturday to fit your schedule.</li>
                     <li>Mon–Fri: 7 AM to 10 PM • Sat: 7 AM to 2 PM</li>
-                    <li><span className="font-semibold">Pro tip:</span> It’s best to schedule your sessions in advance to make sure you get the time slot you want!</li>
+                    <li>
+                      <span className="font-semibold">Pro tip:</span> It’s best
+                      to schedule your sessions in advance to make sure you get
+                      the time slot you want!
+                    </li>
                   </ul>
                 </div>
 
@@ -449,9 +502,18 @@ export default function WelcomePage() {
                     6. What kind of equipment and extra perks do you have?
                   </div>
                   <ul className="mt-2 list-disc pl-5 space-y-1">
-                    <li>We’re well-equipped with strength and resistance training gear, plus Muay Thai and boxing equipment.</li>
-                    <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
-                    <li>For your comfort: shower rooms, lounge area, bicycle rack, drinking water, free WiFi.</li>
+                    <li>
+                      We’re well-equipped with strength and resistance training
+                      gear, plus Muay Thai and boxing equipment.
+                    </li>
+                    <li>
+                      If you want the full list of what’s on the floor, feel
+                      free to send us a DM!
+                    </li>
+                    <li>
+                      For your comfort: shower rooms, lounge area, bicycle rack,
+                      drinking water, free WiFi.
+                    </li>
                   </ul>
                 </div>
               </div>
