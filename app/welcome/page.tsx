@@ -43,7 +43,7 @@ export default function WelcomePage() {
         key: "better-form",
         title: "Better Form",
         subtitle: "Train smarter with coach-guided movement.",
-        image: "/onboarding/better-form.jpg",
+        image: "/onboarding/better-form1.jpg",
         // deadlift scene — keep lifter + bar, reduce ceiling crop
         focus: "60% 35%",
       },
@@ -51,7 +51,7 @@ export default function WelcomePage() {
         key: "better-function",
         title: "Better Function",
         subtitle: "Move better in everyday life, not just in the gym.",
-        image: "/onboarding/better-function.jpg",
+        image: "/onboarding/better-function1.jpg",
         // single-leg squat scene — keep coach + client interaction
         focus: "55% 45%",
       },
@@ -59,7 +59,7 @@ export default function WelcomePage() {
         key: "better-fitness",
         title: "Better Fitness",
         subtitle: "Build strength, confidence, and consistency.",
-        image: "/onboarding/better-fitness.jpg",
+        image: "/onboarding/better-fintness1.jpg",
         // older client squat — keep face + bar visible
         focus: "50% 40%",
       },
@@ -67,7 +67,7 @@ export default function WelcomePage() {
         key: "free-assessment",
         title: "Free Assessment",
         subtitle: "Your journey starts here. Let’s get moving.",
-        image: "/onboarding/cta.jpg",
+        image: "/onboarding/free-assesment1.jpg",
         // clipboard consult — preserve the interaction (right side)
         focus: "65% 45%",
         cta: true,
