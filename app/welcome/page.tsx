@@ -8,40 +8,49 @@ export default function WelcomeSplashPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // enables simple fade/slide in on load
     const t = setTimeout(() => setMounted(true), 30);
     return () => clearTimeout(t);
   }, []);
 
-  const goNext = () => {
-    router.push("/onboarding");
-  };
+  const goNext = () => router.push("/onboarding");
 
   return (
     <div className="fixed inset-0 bg-black flex justify-center items-center">
-      {/* Desktop frame (same pattern as your onboarding) */}
+      {/* Desktop frame (phone-like) */}
       <div className="relative w-full h-full bg-black overflow-hidden md:max-w-[430px] md:mx-auto md:rounded-2xl">
-        {/* Background image (optional): replace url or remove this block */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("/welcome/welcome-bg.jpg")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
+        {/* ✅ VIDEO BACKGROUND */}
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/welcome/welcome-bg.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
         />
 
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30" />
+        {/* Optional: slight darkening for readability */}
+        <div className="absolute inset-0 bg-black/35" />
 
-        {/* Text stack */}
-        <div className="absolute inset-x-0 top-0 bottom-28 px-6 flex items-center">
+        {/* Bottom gradient like the sample (stronger at bottom) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+        {/* ✅ Lower-left headline block */}
+        <div className="absolute inset-x-0 bottom-28 px-6">
           <div
             className={[
-              "w-full text-center text-white transition-all duration-700 ease-out",
+              "max-w-[320px] text-left text-white transition-all duration-700 ease-out",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
             ].join(" ")}
           >
+            {/* Small orange label */}
+            <div className="mb-3">
+              <span className="inline-flex items-center rounded-full bg-[#F37120]/20 px-3 py-1 text-xs font-semibold text-[#F37120]">
+                Welcome to BearFitPH
+              </span>
+            </div>
+
+            {/* Big headline (lower-left like the reference) */}
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
               EVERY SESSION
               <br />
@@ -50,7 +59,8 @@ export default function WelcomeSplashPage() {
               STORY.
             </h1>
 
-            <p className="mt-4 text-white/85 text-base sm:text-lg">
+            {/* Subtext / tagline */}
+            <p className="mt-3 text-white/85 text-sm sm:text-base">
               <span className="font-semibold italic">
                 Better Form | Better Function | Better Fitness.
               </span>
@@ -58,18 +68,18 @@ export default function WelcomeSplashPage() {
           </div>
         </div>
 
-        {/* Bottom orange bar button */}
+        {/* ✅ Orange “next step” bar button (bottom, like the sample) */}
         <div className="absolute inset-x-0 bottom-0 p-6">
           <button
             onClick={goNext}
-            className="w-full rounded-2xl bg-[#F37120] text-black font-semibold py-4 text-lg shadow-lg active:scale-[0.99] transition"
-            aria-label="Welcome to BearFitPH - Continue"
+            className="w-full rounded-2xl bg-[#F37120] text-black font-semibold py-4 text-lg shadow-lg active:scale-[0.99] transition flex items-center justify-between px-6"
+            aria-label="Continue to onboarding"
           >
-            Welcome to BearFitPH
+            <span>Continue</span>
+            <span className="text-black/80">›</span>
           </button>
 
-          {/* optional tiny hint */}
-          <p className="mt-3 text-center text-xs text-white/55">
+          <p className="mt-3 text-left text-xs text-white/55">
             Tap to continue
           </p>
         </div>
