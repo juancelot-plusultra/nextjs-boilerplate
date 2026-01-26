@@ -55,7 +55,7 @@ export default function WelcomePage() {
         key: "free-assessment",
         title: "Free Assessment",
         subtitle: "Your journey starts here. Let’s get moving.",
-        image: "/onboarding/free-assesment.jpg",
+        image: "/onboarding/free-assesment1.jpg",
         cta: true,
       },
     ],
