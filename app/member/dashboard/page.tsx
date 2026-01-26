@@ -8,11 +8,17 @@ import React, { useMemo, useState } from "react";
  * - Badge counters (chat, unpaid, notifications)
  * - Role switching: Member / Staff / Admin(Owner) with different nav items
  * - Member Schedule includes a simple week calendar grid
+ *
+ * ✅ Enhancement added:
+ * - Announcements (Option A):
+ *   - Home preview card (latest items)
+ *   - Bell opens Announcements screen (not chat)
+ *   - Bell badge shows unread announcements count
  */
 
 type Role = "member" | "staff" | "admin";
 
-type MemberTab = "home" | "schedule" | "chat" | "payments" | "profile";
+type MemberTab = "home" | "schedule" | "chat" | "announcements" | "payments" | "profile";
 type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
 type AdminTab = "home" | "overview" | "clients" | "sales" | "settings";
 
@@ -226,7 +232,7 @@ export default function DashboardPage() {
   const setTabAnimated = (next: TabKey) => {
     if (next === tab) return;
 
-    const orderMember: MemberTab[] = ["home", "schedule", "chat", "payments", "profile"];
+    const orderMember: MemberTab[] = ["home", "schedule", "chat", "announcements", "payments", "profile"];
     const orderStaff: StaffTab[] = ["home", "attendance", "clients", "sessions", "sales"];
     const orderAdmin: AdminTab[] = ["home", "overview", "clients", "sales", "settings"];
 
@@ -293,10 +299,22 @@ export default function DashboardPage() {
     return d;
   }, [now]);
 
+  // ✅ Announcements demo (UI only)
+  const announcements = useMemo(
+    () => [
+      { title: "Cainta branch update", body: "Saturday hours are now 7AM–2PM.", date: "Today", unread: true },
+      { title: "New class", body: "Mobility — Better Function starts this Wednesday 7PM.", date: "Jan 29", unread: true },
+      { title: "Reminder", body: "Please arrive 10 minutes early for coached sessions.", date: "Jan 25", unread: false },
+      { title: "Promo", body: "Bring a friend this week and get 1 free session add-on.", date: "Jan 23", unread: false },
+    ],
+    []
+  );
+  const unreadAnnouncements = announcements.filter((a) => a.unread).length;
+
   // Counters (badges)
   const unreadChat = 3;
   const unpaidBalancePhp = 980;
-  const notifCount = 2;
+  const notifCount = unreadAnnouncements; // ✅ bell badge now reflects announcements
 
   // Staff counters
   const attendancePending = 5;
@@ -346,10 +364,11 @@ export default function DashboardPage() {
             <CalendarIcon />
           </button>
 
+          {/* ✅ Bell now opens Announcements */}
           <button
-            onClick={() => setTabAnimated("chat")}
+            onClick={() => setTabAnimated("announcements")}
             className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-            aria-label="Open notifications"
+            aria-label="Open announcements"
           >
             <BellIcon />
             <Badge value={notifCount} color="red" />
@@ -387,7 +406,6 @@ export default function DashboardPage() {
           })}
         </div>
       </Card>
-
 
       {/* Upcoming class card (like your reference UI) */}
       <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
@@ -429,6 +447,38 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ✅ Announcements preview (Home) */}
+      <Card
+        title="Announcements"
+        subtitle="Gym updates & reminders"
+        right={
+          unreadAnnouncements > 0 ? (
+            <span className="rounded-full bg-[#F37120] text-white px-3 py-1 text-sm font-bold">{unreadAnnouncements} new</span>
+          ) : null
+        }
+      >
+        <div className="space-y-3">
+          {announcements.slice(0, 3).map((a, i) => (
+            <button
+              key={i}
+              onClick={() => setTabAnimated("announcements")}
+              className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="font-semibold">
+                  {a.title} {a.unread ? <span className="ml-2 text-[#F37120]">•</span> : null}
+                </div>
+                <div className="text-black/40 text-sm">{a.date}</div>
+              </div>
+              <div className="mt-1 text-black/55">{a.body}</div>
+            </button>
+          ))}
+        </div>
+
+        <button onClick={() => setTabAnimated("announcements")} className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+          View all announcements
+        </button>
+      </Card>
 
       {/* Goals activity */}
       <div>
@@ -559,6 +609,44 @@ export default function DashboardPage() {
             <input className="flex-1 rounded-2xl bg-[#eef3fb] px-4 py-3 outline-none ring-1 ring-black/5" placeholder="Type here…" />
             <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Send</button>
           </div>
+        </div>
+      </Card>
+    </div>
+  );
+
+  // ✅ Announcements screen (Member)
+  const MemberAnnouncements = (
+    <div className="space-y-6">
+      <HeaderRow title="Announcements" role={role} onRoleChange={onSwitchRole} />
+
+      <Card
+        title="Latest Updates"
+        subtitle="Gym news, promos, reminders"
+        right={
+          unreadAnnouncements > 0 ? (
+            <span className="rounded-full bg-red-500 text-white px-3 py-1 text-sm font-bold">{unreadAnnouncements} unread</span>
+          ) : (
+            <span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All caught up</span>
+          )
+        }
+      >
+        <div className="space-y-3">
+          {announcements.map((a, i) => (
+            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="font-semibold">
+                  {a.title} {a.unread ? <span className="ml-2 text-[#F37120]">•</span> : null}
+                </div>
+                <div className="text-black/40 text-sm">{a.date}</div>
+              </div>
+              <div className="mt-1 text-black/55">{a.body}</div>
+
+              <div className="mt-3 flex gap-2">
+                <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Mark as read</button>
+                <button className="rounded-xl bg-[#F37120] px-3 py-2 font-semibold text-white">Acknowledge</button>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
     </div>
@@ -945,6 +1033,7 @@ export default function DashboardPage() {
       if (tab === "home") return MemberHome;
       if (tab === "schedule") return MemberSchedule;
       if (tab === "chat") return MemberChat;
+      if (tab === "announcements") return MemberAnnouncements;
       if (tab === "payments") return MemberPayments;
       return MemberProfile;
     }
@@ -964,6 +1053,7 @@ export default function DashboardPage() {
   })();
 
   // Nav config (role-based)
+  // NOTE: We keep bottom nav at 5 items (Announcements is accessed via Bell + Home preview)
   const navItems =
     role === "member"
       ? ([
@@ -972,7 +1062,7 @@ export default function DashboardPage() {
           { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
           { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
           { key: "profile", label: "Profile", icon: <UserIcon /> },
-        ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
+        ] as { key: Exclude<MemberTab, "announcements">; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
       : role === "staff"
       ? ([
           { key: "home", label: "Home", icon: <HomeIcon /> },
@@ -1009,7 +1099,7 @@ export default function DashboardPage() {
                   key={item.key}
                   active={tab === item.key}
                   label={item.label}
-                  onClick={() => setTabAnimated(item.key)}
+                  onClick={() => setTabAnimated(item.key as TabKey)}
                   badge={item.badge}
                   badgeColor={item.badgeColor}
                 >
