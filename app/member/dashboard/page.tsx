@@ -271,6 +271,24 @@ export default function DashboardPage() {
     []
   );
 
+  const homeUpcoming = useMemo(
+    () => [
+      { title: "Coach Session — Better Form", location: "Sikatuna", time: "Today • 6:00 PM", left: "Starts in 2h 10m" },
+      { title: "Strength — Better Fitness", location: "E. Rodriguez", time: "Wed • 7:00 PM", left: "In 2 days" },
+      { title: "Mobility — Better Function", location: "Cainta", time: "Sat • 9:00 AM", left: "In 5 days" },
+    ],
+    []
+  );
+
+  const announcements = useMemo(
+    () => [
+      { tag: "Promo", title: "Free assessment this week", body: "Book any session and get a quick posture check." },
+      { tag: "Update", title: "New branch hours", body: "E. Rodriguez now open until 10 PM." },
+    ],
+    []
+  );
+
+
   const goalsByDay: Record<number, { title: string; detail: string }> = {
     0: { title: "Weights Training", detail: "Lower body + core" },
     1: { title: "Mobility + Form", detail: "Technique & movement quality" },
@@ -290,191 +308,191 @@ export default function DashboardPage() {
     const d = new Date(now);
     d.setHours(18, 0, 0, 0); // 6:00 PM today
     if (d.getTime() < now.getTime()) d.setDate(d.getDate() + 1);
-    return d;
-  }, [now]);
-
-  // Counters (badges)
-  const unreadChat = 3;
-  const unpaidBalancePhp = 980;
-  const notifCount = 2;
-
-  // Staff counters
-  const attendancePending = 5;
-  const salesLeads = 2;
-
-  // Admin counters
-  const unpaidInvoices = 7;
-  const adminNotif = 4;
-
-  // Payments demo
-  const packageName = "24 Sessions (Staggered)";
-  const sessionsLeft = 9;
-
-  // Chat demo
-  const threads = useMemo(
-    () => [
-      { name: "Coach JP", last: "Send me your availability for this week.", time: "2h" },
-      { name: "BearFit Support", last: "Your assessment is confirmed. See you!", time: "1d" },
-    ],
-    []
-  );
-
-  /* -------------------- Tab Content -------------------- */
-
-  const MemberHome = (
+    return d;const MemberHome = (
     <div className="space-y-6">
-      {/* Top header + role toggle */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-white/80 shadow-sm ring-1 ring-black/5 overflow-hidden flex items-center justify-center">
-            <span className="text-sm font-semibold text-black/60">JP</span>
+      {/* App header */}
+      <div className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-4 bg-[#eef3fb]/80 backdrop-blur">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 flex items-center justify-center">
+              <span className="text-sm font-semibold text-black/60">JP</span>
+            </div>
+            <div>
+              <div className="text-black/45 text-sm">{greeting}</div>
+              <div className="text-2xl font-extrabold tracking-tight">Hi, {userName}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-semibold">{userName}</div>
-            <div className="text-black/45">{greeting}</div>
+
+          <div className="flex items-center gap-2">
+            <RoleSwitch role={role} onChange={onSwitchRole} />
+            <button
+              onClick={() => setTabAnimated("schedule")}
+              className="relative h-12 w-12 rounded-2xl bg-white/80 shadow-sm ring-1 ring-black/5 flex items-center justify-center"
+              aria-label="Open schedule"
+            >
+              <CalendarIcon />
+            </button>
+            <button
+              onClick={() => setTabAnimated("chat")}
+              className="relative h-12 w-12 rounded-2xl bg-white/80 shadow-sm ring-1 ring-black/5 flex items-center justify-center"
+              aria-label="Open notifications"
+            >
+              <BellIcon />
+              <Badge value={notifCount} color="red" />
+            </button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <RoleSwitch role={role} onChange={onSwitchRole} />
-
-          <button
-            onClick={() => setTabAnimated("schedule")}
-            className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-            aria-label="Open schedule"
-          >
-            <CalendarIcon />
-          </button>
-
-          <button
-            onClick={() => setTabAnimated("chat")}
-            className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-            aria-label="Open notifications"
-          >
-            <BellIcon />
-            <Badge value={notifCount} color="red" />
-          </button>
         </div>
       </div>
 
-      {/* Big Welcome */}
+      {/* Announcements (app-style horizontal cards) */}
       <div>
-        <div className="text-black/30">Hello, {userName}</div>
-        <div className="mt-1 text-6xl font-extrabold tracking-tight">Welcome Back</div>
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-extrabold">Announcements</div>
+          <button className="text-sm font-semibold text-black/50 hover:text-black/70">View all</button>
+        </div>
+
+        <div className="mt-3 -mx-1 px-1 flex gap-3 overflow-x-auto pb-2">
+          {announcements.map((a, i) => (
+            <div
+              key={i}
+              className="min-w-[260px] rounded-3xl bg-white shadow-sm ring-1 ring-black/5 p-5"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold tracking-wide uppercase text-[#F37120]">{a.tag}</span>
+                <span className="text-xs text-black/40">{formatDate(now)}</span>
+              </div>
+              <div className="mt-2 text-lg font-extrabold">{a.title}</div>
+              <div className="mt-1 text-black/55">{a.body}</div>
+
+              <button className="mt-4 w-full rounded-2xl bg-[#0b1220] text-white py-3 font-semibold">
+                Open
+              </button>
+            </div>
+          ))}
+
+          {/* visual filler card */}
+          <div className="min-w-[260px] rounded-3xl bg-[#F37120] shadow-sm ring-1 ring-black/5 p-5 text-white">
+            <div className="text-white/80 text-xs font-bold tracking-wide uppercase">Tip</div>
+            <div className="mt-2 text-2xl font-extrabold">Better Form</div>
+            <div className="mt-1 text-white/85">Save 10 mins early to warm up and move better.</div>
+            <button className="mt-4 w-full rounded-2xl bg-white/15 py-3 font-semibold">
+              Got it
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Week strip */}
-      <Card>
+      {/* Calendar strip */}
+      <Card title="This Week" subtitle="Your streak & schedule at a glance">
         <div className="grid grid-cols-7 gap-2 text-center">
           {weekDays.map((d, i) => {
             const isToday = i === todayIdxMon0;
             return (
-              <div key={i} className="flex flex-col items-center justify-center gap-2">
-                <div className="text-black/40 text-lg">{dayLabel(i)}</div>
-
-                <div
-                  className={[
-                    "h-14 w-14 rounded-full flex items-center justify-center text-xl font-semibold",
-                    isToday ? "bg-[#6ea8ff] text-white shadow-md" : "text-black/70",
-                  ].join(" ")}
-                >
-                  {d.getDate()}
-                </div>
-
-                <div className={["h-2 w-2 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-transparent"].join(" ")} />
-              </div>
+              <button
+                key={i}
+                onClick={() => setTabAnimated("schedule")}
+                className={[
+                  "rounded-2xl py-3 ring-1 ring-black/10 bg-white hover:bg-black/[0.02]",
+                  isToday ? "bg-[#0b1220] text-white ring-black/20" : "text-black",
+                ].join(" ")}
+              >
+                <div className={isToday ? "text-white/70 text-xs" : "text-black/45 text-xs"}>{dayLabel(i)}</div>
+                <div className="mt-1 text-lg font-extrabold">{d.getDate()}</div>
+                <div className={["mx-auto mt-2 h-1.5 w-8 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-black/10"].join(" ")} />
+              </button>
             );
           })}
         </div>
       </Card>
 
-
-      {/* Upcoming class card (like your reference UI) */}
-      <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
-        <div className="relative h-[420px] md:h-[360px]">
-          {/* background image */}
-          <img
-            src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1400&q=60"
-            alt="Workout class"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          {/* overlay */}
-          <div className="absolute inset-0 bg-black/25" />
-
-          <div className="relative h-full p-7 flex flex-col justify-between">
-            <div>
-              <div className="inline-flex items-center rounded-full bg-[#F37120] px-4 py-2 text-white text-sm font-bold shadow-sm">
-                Upcoming
-              </div>
-
-              <div className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow">
-                Coach Session
-              </div>
-
-              <div className="mt-2 text-white/85 text-lg drop-shadow">
-                {location} • Studio A • 6:00–7:00 PM
-              </div>
-            </div>
-
-            <div className="rounded-[28px] bg-white/20 backdrop-blur px-6 py-5 flex items-center justify-between gap-4">
-              <Countdown target={nextSessionAt} now={now} />
-              <button
-                onClick={() => setTabAnimated("schedule")}
-                className="rounded-full bg-white px-6 py-3 font-bold text-[#0b1220] shadow-sm"
-              >
-                Manage
-              </button>
-            </div>
+      {/* Upcoming block (like your screenshot) */}
+      <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xl font-extrabold">Upcoming</div>
+            <div className="mt-1 text-black/50">Your next sessions</div>
           </div>
+          <button
+            onClick={() => setTabAnimated("schedule")}
+            className="rounded-2xl bg-[#F37120] text-white px-4 py-3 font-semibold"
+          >
+            Add
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {homeUpcoming.map((x, i) => (
+            <div
+              key={i}
+              className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-start justify-between gap-4"
+            >
+              <div className="min-w-0">
+                <div className="text-black/50 text-sm">{x.time}</div>
+                <div className="mt-1 font-extrabold truncate">{x.title}</div>
+                <div className="mt-1 text-black/50 text-sm">{x.location}</div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <div className="text-xs font-semibold text-black/45">{x.left}</div>
+                <button className="rounded-2xl bg-black/5 hover:bg-black/10 px-4 py-2 font-semibold text-black/70">
+                  Manage
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-
-      {/* Goals activity */}
-      <div>
-        <div className="text-3xl font-bold">Goals Activity</div>
-
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-3xl bg-white shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
-            <div>
-              <div className="text-black/50 text-lg">{location}</div>
-              <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
-              <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
-            </div>
-
-            <div className="h-28 w-28 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
-              <div className="text-4xl">☁️</div>
-              <div className="mt-2 text-xl font-semibold">{tempC}°C</div>
-            </div>
+      {/* Goals + quick actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="rounded-3xl bg-white shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
+          <div>
+            <div className="text-black/50 text-lg">{location}</div>
+            <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
+            <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
           </div>
 
-          <div className="rounded-3xl bg-[#F37120] shadow-sm ring-1 ring-black/5 p-6 flex flex-col justify-center text-white">
-            <div className="text-white/80 text-xl">Goals Today</div>
-            <div className="mt-2 text-4xl font-extrabold">{todayGoal.title}</div>
-            <div className="mt-2 text-white/85 text-xl">{todayGoal.detail}</div>
+          <div className="h-28 w-28 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
+            <div className="text-4xl">☁️</div>
+            <div className="mt-2 text-xl font-semibold">{tempC}°C</div>
+          </div>
+        </div>
 
+        <div className="rounded-3xl bg-[#0b1220] shadow-sm ring-1 ring-black/5 p-6 flex flex-col justify-between text-white">
+          <div>
+            <div className="text-white/70 text-sm font-semibold">Today’s focus</div>
+            <div className="mt-2 text-3xl font-extrabold">{todayGoal.title}</div>
+            <div className="mt-2 text-white/80">{todayGoal.detail}</div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => setTabAnimated("schedule")}
-              className="mt-6 rounded-2xl bg-white/15 px-4 py-3 text-white/95 text-left flex items-center justify-between"
+              className="rounded-2xl bg-[#F37120] py-4 font-semibold"
             >
-              <span>View schedule</span>
-              <ChevronRight />
+              Book
+            </button>
+            <button
+              onClick={() => setTabAnimated("payments")}
+              className="rounded-2xl bg-white/10 py-4 font-semibold"
+            >
+              Pay
             </button>
           </div>
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Quick Actions" subtitle="Fast shortcuts for members">
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTabAnimated("schedule")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
-              Book Session
-            </button>
-            <button onClick={() => setTabAnimated("payments")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Pay Balance
-            </button>
-            <button onClick={() => setTabAnimated("chat")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+      {/* Summary */}
+      <Card title="Today’s Summary" subtitle="Your membership at a glance">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <RowItem label="Package" value={packageName} />
+          <RowItem label="Sessions left" value={String(sessionsLeft)} />
+          <RowItem label="Balance" value={`₱${unpaidBalancePhp}`} />
+        </div>
+      </Card>
+    </div>
+  );
+ng-black/10 py-4 font-semibold">
               Message Coach
             </button>
             <button onClick={() => setTabAnimated("profile")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
