@@ -1,27 +1,22 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 /**
- * BearFit Dashboard (UI-only)
+ * Dashboard with:
  * - Animated tab transitions (slide/fade)
- * - Badge counters (chat, unpaid, notifications)
- * - Role switching: Member / Staff / Admin with different nav items
- * - Member Schedule includes a simple week "calendar grid"
+ * - Badge counters (unread chat, unpaid balance, notifications)
+ * - Role switching (Member vs Staff) with different nav items
  */
 
-type Role = "member" | "staff" | "admin";
-
+type Role = "member" | "staff";
 type MemberTab = "home" | "schedule" | "chat" | "payments" | "profile";
 type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
-type AdminTab = "home" | "overview" | "clients" | "sales" | "settings";
-
-type TabKey = MemberTab | StaffTab | AdminTab;
+type TabKey = MemberTab | StaffTab;
 
 function dayLabel(i: number) {
   return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
 }
-
 function formatTime(d: Date) {
   const h = d.getHours();
   const m = d.getMinutes().toString().padStart(2, "0");
@@ -29,12 +24,10 @@ function formatTime(d: Date) {
   const ampm = h >= 12 ? "PM" : "AM";
   return `${hour12}.${m} ${ampm}`;
 }
-
 function formatDate(d: Date) {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${d.getDate()} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
 }
-
 function startOfWeekMonday(d: Date) {
   const copy = new Date(d);
   const day = copy.getDay(); // Sun=0
@@ -43,7 +36,6 @@ function startOfWeekMonday(d: Date) {
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
-
 function iconBase(cls = "") {
   return `h-6 w-6 ${cls}`;
 }
@@ -59,7 +51,6 @@ function CalendarIcon() {
     </svg>
   );
 }
-
 function BellIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -70,7 +61,6 @@ function BellIcon() {
     </svg>
   );
 }
-
 function HomeIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -78,7 +68,6 @@ function HomeIcon() {
     </svg>
   );
 }
-
 function ScheduleIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -86,7 +75,6 @@ function ScheduleIcon() {
     </svg>
   );
 }
-
 function ChatIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -94,7 +82,6 @@ function ChatIcon() {
     </svg>
   );
 }
-
 function WalletIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -105,7 +92,6 @@ function WalletIcon() {
     </svg>
   );
 }
-
 function UserIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -113,7 +99,6 @@ function UserIcon() {
     </svg>
   );
 }
-
 function ClipboardIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -124,7 +109,6 @@ function ClipboardIcon() {
     </svg>
   );
 }
-
 function UsersIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -135,7 +119,6 @@ function UsersIcon() {
     </svg>
   );
 }
-
 function DumbbellIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -146,7 +129,6 @@ function DumbbellIcon() {
     </svg>
   );
 }
-
 function ChartIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -154,18 +136,6 @@ function ChartIcon() {
     </svg>
   );
 }
-
-function SettingsIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M19.4 13a7.9 7.9 0 0 0 0-2l2-1.2a.9.9 0 0 0 .3-1.2l-1.9-3.3a.9.9 0 0 0-1.1-.4l-2.2.9a8.2 8.2 0 0 0-1.7-1l-.3-2.4A.9.9 0 0 0 13.6 1h-3.2a.9.9 0 0 0-.9.8l-.3 2.4a8.2 8.2 0 0 0-1.7 1l-2.2-.9a.9.9 0 0 0-1.1.4L2.3 8a.9.9 0 0 0 .3 1.2l2 1.2a7.9 7.9 0 0 0 0 2l-2 1.2a.9.9 0 0 0-.3 1.2l1.9 3.3a.9.9 0 0 0 1.1.4l2.2-.9a8.2 8.2 0 0 0 1.7 1l.3 2.4a.9.9 0 0 0 .9.8h3.2a.9.9 0 0 0 .9-.8l.3-2.4a8.2 8.2 0 0 0 1.7-1l2.2.9a.9.9 0 0 0 1.1-.4l1.9-3.3a.9.9 0 0 0-.3-1.2L19.4 13ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
-      />
-    </svg>
-  );
-}
-
 function ChevronRight() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -203,7 +173,8 @@ function Card({
 }
 
 function Badge({ value, color = "orange" }: { value: number; color?: "orange" | "red" | "blue" }) {
-  const bg = color === "red" ? "bg-red-500" : color === "blue" ? "bg-blue-500" : "bg-[#F37120]";
+  const bg =
+    color === "red" ? "bg-red-500" : color === "blue" ? "bg-blue-500" : "bg-[#F37120]";
   if (value <= 0) return null;
   return (
     <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full ${bg} text-white text-[11px] font-bold flex items-center justify-center`}>
@@ -214,17 +185,14 @@ function Badge({ value, color = "orange" }: { value: number; color?: "orange" | 
 
 /* -------------------- Main Page -------------------- */
 export default function DashboardPage() {
-  const [now, setNow] = useState<Date>(() => new Date());
-
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(t);
-  }, []);
-
+  const now = new Date();
   const userName = "John";
   const greeting = now.getHours() < 12 ? "Good Morning" : now.getHours() < 18 ? "Good Afternoon" : "Good Evening";
 
+  // Role switching
   const [role, setRole] = useState<Role>("member");
+
+  // Active tab + animation direction
   const [tab, setTab] = useState<TabKey>("home");
   const [animDir, setAnimDir] = useState<"left" | "right">("right");
 
@@ -233,15 +201,8 @@ export default function DashboardPage() {
 
     const orderMember: MemberTab[] = ["home", "schedule", "chat", "payments", "profile"];
     const orderStaff: StaffTab[] = ["home", "attendance", "clients", "sessions", "sales"];
-    const orderAdmin: AdminTab[] = ["home", "overview", "clients", "sales", "settings"];
 
-    const order =
-      role === "member"
-        ? (orderMember as TabKey[])
-        : role === "staff"
-        ? (orderStaff as TabKey[])
-        : (orderAdmin as TabKey[]);
-
+    const order = role === "member" ? (orderMember as TabKey[]) : (orderStaff as TabKey[]);
     const cur = order.indexOf(tab);
     const nxt = order.indexOf(next);
 
@@ -251,10 +212,13 @@ export default function DashboardPage() {
 
   const onSwitchRole = (r: Role) => {
     setRole(r);
+
+    // Keep UX consistent: reset to home on role change
     setAnimDir("right");
     setTab("home");
   };
 
+  // Week data (Home UI)
   const monday = startOfWeekMonday(now);
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -269,11 +233,12 @@ export default function DashboardPage() {
     return js === 0 ? 6 : js - 1;
   })();
 
+  // Demo schedule + goals
   const upcoming = useMemo(
     () => [
-      { when: "Today â€¢ 6:00 PM", what: "Coach Session â€” Better Form", where: "Sikatuna" },
-      { when: "Wed â€¢ 7:00 PM", what: "Strength â€” Better Fitness", where: "E. Rodriguez" },
-      { when: "Sat â€¢ 9:00 AM", what: "Mobility â€” Better Function", where: "Cainta" },
+      { when: "Today • 6:00 PM", what: "Coach Session — Better Form", where: "Sikatuna" },
+      { when: "Wed • 7:00 PM", what: "Strength — Better Fitness", where: "E. Rodriguez" },
+      { when: "Sat • 9:00 AM", what: "Mobility — Better Function", where: "Cainta" },
     ],
     []
   );
@@ -289,22 +254,24 @@ export default function DashboardPage() {
   };
   const todayGoal = goalsByDay[todayIdxMon0] ?? { title: "Training", detail: "Stay consistent" };
 
+  // Fake weather for UI
   const location = "Marikina";
   const tempC = 28;
 
+  // Counters (badges)
   const unreadChat = 3;
   const unpaidBalancePhp = 980;
   const notifCount = 2;
 
-  const attendancePending = 5;
+  // Staff sample counters
+  const attendancePending = 5; // check-ins pending
   const salesLeads = 2;
 
-  const unpaidInvoices = 7;
-  const adminNotif = 4;
-
+  // Payments demo
   const packageName = "24 Sessions (Staggered)";
   const sessionsLeft = 9;
 
+  // Chat demo
   const threads = useMemo(
     () => [
       { name: "Coach JP", last: "Send me your availability for this week.", time: "2h" },
@@ -313,10 +280,11 @@ export default function DashboardPage() {
     []
   );
 
-  /* -------------------- Member Pages -------------------- */
+  /* -------------------- Tab Content -------------------- */
 
   const MemberHome = (
     <div className="space-y-6">
+      {/* Top header + role toggle */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-full bg-white/80 shadow-sm ring-1 ring-black/5 overflow-hidden flex items-center justify-center">
@@ -350,11 +318,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Big Welcome */}
       <div>
         <div className="text-black/30">Hello, {userName}</div>
         <div className="mt-1 text-6xl font-extrabold tracking-tight">Welcome Back</div>
       </div>
 
+      {/* Week strip */}
       <Card>
         <div className="grid grid-cols-7 gap-2 text-center">
           {weekDays.map((d, i) => {
@@ -362,6 +332,7 @@ export default function DashboardPage() {
             return (
               <div key={i} className="flex flex-col items-center justify-center gap-2">
                 <div className="text-black/40 text-lg">{dayLabel(i)}</div>
+
                 <div
                   className={[
                     "h-14 w-14 rounded-full flex items-center justify-center text-xl font-semibold",
@@ -370,6 +341,7 @@ export default function DashboardPage() {
                 >
                   {d.getDate()}
                 </div>
+
                 <div className={["h-2 w-2 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-transparent"].join(" ")} />
               </div>
             );
@@ -377,6 +349,7 @@ export default function DashboardPage() {
         </div>
       </Card>
 
+      {/* Goals activity (weather + goals) */}
       <div>
         <div className="text-3xl font-bold">Goals Activity</div>
 
@@ -389,8 +362,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="h-28 w-28 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
-              <div className="text-4xl">â˜ï¸</div>
-              <div className="mt-2 text-xl font-semibold">{tempC}Â°C</div>
+              <div className="text-4xl">☁️</div>
+              <div className="mt-2 text-xl font-semibold">{tempC}°C</div>
             </div>
           </div>
 
@@ -410,6 +383,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Quick Actions" subtitle="Fast shortcuts for members">
           <div className="grid grid-cols-2 gap-3">
@@ -428,11 +402,20 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card title="Todayâ€™s Summary" subtitle="Your membership at a glance">
+        <Card title="Today’s Summary" subtitle="Your membership at a glance">
           <div className="space-y-3">
-            <RowItem label="Package" value={packageName} />
-            <RowItem label="Sessions left" value={String(sessionsLeft)} />
-            <RowItem label="Balance" value={`â‚±${unpaidBalancePhp}`} />
+            <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-3">
+              <span className="text-black/60">Package</span>
+              <span className="font-semibold">{packageName}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-3">
+              <span className="text-black/60">Sessions left</span>
+              <span className="font-semibold">{sessionsLeft}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-3">
+              <span className="text-black/60">Balance</span>
+              <span className="font-semibold">₱{unpaidBalancePhp}</span>
+            </div>
           </div>
         </Card>
       </div>
@@ -442,27 +425,6 @@ export default function DashboardPage() {
   const MemberSchedule = (
     <div className="space-y-6">
       <HeaderRow title="Schedule" role={role} onRoleChange={onSwitchRole} />
-
-      <Card title="Week View" subtitle="Tap a day to view sessions (UI only)">
-        <div className="grid grid-cols-7 gap-2">
-          {weekDays.map((d, i) => {
-            const isToday = i === todayIdxMon0;
-            return (
-              <button
-                key={i}
-                className={[
-                  "rounded-2xl py-4 text-center ring-1 ring-black/10 bg-white hover:bg-black/[0.02]",
-                  isToday ? "bg-[#0b1220] text-white ring-black/20" : "text-black",
-                ].join(" ")}
-              >
-                <div className={isToday ? "text-white/80" : "text-black/50"}>{dayLabel(i)}</div>
-                <div className="text-xl font-bold">{d.getDate()}</div>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-
       <Card title="Upcoming Sessions" subtitle="Your next trainings">
         <div className="space-y-3">
           {upcoming.map((x, idx) => (
@@ -504,9 +466,11 @@ export default function DashboardPage() {
           <div className="flex gap-2">
             <input
               className="flex-1 rounded-2xl bg-[#eef3fb] px-4 py-3 outline-none ring-1 ring-black/5"
-              placeholder="Type hereâ€¦"
+              placeholder="Type here…"
             />
-            <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Send</button>
+            <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">
+              Send
+            </button>
           </div>
         </div>
       </Card>
@@ -518,16 +482,24 @@ export default function DashboardPage() {
       <HeaderRow title="Payments" role={role} onRoleChange={onSwitchRole} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Balance" subtitle="Amount due">
-          <div className="text-5xl font-extrabold">â‚±{unpaidBalancePhp}</div>
-          <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">Pay now</button>
+          <div className="text-5xl font-extrabold">₱{unpaidBalancePhp}</div>
+          <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">
+            Pay now
+          </button>
         </Card>
 
         <Card title="Package" subtitle="Your current plan">
-          <RowItem label="Plan" value={packageName} />
-          <div className="mt-3">
-            <RowItem label="Sessions left" value={String(sessionsLeft)} />
+          <div className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
+            <div className="text-black/50">Plan</div>
+            <div className="mt-1 text-lg font-semibold">{packageName}</div>
           </div>
-          <button className="mt-5 w-full rounded-2xl bg-[#0b1220] py-4 font-semibold text-white">Buy more sessions</button>
+          <div className="mt-3 rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
+            <div className="text-black/50">Sessions left</div>
+            <div className="mt-1 text-lg font-semibold">{sessionsLeft}</div>
+          </div>
+          <button className="mt-5 w-full rounded-2xl bg-[#0b1220] py-4 font-semibold text-white">
+            Buy more sessions
+          </button>
         </Card>
       </div>
     </div>
@@ -549,12 +521,14 @@ export default function DashboardPage() {
           <RowItem label="Preferred Branch" value="Sikatuna" />
           <RowItem label="Dark mode" value="Auto" />
         </div>
-        <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Log out</button>
+        <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
+          Log out
+        </button>
       </Card>
     </div>
   );
 
-  /* -------------------- Staff Pages -------------------- */
+  // ---------- STAFF PAGES ----------
   const StaffHome = (
     <div className="space-y-6">
       <HeaderRow title="Staff Dashboard" role={role} onRoleChange={onSwitchRole} />
@@ -587,10 +561,10 @@ export default function DashboardPage() {
 
         <Card title="Notes" subtitle="What to prioritize">
           <div className="text-black/55 leading-relaxed">
-            â€¢ Confirm assessments<br />
-            â€¢ Follow up inactive members<br />
-            â€¢ Update session deductions<br />
-            â€¢ Close leads for packages
+            • Confirm assessments<br />
+            • Follow up inactive members<br />
+            • Update session deductions<br />
+            • Close leads for packages
           </div>
         </Card>
       </div>
@@ -629,7 +603,7 @@ export default function DashboardPage() {
       <HeaderRow title="Clients" role={role} onRoleChange={onSwitchRole} />
       <Card title="Member List" subtitle="Search + quick actions">
         <div className="flex gap-2">
-          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search clientâ€¦" />
+          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search client…" />
           <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Find</button>
         </div>
 
@@ -642,7 +616,7 @@ export default function DashboardPage() {
             <button key={i} className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
               <div>
                 <div className="font-semibold">{x.name}</div>
-                <div className="text-black/50">{x.plan} â€¢ {x.left} left</div>
+                <div className="text-black/50">{x.plan} • {x.left} left</div>
               </div>
               <ChevronRight />
             </button>
@@ -655,7 +629,7 @@ export default function DashboardPage() {
   const StaffSessions = (
     <div className="space-y-6">
       <HeaderRow title="Sessions" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Todayâ€™s Sessions" subtitle="Tap to mark complete">
+      <Card title="Today’s Sessions" subtitle="Tap to mark complete">
         <div className="space-y-3">
           {[
             { time: "6:00 PM", who: "Manny", type: "Coached Strength" },
@@ -668,7 +642,9 @@ export default function DashboardPage() {
                 <div className="font-semibold">{x.who}</div>
                 <div className="text-black/50">{x.type}</div>
               </div>
-              <button className="rounded-2xl bg-[#F37120] text-white px-4 py-3 font-semibold">Complete</button>
+              <button className="rounded-2xl bg-[#F37120] text-white px-4 py-3 font-semibold">
+                Complete
+              </button>
             </div>
           ))}
         </div>
@@ -701,192 +677,13 @@ export default function DashboardPage() {
           <div className="space-y-3">
             <RowItem label="Packages sold" value="7" />
             <RowItem label="Assessments" value="14" />
-            <RowItem label="Projected revenue" value="â‚±72,000" />
+            <RowItem label="Projected revenue" value="₱72,000" />
           </div>
-          <button className="mt-5 w-full rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Create invoice</button>
+          <button className="mt-5 w-full rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
+            Create invoice
+          </button>
         </Card>
       </div>
-    </div>
-  );
-
-  /* -------------------- Admin Pages -------------------- */
-  const AdminHome = (
-    <div className="space-y-6">
-      <HeaderRow title="Owner Dashboard" role={role} onRoleChange={onSwitchRole} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Today" subtitle="High-level snapshot">
-          <div className="space-y-3">
-            <RowItem label="Revenue today" value="â‚±12,300" />
-            <RowItem label="Check-ins" value="38" />
-            <RowItem label="Invoices unpaid" value={String(unpaidInvoices)} />
-          </div>
-        </Card>
-
-        <Card title="Quick Actions" subtitle="Owner shortcuts">
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTabAnimated("overview")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
-              KPI
-            </button>
-            <button onClick={() => setTabAnimated("clients")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Clients
-            </button>
-            <button onClick={() => setTabAnimated("sales")} className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
-              Sales
-            </button>
-            <button onClick={() => setTabAnimated("settings")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Settings
-            </button>
-          </div>
-        </Card>
-
-        <Card title="Alerts" subtitle="What needs attention">
-          <div className="text-black/55 leading-relaxed">
-            â€¢ 7 unpaid invoices<br />
-            â€¢ 12 members at-risk<br />
-            â€¢ 3 coaches need schedule confirmation<br />
-            â€¢ Stock low: protein drinks
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const AdminOverview = (
-    <div className="space-y-6">
-      <HeaderRow title="KPI Overview" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Revenue" subtitle="This week">
-          <div className="text-5xl font-extrabold">â‚±72,000</div>
-          <div className="mt-2 text-black/50">+12% vs last week</div>
-        </Card>
-
-        <Card title="Retention" subtitle="Active members">
-          <div className="text-5xl font-extrabold">184</div>
-          <div className="mt-2 text-black/50">12 at-risk</div>
-        </Card>
-
-        <Card title="Utilization" subtitle="Sessions delivered">
-          <div className="text-5xl font-extrabold">96</div>
-          <div className="mt-2 text-black/50">Avg 13.7/day</div>
-        </Card>
-      </div>
-
-      <Card title="Management To-Do" subtitle="Owner checklist">
-        <div className="space-y-3">
-          {[
-            "Review staff schedule coverage",
-            "Follow up unpaid invoices",
-            "Approve promos for next week",
-            "Audit session deductions",
-          ].map((t, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div className="font-semibold">{t}</div>
-              <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Done</button>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-
-  const AdminClients = (
-    <div className="space-y-6">
-      <HeaderRow title="All Clients" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Search + segments" subtitle="Owners see everything (UI only)">
-        <div className="flex gap-2">
-          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search memberâ€¦" />
-          <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Find</button>
-        </div>
-
-        <div className="mt-4 flex gap-2 flex-wrap">
-          {["All", "Active", "At-risk", "Unpaid", "New leads"].map((x) => (
-            <span key={x} className="rounded-full bg-black/5 px-4 py-2 text-sm font-semibold text-black/60">
-              {x}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-5 space-y-3">
-          {[
-            { name: "Sophia", status: "Active", note: "24 Full â€¢ 6 left" },
-            { name: "Chich", status: "Unpaid", note: "Balance â‚±980" },
-            { name: "Leo", status: "At-risk", note: "No visit in 10 days" },
-          ].map((x, i) => (
-            <button key={i} className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{x.name}</div>
-                <div className="text-black/50">{x.status} â€¢ {x.note}</div>
-              </div>
-              <ChevronRight />
-            </button>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-
-  const AdminSales = (
-    <div className="space-y-6">
-      <HeaderRow title="Sales & Billing" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Unpaid Invoices" subtitle="Needs follow-up">
-          <div className="text-5xl font-extrabold">{unpaidInvoices}</div>
-          <div className="mt-2 text-black/50">Tap an invoice (UI only)</div>
-
-          <div className="mt-5 space-y-3">
-            {[
-              { who: "Chich", amount: "â‚±980", age: "3d" },
-              { who: "Manny", amount: "â‚±1,500", age: "5d" },
-              { who: "Ria", amount: "â‚±800", age: "7d" },
-            ].map((x, i) => (
-              <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{x.who}</div>
-                  <div className="text-black/50">
-                    {x.amount} â€¢ overdue {x.age}
-                  </div>
-                </div>
-                <button className="rounded-2xl bg-[#0b1220] text-white px-4 py-3 font-semibold">Remind</button>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Create" subtitle="Owner tools">
-          <div className="grid grid-cols-1 gap-3">
-            <button className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Create invoice</button>
-            <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Record cash sale</button>
-            <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Promo / discount</button>
-            <button className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">Export report</button>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const AdminSettings = (
-    <div className="space-y-6">
-      <HeaderRow title="Gym Settings" role={role} onRoleChange={onSwitchRole} />
-
-      <Card title="Branches" subtitle="Locations + hours (UI only)">
-        <div className="space-y-3">
-          <RowItem label="Sikatuna" value="Monâ€“Fri 7AMâ€“10PM" />
-          <RowItem label="E. Rodriguez" value="Monâ€“Fri 7AMâ€“10PM" />
-          <RowItem label="Cainta" value="Sat 7AMâ€“2PM" />
-        </div>
-        <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Add branch</button>
-      </Card>
-
-      <Card title="Packages" subtitle="Plans + pricing (UI only)">
-        <div className="space-y-3">
-          <RowItem label="24 Full" value="â‚±xxxx" />
-          <RowItem label="24 Staggered" value="â‚±xxxx" />
-          <RowItem label="48 Full" value="â‚±xxxx" />
-        </div>
-        <button className="mt-5 w-full rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">Edit packages</button>
-      </Card>
     </div>
   );
 
@@ -898,56 +695,43 @@ export default function DashboardPage() {
       if (tab === "chat") return MemberChat;
       if (tab === "payments") return MemberPayments;
       return MemberProfile;
-    }
-    if (role === "staff") {
+    } else {
       if (tab === "home") return StaffHome;
       if (tab === "attendance") return StaffAttendance;
       if (tab === "clients") return StaffClients;
       if (tab === "sessions") return StaffSessions;
       return StaffSales;
     }
-    // admin
-    if (tab === "home") return AdminHome;
-    if (tab === "overview") return AdminOverview;
-    if (tab === "clients") return AdminClients;
-    if (tab === "sales") return AdminSales;
-    return AdminSettings;
   })();
 
   // Nav config (role-based)
-  const navItems =
-    role === "member"
-      ? ([
-          { key: "home", label: "Home", icon: <HomeIcon /> },
-          { key: "schedule", label: "Schedule", icon: <ScheduleIcon /> },
-          { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
-          { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
-          { key: "profile", label: "Profile", icon: <UserIcon /> },
-        ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
-      : role === "staff"
-      ? ([
-          { key: "home", label: "Home", icon: <HomeIcon /> },
-          { key: "attendance", label: "Attend", icon: <ClipboardIcon />, badge: attendancePending, badgeColor: "blue" as const },
-          { key: "clients", label: "Clients", icon: <UsersIcon /> },
-          { key: "sessions", label: "Sessions", icon: <DumbbellIcon /> },
-          { key: "sales", label: "Sales", icon: <ChartIcon />, badge: salesLeads, badgeColor: "orange" as const },
-        ] as { key: StaffTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
-      : ([
-          { key: "home", label: "Home", icon: <HomeIcon />, badge: adminNotif, badgeColor: "red" as const },
-          { key: "overview", label: "KPI", icon: <ChartIcon /> },
-          { key: "clients", label: "Clients", icon: <UsersIcon /> },
-          { key: "sales", label: "Sales", icon: <WalletIcon />, badge: unpaidInvoices, badgeColor: "orange" as const },
-          { key: "settings", label: "Settings", icon: <SettingsIcon /> },
-        ] as { key: AdminTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[]);
+  const navItems = role === "member"
+    ? ([
+        { key: "home", label: "Home", icon: <HomeIcon /> },
+        { key: "schedule", label: "Schedule", icon: <ScheduleIcon /> },
+        { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
+        { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
+        { key: "profile", label: "Profile", icon: <UserIcon /> },
+      ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
+    : ([
+        { key: "home", label: "Home", icon: <HomeIcon /> },
+        { key: "attendance", label: "Attend", icon: <ClipboardIcon />, badge: attendancePending, badgeColor: "blue" as const },
+        { key: "clients", label: "Clients", icon: <UsersIcon /> },
+        { key: "sessions", label: "Sessions", icon: <DumbbellIcon /> },
+        { key: "sales", label: "Sales", icon: <ChartIcon />, badge: salesLeads, badgeColor: "orange" as const },
+      ] as { key: StaffTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[]);
 
   return (
     <div className="min-h-screen bg-[#eef3fb] text-[#0b1220]">
+      {/* main */}
       <div className="mx-auto w-full max-w-[1100px] px-5 py-6 pb-28">
+        {/* Animated content wrapper */}
         <div key={`${role}-${tab}`} className={`bf-pane ${animDir === "right" ? "bf-in-right" : "bf-in-left"}`}>
           {content}
         </div>
       </div>
 
+      {/* bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1100px] px-5 pb-4">
           <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 px-4 py-3">
@@ -969,6 +753,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Animations */}
       <style jsx global>{`
         .bf-pane {
           opacity: 0;
@@ -1034,7 +819,9 @@ function NavItem({
     >
       <div className={active ? "text-white" : "text-black/60"}>{children}</div>
       <Badge value={badge ?? 0} color={badgeColor} />
-      <div className={["text-xs font-semibold", active ? "text-white" : "text-black/45"].join(" ")}>{label}</div>
+      <div className={["text-xs font-semibold", active ? "text-white" : "text-black/45"].join(" ")}>
+        {label}
+      </div>
     </button>
   );
 }
@@ -1085,15 +872,6 @@ function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => voi
         ].join(" ")}
       >
         Staff
-      </button>
-      <button
-        onClick={() => onChange("admin")}
-        className={[
-          "px-3 py-2 rounded-full text-sm font-semibold transition",
-          role === "admin" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
-        ].join(" ")}
-      >
-        Admin
       </button>
     </div>
   );
