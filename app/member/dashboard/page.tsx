@@ -5,17 +5,17 @@ import React, { useEffect, useMemo, useState } from "react";
 /**
  * BearFit Dashboard (UI only)
  * - Animated tab transitions (slide)
- * - Badge counters (chat, unpaid, notifications)
+ * - Badge counters
  * - Role switching: Member / Staff / Admin(Owner) with different nav items
  * - Member Schedule includes a simple week calendar grid
  *
- * ✅ Enhancements added (your requests):
- * - Remove calendar button in header → replace with Announcement image slider (auto-slide every 10s)
- * - Announcements can include images (like the upcoming card)
- * - Greeting moved into Time/Date/Weather card (as one piece)
- * - Today’s Summary moved after Goals Today block → blue card + progress + bar graph
- * - Floating tabs under greeting (Daily Summary / Workouts / Nutrition)
- * - Keep everything else the same
+ * ✅ Enhanced to match reference screenshot:
+ * - Top: centered Role switch + Bell right
+ * - Greeting/Time/Weather card + floating tabs row
+ * - Image Announcements slider (auto every 10s)
+ * - Upcoming card (unchanged)
+ * - Big Package card with used/left bar
+ * - Removed ONLY X-marked area (Quick Actions + small announcements list)
  */
 
 type Role = "member" | "staff" | "admin";
@@ -53,16 +53,6 @@ function iconBase(cls = "") {
 }
 
 /* -------------------- Icons -------------------- */
-function CalendarIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm12 8H5v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9ZM6 6a1 1 0 0 0-1 1v1h14V7a1 1 0 0 0-1-1H6Z"
-      />
-    </svg>
-  );
-}
 function BellIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -177,6 +167,7 @@ function ChevronRight() {
     </svg>
   );
 }
+
 /* -------------------- UI Primitives -------------------- */
 function Card({
   title,
@@ -216,8 +207,6 @@ function Badge({ value, color = "orange" }: { value: number; color?: "orange" | 
     </span>
   );
 }
-
-/* -------------------- Main Page -------------------- */
 export default function DashboardPage() {
   const now = new Date();
   const userName = "John";
@@ -229,9 +218,6 @@ export default function DashboardPage() {
   // Active tab + animation direction
   const [tab, setTab] = useState<TabKey>("home");
   const [animDir, setAnimDir] = useState<"left" | "right">("right");
-
-  // ✅ floating tabs (daily / workouts / nutrition)
-  const [summaryTab, setSummaryTab] = useState<"daily" | "workouts" | "nutrition">("daily");
 
   const setTabAnimated = (next: TabKey) => {
     if (next === tab) return;
@@ -256,7 +242,10 @@ export default function DashboardPage() {
     setTab("home");
   };
 
-  // Week data (Home UI)
+  // ✅ floating tabs (Daily Summary / Workouts / Nutrition)
+  const [summaryTab, setSummaryTab] = useState<"daily" | "workouts" | "nutrition">("daily");
+
+  // Week data
   const monday = startOfWeekMonday(now);
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -292,7 +281,7 @@ export default function DashboardPage() {
   };
   const todayGoal = goalsByDay[todayIdxMon0] ?? { title: "Training", detail: "Stay consistent" };
 
-  // Fake weather for UI
+  // UI-only weather
   const location = "Marikina";
   const tempC = 28;
 
@@ -303,46 +292,48 @@ export default function DashboardPage() {
     return d;
   }, [now]);
 
-  // ✅ Announcements demo (UI only) - with images
+  // ✅ Announcements (image announcements, auto slide every 10 seconds)
   const announcements = useMemo(
     () => [
-      {
-        title: "Cainta branch update",
-        body: "Saturday hours are now 7AM–2PM.",
-        date: "Today",
-        unread: true,
-        img: "https://images.unsplash.com/photo-1546484959-f9a5c0d60a6f?auto=format&fit=crop&w=1400&q=60",
-      },
       {
         title: "New class",
         body: "Mobility — Better Function starts this Wednesday 7PM.",
         date: "Jan 29",
         unread: true,
-        img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=60",
+        img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1600&q=60",
+      },
+      {
+        title: "Cainta branch update",
+        body: "Saturday hours are now 7AM–2PM.",
+        date: "Today",
+        unread: true,
+        img: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1600&q=60",
       },
       {
         title: "Promo",
         body: "Bring a friend this week and get 1 free session add-on.",
         date: "Jan 23",
         unread: false,
-        img: "https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?auto=format&fit=crop&w=1400&q=60",
+        img: "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=1600&q=60",
       },
     ],
     []
   );
+
   const unreadAnnouncements = announcements.filter((a) => a.unread).length;
 
-  // ✅ announcement slider index (auto-advance every 10s)
   const [annIdx, setAnnIdx] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setAnnIdx((i) => (i + 1) % announcements.length), 10000);
-    return () => clearInterval(id);
+    const t = setInterval(() => {
+      setAnnIdx((i) => (i + 1) % announcements.length);
+    }, 10000);
+    return () => clearInterval(t);
   }, [announcements.length]);
 
-  // Counters (badges)
+  // Counters
   const unreadChat = 3;
   const unpaidBalancePhp = 980;
-  const notifCount = unreadAnnouncements;
+  const notifCount = unreadAnnouncements; // bell badge reflects announcements
 
   // Staff counters
   const attendancePending = 5;
@@ -356,6 +347,13 @@ export default function DashboardPage() {
   const packageName = "24 Sessions (Staggered)";
   const sessionsLeft = 9;
 
+  // ✅ Package block values (big orange card)
+  const packageTitle = "Package";
+  const packagePlan = "FULL 24";
+  const totalSessions = 24;
+  const sessionsUsed = 19;
+  const sessionsLeftComputed = Math.max(0, totalSessions - sessionsUsed);
+
   // Chat demo
   const threads = useMemo(
     () => [
@@ -364,105 +362,119 @@ export default function DashboardPage() {
     ],
     []
   );
-
   /* -------------------- Tab Content -------------------- */
 
   const MemberHome = (
     <div className="space-y-6">
-      {/* Top header + role toggle */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-white/80 shadow-sm ring-1 ring-black/5 overflow-hidden flex items-center justify-center">
-            <span className="text-sm font-semibold text-black/60">JP</span>
-          </div>
-          <div>
-            <div className="text-2xl font-semibold">{userName}</div>
-            <div className="text-black/45">{greeting}</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
+      {/* ✅ Top: centered role switch + bell right */}
+      <div className="relative flex items-center justify-between">
+        <div className="w-14" />
+        <div className="absolute left-1/2 -translate-x-1/2">
           <RoleSwitch role={role} onChange={onSwitchRole} />
+        </div>
 
-          {/* ✅ Announcement slider replaces calendar */}
-          <AnnouncementPill item={announcements[annIdx]} onClick={() => setTabAnimated("announcements")} />
+        <button
+          onClick={() => setTabAnimated("announcements")}
+          className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
+          aria-label="Open announcements"
+        >
+          <BellIcon />
+          <Badge value={notifCount} color="red" />
+        </button>
+      </div>
 
-          {/* ✅ Bell opens Announcements */}
-          <button
-            onClick={() => setTabAnimated("announcements")}
-            className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-            aria-label="Open announcements"
-          >
-            <BellIcon />
-            <Badge value={notifCount} color="red" />
-          </button>
+      {/* ✅ Greeting card + floating tabs row */}
+      <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-6 items-center">
+        {/* Greeting / Time / Weather combined (one piece) */}
+        <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
+          <div>
+            <div className="text-black/35 text-sm">Hello, {userName} • Welcome back</div>
+            <div className="mt-3 text-black/50 text-lg">{location}</div>
+            <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
+            <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
+          </div>
+
+          <div className="h-24 w-24 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
+            <div className="text-4xl">☁️</div>
+            <div className="mt-1 text-lg font-semibold">{tempC}°C</div>
+          </div>
+        </div>
+
+        {/* Floating tabs (Daily Summary / Workouts / Nutrition) */}
+        <div className="flex md:justify-center">
+          <div className="inline-flex rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
+            <button
+              onClick={() => setSummaryTab("daily")}
+              className={[
+                "px-6 py-3 rounded-full text-sm font-semibold transition",
+                summaryTab === "daily" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
+              ].join(" ")}
+            >
+              Daily Summary
+            </button>
+            <button
+              onClick={() => setSummaryTab("workouts")}
+              className={[
+                "px-6 py-3 rounded-full text-sm font-semibold transition",
+                summaryTab === "workouts" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
+              ].join(" ")}
+            >
+              Workouts
+            </button>
+            <button
+              onClick={() => setSummaryTab("nutrition")}
+              className={[
+                "px-6 py-3 rounded-full text-sm font-semibold transition",
+                summaryTab === "nutrition" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
+              ].join(" ")}
+            >
+              Nutrition
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ✅ Big Welcome + Floating Tabs */}
-      <div className="space-y-4">
-        <div>
-          <div className="text-black/30">Hello, {userName}</div>
-          <div className="mt-1 text-6xl font-extrabold tracking-tight">Welcome Back</div>
-        </div>
+      {/* ✅ Image Announcement slider (auto every 10 sec) */}
+      <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
+        <div className="relative h-[220px] md:h-[240px]">
+          <img
+            src={announcements[annIdx].img}
+            alt={announcements[annIdx].title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/25" />
 
-        <div className="inline-flex rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
-          <button
-            onClick={() => setSummaryTab("daily")}
-            className={[
-              "px-5 py-2 rounded-full text-sm font-semibold transition",
-              summaryTab === "daily" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-            ].join(" ")}
-          >
-            Daily Summary
-          </button>
-          <button
-            onClick={() => setSummaryTab("workouts")}
-            className={[
-              "px-5 py-2 rounded-full text-sm font-semibold transition",
-              summaryTab === "workouts" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-            ].join(" ")}
-          >
-            Workouts
-          </button>
-          <button
-            onClick={() => setSummaryTab("nutrition")}
-            className={[
-              "px-5 py-2 rounded-full text-sm font-semibold transition",
-              summaryTab === "nutrition" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-            ].join(" ")}
-          >
-            Nutrition
-          </button>
-        </div>
-      </div>
-
-      {/* Week strip */}
-      <Card>
-        <div className="grid grid-cols-7 gap-2 text-center">
-          {weekDays.map((d, i) => {
-            const isToday = i === todayIdxMon0;
-            return (
-              <div key={i} className="flex flex-col items-center justify-center gap-2">
-                <div className="text-black/40 text-lg">{dayLabel(i)}</div>
-
-                <div
-                  className={[
-                    "h-14 w-14 rounded-full flex items-center justify-center text-xl font-semibold",
-                    isToday ? "bg-[#6ea8ff] text-white shadow-md" : "text-black/70",
-                  ].join(" ")}
-                >
-                  {d.getDate()}
-                </div>
-
-                <div className={["h-2 w-2 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-transparent"].join(" ")} />
+          <div className="relative h-full p-6 flex flex-col justify-between">
+            <div>
+              <div className="text-white/85 text-sm">{announcements[annIdx].date}</div>
+              <div className="mt-2 text-3xl md:text-4xl font-extrabold text-white drop-shadow">
+                {announcements[annIdx].title}
               </div>
-            );
-          })}
-        </div>
-      </Card>
+            </div>
 
-      {/* Upcoming class card */}
+            <div>
+              <div className="text-white/85">{announcements[annIdx].body}</div>
+
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={() => setTabAnimated("announcements")}
+                  className="rounded-2xl bg-white/20 backdrop-blur px-4 py-3 text-white font-semibold"
+                >
+                  Mark as read
+                </button>
+                <button
+                  onClick={() => setTabAnimated("announcements")}
+                  className="rounded-2xl bg-[#F37120] px-4 py-3 text-white font-extrabold shadow-sm"
+                >
+                  Acknowledge
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upcoming class card (unchanged) */}
       <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
         <div className="relative h-[420px] md:h-[360px]">
           <img
@@ -500,16 +512,40 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Goals activity */}
+      {/* ✅ Big Package block w bar (main goal) */}
+      <PackageBlock title={packageTitle} plan={packagePlan} used={sessionsUsed} left={sessionsLeftComputed} total={totalSessions} />
+
+      {/* Week strip (keep as-is) */}
+      <Card>
+        <div className="grid grid-cols-7 gap-2 text-center">
+          {weekDays.map((d, i) => {
+            const isToday = i === todayIdxMon0;
+            return (
+              <div key={i} className="flex flex-col items-center justify-center gap-2">
+                <div className="text-black/40 text-lg">{dayLabel(i)}</div>
+                <div
+                  className={[
+                    "h-14 w-14 rounded-full flex items-center justify-center text-xl font-semibold",
+                    isToday ? "bg-[#6ea8ff] text-white shadow-md" : "text-black/70",
+                  ].join(" ")}
+                >
+                  {d.getDate()}
+                </div>
+                <div className={["h-2 w-2 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-transparent"].join(" ")} />
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Goals activity (keep as-is) */}
       <div>
         <div className="text-3xl font-bold">Goals Activity</div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* ✅ Greeting moved into this card */}
           <div className="rounded-3xl bg-white shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
             <div>
-              <div className="text-black/30 text-sm">Hello, {userName} • Welcome back</div>
-              <div className="mt-2 text-black/50 text-lg">{location}</div>
+              <div className="text-black/50 text-lg">{location}</div>
               <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
               <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
             </div>
@@ -536,90 +572,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ✅ Today’s Summary moved here — Blue block + progress + bar graph */}
-      <div className="rounded-[32px] bg-[#3b6cff] shadow-sm ring-1 ring-black/5 overflow-hidden">
-        <div className="p-7 text-white">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-white/80 text-sm font-semibold">Today’s Summary</div>
-              <div className="mt-2 text-4xl font-extrabold tracking-tight">You are healthy!</div>
-              <div className="mt-2 text-white/85">Keep it up! Healthy lifestyle on track.</div>
-            </div>
-            <div className="text-white/80 font-bold text-3xl">80%</div>
-          </div>
-
-          <div className="mt-6">
-            <div className="h-4 rounded-full bg-white/20 overflow-hidden">
-              <div className="h-full w-[80%] rounded-full bg-white/90" />
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-white/75">
-              <span>Unhealthy</span>
-              <span>Very Healthy</span>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-2xl bg-white/15 backdrop-blur p-4">
-            <div className="text-white/80 text-sm font-semibold mb-3">Activity</div>
-            <div className="flex items-end gap-3 h-20">
-              {[30, 55, 40, 70, 60, 80, 50].map((h, i) => (
-                <div key={i} className="flex-1">
-                  <div className="w-full rounded-xl bg-white/70" style={{ height: `${h}%` }} />
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex justify-between text-xs text-white/75">
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
-              <span>Sun</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick actions (Today’s Summary card removed as requested) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Quick Actions" subtitle="Fast shortcuts for members">
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTabAnimated("schedule")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
-              Book Session
-            </button>
-            <button onClick={() => setTabAnimated("payments")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Pay Balance
-            </button>
-            <button onClick={() => setTabAnimated("chat")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Message Coach
-            </button>
-            <button onClick={() => setTabAnimated("profile")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              My Profile
-            </button>
-          </div>
-        </Card>
-
-        {/* keep this slot empty with a simple card (optional); leaving your layout intact */}
-        <Card title="Announcements" subtitle="Tap bell for full list">
-          <div className="space-y-3">
-            {announcements.slice(0, 2).map((a, i) => (
-              <button
-                key={i}
-                onClick={() => setTabAnimated("announcements")}
-                className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="font-semibold">
-                    {a.title} {a.unread ? <span className="ml-2 text-[#F37120]">•</span> : null}
-                  </div>
-                  <div className="text-black/40 text-sm">{a.date}</div>
-                </div>
-                <div className="mt-1 text-black/55">{a.body}</div>
-              </button>
-            ))}
-          </div>
-        </Card>
-      </div>
+      {/* ❌ Removed ONLY X-marked area:
+          - Quick Actions
+          - Small announcements list card
+      */}
     </div>
   );
 
@@ -709,8 +665,8 @@ export default function DashboardPage() {
       >
         <div className="space-y-3">
           {announcements.map((a, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 overflow-hidden">
-              <div className="relative h-[160px] rounded-2xl overflow-hidden">
+            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 overflow-hidden">
+              <div className="relative h-40">
                 <img src={a.img} alt={a.title} className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-black/25" />
                 <div className="relative p-4 text-white">
@@ -721,11 +677,12 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-4 text-black/55">{a.body}</div>
-
-              <div className="mt-3 flex gap-2">
-                <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Mark as read</button>
-                <button className="rounded-xl bg-[#F37120] px-3 py-2 font-semibold text-white">Acknowledge</button>
+              <div className="p-4">
+                <div className="text-black/55">{a.body}</div>
+                <div className="mt-3 flex gap-2">
+                  <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Mark as read</button>
+                  <button className="rounded-xl bg-[#F37120] px-3 py-2 font-semibold text-white">Acknowledge</button>
+                </div>
               </div>
             </div>
           ))}
@@ -1107,7 +1064,6 @@ export default function DashboardPage() {
       </Card>
     </div>
   );
-
   // Choose content
   const content = (() => {
     if (role === "member") {
@@ -1125,6 +1081,7 @@ export default function DashboardPage() {
       if (tab === "sessions") return StaffSessions;
       return StaffSales;
     }
+    // admin
     if (tab === "home") return AdminHome;
     if (tab === "overview") return AdminOverview;
     if (tab === "clients") return AdminClients;
@@ -1132,7 +1089,7 @@ export default function DashboardPage() {
     return AdminSettings;
   })();
 
-  // Nav config (role-based) — keep 5 items
+  // Nav config (role-based)
   const navItems =
     role === "member"
       ? ([
@@ -1141,7 +1098,7 @@ export default function DashboardPage() {
           { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
           { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
           { key: "profile", label: "Profile", icon: <UserIcon /> },
-        ] as { key: Exclude<MemberTab, "announcements">; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
+        ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
       : role === "staff"
       ? ([
           { key: "home", label: "Home", icon: <HomeIcon /> },
@@ -1160,12 +1117,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#eef3fb] text-[#0b1220]">
+      {/* main */}
       <div className="mx-auto w-full max-w-[1100px] px-5 py-6 pb-28">
         <div key={`${role}-${tab}`} className={`bf-pane ${animDir === "right" ? "bf-in-right" : "bf-in-left"}`}>
           {content}
         </div>
       </div>
 
+      {/* bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1100px] px-5 pb-4">
           <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 px-4 py-3">
@@ -1175,7 +1134,7 @@ export default function DashboardPage() {
                   key={item.key}
                   active={tab === item.key}
                   label={item.label}
-                  onClick={() => setTabAnimated(item.key as TabKey)}
+                  onClick={() => setTabAnimated(item.key)}
                   badge={item.badge}
                   badgeColor={item.badgeColor}
                 >
@@ -1187,6 +1146,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Animations */}
       <style jsx global>{`
         .bf-pane {
           opacity: 0;
@@ -1225,8 +1185,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-/* -------------------- Helpers -------------------- */
-
 function Countdown({ target, now }: { target: Date; now: Date }) {
   const total = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));
   const h = Math.floor(total / 3600);
@@ -1248,33 +1206,6 @@ function Countdown({ target, now }: { target: Date; now: Date }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function AnnouncementPill({
-  item,
-  onClick,
-}: {
-  item: { title: string; body: string; date: string; img: string; unread?: boolean };
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative h-14 w-[220px] rounded-full overflow-hidden ring-1 ring-black/5 shadow-sm"
-      aria-label="Open announcements"
-    >
-      <img src={item.img} alt={item.title} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-black/35" />
-      <div className="relative h-full px-4 flex flex-col justify-center text-left text-white">
-        <div className="text-xs text-white/85 flex items-center justify-between">
-          <span>{item.date}</span>
-          {item.unread ? <span className="h-2 w-2 rounded-full bg-[#F37120]" /> : <span />}
-        </div>
-        <div className="text-sm font-extrabold leading-tight truncate">{item.title}</div>
-        <div className="text-[11px] text-white/85 truncate">{item.body}</div>
-      </div>
-    </button>
   );
 }
 
@@ -1364,6 +1295,49 @@ function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => voi
       >
         Admin
       </button>
+    </div>
+  );
+}
+
+function PackageBlock({
+  title,
+  plan,
+  used,
+  left,
+  total,
+}: {
+  title: string;
+  plan: string;
+  used: number;
+  left: number;
+  total: number;
+}) {
+  const usedPct = Math.min(100, Math.round((used / total) * 100));
+  const leftPct = 100 - usedPct;
+
+  return (
+    <div className="rounded-[32px] bg-[#F37120] shadow-sm ring-1 ring-black/5 overflow-hidden">
+      <div className="p-8 text-white">
+        <div className="text-5xl font-extrabold leading-none">{title}</div>
+        <div className="mt-2 text-3xl tracking-wide text-black/90">{plan}</div>
+
+        {/* yellow/blue bar like reference */}
+        <div className="mt-6 rounded-full bg-white/25 h-10 overflow-hidden">
+          <div className="h-full flex">
+            <div className="h-full bg-[#FFE36E]" style={{ width: `${usedPct}%` }} />
+            <div className="h-full bg-[#0B4FD6]" style={{ width: `${leftPct}%` }} />
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between text-2xl">
+          <div className="text-white/95">
+            Sessions used: <span className="font-extrabold">{used}</span>
+          </div>
+          <div className="text-white/95">
+            Sessions left: <span className="font-extrabold">{left}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
