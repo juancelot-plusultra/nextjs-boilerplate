@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * BearFit Dashboard (UI only)
@@ -9,13 +9,14 @@ import React, { useEffect, useMemo, useState } from "react";
  * - Role switching: Member / Staff / Admin(Owner) with different nav items
  * - Member Schedule includes a simple week calendar grid
  *
- * ✅ Enhanced to match reference screenshot:
- * - Top: centered Role switch + Bell right
- * - Greeting/Time/Weather card + floating tabs row
- * - Image Announcements slider (auto every 10s)
- * - Upcoming card (unchanged)
- * - Big Package card with used/left bar
- * - Removed ONLY X-marked area (Quick Actions + small announcements list)
+ * ✅ Updated Member HOME to match screenshot:
+ * - Top row: BearFit logo (left), centered Role switch, bell + small caret (right)
+ * - Profile card with plan pill on right + sessions remaining bar + View Profile
+ * - Updates Feed: slidable image cards + AUTO SLIDE every 10s (NO countdown)
+ * - Schedule for this week: slidable big cards (countdown allowed here)
+ * - Activity Log section with tabs + list items
+ *
+ * ❗Other tabs / pages are preserved from your uploaded file.
  */
 
 type Role = "member" | "staff" | "admin";
@@ -167,6 +168,13 @@ function ChevronRight() {
     </svg>
   );
 }
+function CaretDown() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M7 10l5 5 5-5H7z" />
+    </svg>
+  );
+}
 
 /* -------------------- UI Primitives -------------------- */
 function Card({
@@ -207,10 +215,34 @@ function Badge({ value, color = "orange" }: { value: number; color?: "orange" | 
     </span>
   );
 }
+
+function BearFitLogo() {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-10 w-10 rounded-2xl bg-[#F37120] grid place-items-center shadow-sm">
+        <span className="text-white font-extrabold text-lg">B</span>
+      </div>
+      <div className="leading-tight">
+        <div className="text-[#F37120] font-extrabold tracking-wide">BEARFIT</div>
+        <div className="text-[11px] text-black/35 -mt-0.5">Better Fitness</div>
+      </div>
+    </div>
+  );
+}
 export default function DashboardPage() {
   const now = new Date();
-  const userName = "John";
-  const greeting = now.getHours() < 12 ? "Good Morning" : now.getHours() < 18 ? "Good Afternoon" : "Good Evening";
+
+  // Member demo data to match screenshot vibe
+  const memberName = "Aya Mohamed";
+  const memberSubtitle = "Beast Member";
+  const branchName = "Malingap Branch - A01";
+  const planTitle = "Sustain 48 Membership";
+  const planStatus = "Active";
+  const totalSessions = 48;
+  const sessionsRemaining = 40;
+  const sessionsUsed = Math.max(0, totalSessions - sessionsRemaining);
+
+  const remainingPct = Math.max(0, Math.min(100, Math.round((sessionsRemaining / totalSessions) * 100)));
 
   // Role switching
   const [role, setRole] = useState<Role>("member");
@@ -227,7 +259,11 @@ export default function DashboardPage() {
     const orderAdmin: AdminTab[] = ["home", "overview", "clients", "sales", "settings"];
 
     const order =
-      role === "member" ? (orderMember as TabKey[]) : role === "staff" ? (orderStaff as TabKey[]) : (orderAdmin as TabKey[]);
+      role === "member"
+        ? (orderMember as TabKey[])
+        : role === "staff"
+        ? (orderStaff as TabKey[])
+        : (orderAdmin as TabKey[]);
 
     const cur = order.indexOf(tab);
     const nxt = order.indexOf(next);
@@ -241,9 +277,6 @@ export default function DashboardPage() {
     setAnimDir("right");
     setTab("home");
   };
-
-  // ✅ floating tabs (Daily Summary / Workouts / Nutrition)
-  const [summaryTab, setSummaryTab] = useState<"daily" | "workouts" | "nutrition">("daily");
 
   // Week data
   const monday = startOfWeekMonday(now);
@@ -260,57 +293,25 @@ export default function DashboardPage() {
     return js === 0 ? 6 : js - 1;
   })();
 
-  // Demo schedule + goals
-  const upcoming = useMemo(
-    () => [
-      { when: "Today • 6:00 PM", what: "Coach Session — Better Form", where: "Sikatuna" },
-      { when: "Wed • 7:00 PM", what: "Strength — Better Fitness", where: "E. Rodriguez" },
-      { when: "Sat • 9:00 AM", what: "Mobility — Better Function", where: "Cainta" },
-    ],
-    []
-  );
-
-  const goalsByDay: Record<number, { title: string; detail: string }> = {
-    0: { title: "Weights Training", detail: "Lower body + core" },
-    1: { title: "Mobility + Form", detail: "Technique & movement quality" },
-    2: { title: "Weights Training", detail: "Upper body strength" },
-    3: { title: "Conditioning", detail: "Intervals + endurance" },
-    4: { title: "Weights Training", detail: "Full body session" },
-    5: { title: "Recovery", detail: "Light cardio + mobility" },
-    6: { title: "Rest Day", detail: "Walk + stretch" },
-  };
-  const todayGoal = goalsByDay[todayIdxMon0] ?? { title: "Training", detail: "Stay consistent" };
-
-  // UI-only weather
-  const location = "Marikina";
-  const tempC = 28;
-
-  const nextSessionAt = useMemo(() => {
-    const d = new Date(now);
-    d.setHours(18, 0, 0, 0); // 6:00 PM today
-    if (d.getTime() < now.getTime()) d.setDate(d.getDate() + 1);
-    return d;
-  }, [now]);
-
-  // ✅ Announcements (image announcements, auto slide every 10 seconds)
+  // Announcements (used for counts + announcements page)
   const announcements = useMemo(
     () => [
       {
-        title: "New class",
+        title: "Valentine’s Special",
+        body: "Stronger Together — Train with your partner this Valentine’s. Feb 10–14 only.",
+        date: "Feb 10–14",
+        unread: true,
+        img: "https://images.unsplash.com/photo-1599058917765-3e8a1d7b7d9f?auto=format&fit=crop&w=1600&q=70",
+      },
+      {
+        title: "New Class Drop",
         body: "Mobility — Better Function starts this Wednesday 7PM.",
         date: "Jan 29",
         unread: true,
         img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1600&q=60",
       },
       {
-        title: "Cainta branch update",
-        body: "Saturday hours are now 7AM–2PM.",
-        date: "Today",
-        unread: true,
-        img: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1600&q=60",
-      },
-      {
-        title: "Promo",
+        title: "Bring-a-Friend Promo",
         body: "Bring a friend this week and get 1 free session add-on.",
         date: "Jan 23",
         unread: false,
@@ -322,18 +323,10 @@ export default function DashboardPage() {
 
   const unreadAnnouncements = announcements.filter((a) => a.unread).length;
 
-  const [annIdx, setAnnIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => {
-      setAnnIdx((i) => (i + 1) % announcements.length);
-    }, 10000);
-    return () => clearInterval(t);
-  }, [announcements.length]);
-
   // Counters
   const unreadChat = 3;
   const unpaidBalancePhp = 980;
-  const notifCount = unreadAnnouncements; // bell badge reflects announcements
+  const notifCount = unreadAnnouncements;
 
   // Staff counters
   const attendancePending = 5;
@@ -347,13 +340,6 @@ export default function DashboardPage() {
   const packageName = "24 Sessions (Staggered)";
   const sessionsLeft = 9;
 
-  // ✅ Package block values (big orange card)
-  const packageTitle = "Package";
-  const packagePlan = "FULL 24";
-  const totalSessions = 24;
-  const sessionsUsed = 19;
-  const sessionsLeftComputed = Math.max(0, totalSessions - sessionsUsed);
-
   // Chat demo
   const threads = useMemo(
     () => [
@@ -362,223 +348,376 @@ export default function DashboardPage() {
     ],
     []
   );
-  /* -------------------- Tab Content -------------------- */
 
+  // Home: Updates Feed (AUTO every 10 seconds, slidable)
+  const updatesSlides = useMemo(
+    () => [
+      {
+        tag: "Valentine’s Special 💞",
+        title: "STRONGER TOGETHER 💪❤️",
+        subtitle: "Train with your partner this Valentine’s",
+        cta: "Train as a Duo",
+        meta: "124 couples joined",
+        img: "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?auto=format&fit=crop&w=1600&q=70",
+      },
+      {
+        tag: "Tutorial",
+        title: "How to create Savings Goals",
+        subtitle: "Quick steps to track progress",
+        cta: "Click to watch",
+        meta: "1 min video",
+        img: "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1600&q=70",
+      },
+      {
+        tag: "Reminder",
+        title: "Hydrate + Stretch",
+        subtitle: "Recovery keeps you consistent",
+        cta: "View tips",
+        meta: "Updated today",
+        img: "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=1600&q=60",
+      },
+    ],
+    []
+  );
+
+  const updatesRef = useRef<HTMLDivElement | null>(null);
+  const [updIdx, setUpdIdx] = useState(0);
+
+  useEffect(() => {
+    const el = updatesRef.current;
+    if (!el) return;
+
+    const t = setInterval(() => {
+      setUpdIdx((i) => (i + 1) % updatesSlides.length);
+    }, 10000);
+
+    return () => clearInterval(t);
+  }, [updatesSlides.length]);
+
+  useEffect(() => {
+    const el = updatesRef.current;
+    if (!el) return;
+
+    const card = el.querySelector<HTMLElement>("[data-bf-slide='updates']");
+    if (!card) return;
+
+    const gap = 16;
+    const cardW = card.offsetWidth + gap;
+
+    el.scrollTo({ left: updIdx * cardW, behavior: "smooth" });
+  }, [updIdx]);
+
+  // Home: Schedule for this week (slidable)
+  const scheduleRef = useRef<HTMLDivElement | null>(null);
+
+  const nextSessionAt = useMemo(() => {
+    const d = new Date(now);
+    d.setHours(18, 0, 0, 0); // 6:00 PM today
+    if (d.getTime() < now.getTime()) d.setDate(d.getDate() + 1);
+    return d;
+  }, [now]);
+
+  const scheduleCards = useMemo(
+    () => [
+      {
+        badge: "Today",
+        title: "Weights Sessions",
+        sub1: `${branchName} • 6:00 - 7:00pm`,
+        sub2: "Coach Joaquin",
+        img: "https://images.unsplash.com/photo-1517964603305-11c0f6f66012?auto=format&fit=crop&w=1600&q=70",
+        action: "View Details",
+        target: nextSessionAt,
+      },
+      {
+        badge: "Wed",
+        title: "Cardio Sessions",
+        sub1: `${branchName} • 7:00 - 8:00pm`,
+        sub2: "Coach Aly",
+        img: "https://images.unsplash.com/photo-1517838277536-f5f99be50112?auto=format&fit=crop&w=1600&q=70",
+        action: "View Details",
+        target: new Date(nextSessionAt.getTime() + 2 * 24 * 60 * 60 * 1000),
+      },
+      {
+        badge: "Sat",
+        title: "Mobility Session",
+        sub1: `${branchName} • 9:00 - 10:00am`,
+        sub2: "Coach Ken",
+        img: "https://images.unsplash.com/photo-1518611012118-f0c5b74c62b5?auto=format&fit=crop&w=1600&q=70",
+        action: "View Details",
+        target: new Date(nextSessionAt.getTime() + 4 * 24 * 60 * 60 * 1000),
+      },
+    ],
+    [branchName, nextSessionAt]
+  );
+
+  // Home: Activity Log
+  type ActivityTab = "All" | "Sessions" | "Check-ins" | "Payments" | "Place";
+  const [activityTab, setActivityTab] = useState<ActivityTab>("All");
+
+  const activityItems = useMemo(
+    () => [
+      {
+        type: "Sessions",
+        title: "Weights Session",
+        sub: `${branchName}`,
+        when: "Today • 6:00 - 7:00pm",
+        delta: "20 → 19",
+        icon: "🏋️",
+      },
+      {
+        type: "Sessions",
+        title: "Cardio Session",
+        sub: `${branchName}`,
+        when: "Today • 6:00 - 7:00pm",
+        delta: "21 → 20",
+        icon: "🚴",
+      },
+      {
+        type: "Payments",
+        title: "Bonus Session Added",
+        sub: "Package Renewal",
+        when: "Tues, Jan 23",
+        delta: "48 + 3",
+        icon: "🧾",
+      },
+      {
+        type: "Sessions",
+        title: "Weights Session",
+        sub: `${branchName}`,
+        when: "Today • 6:00 - 7:00pm",
+        delta: "20 → 19",
+        icon: "🏋️",
+      },
+    ],
+    [branchName]
+  );
+
+  const filteredActivity = activityTab === "All" ? activityItems : activityItems.filter((x) => x.type === activityTab);
+
+  /* -------------------- Tab Content -------------------- */
   const MemberHome = (
     <div className="space-y-6">
-      {/* ✅ Top: centered role switch + bell right */}
+      {/* Top bar: logo + role switch centered + bell & caret */}
       <div className="relative flex items-center justify-between">
-        <div className="w-14" />
+        <BearFitLogo />
+
         <div className="absolute left-1/2 -translate-x-1/2">
           <RoleSwitch role={role} onChange={onSwitchRole} />
         </div>
 
-        <button
-          onClick={() => setTabAnimated("announcements")}
-          className="relative h-14 w-14 rounded-full bg-white/55 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-          aria-label="Open announcements"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTabAnimated("announcements")}
+            className="relative h-12 w-12 rounded-full bg-white/65 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
+            aria-label="Open announcements"
+          >
+            <BellIcon />
+            <Badge value={notifCount} color="red" />
+          </button>
+
+          <button className="h-12 w-12 rounded-full bg-white/65 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center">
+            <CaretDown />
+          </button>
+        </div>
+      </div>
+
+      {/* Profile Card (matches screenshot layout) */}
+      <div className="rounded-[32px] bg-white/75 backdrop-blur shadow-sm ring-1 ring-black/5 p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-black/10 bg-black/5">
+              <img
+                alt="avatar"
+                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=70"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-black/40 text-sm">Welcome Back</div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xl font-extrabold truncate">{memberName}</div>
+                <span className="text-[#F37120]">🏅</span>
+                <span className="text-[#2b6fff]">✔️</span>
+              </div>
+              <div className="text-black/45 text-sm font-semibold">{memberSubtitle}</div>
+            </div>
+          </div>
+
+          <div className="shrink-0 rounded-2xl bg-[#0b1220]/10 ring-1 ring-black/10 px-4 py-3 text-right">
+            <div className="text-sm font-extrabold text-[#0b1220]">{planTitle}</div>
+            <div className="text-xs text-black/50 font-semibold">{planStatus}</div>
+            <div className="text-xs text-black/50 mt-1">{branchName}</div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <div className="text-sm text-black/60 font-semibold">
+            You Have:{" "}
+            <span className="text-[#F37120] font-extrabold">
+              {sessionsRemaining} of {totalSessions}
+            </span>{" "}
+            sessions remaining
+          </div>
+
+          <button
+            onClick={() => setTabAnimated("profile")}
+            className="text-sm font-extrabold text-[#F37120] flex items-center gap-2"
+          >
+            View Profile <ChevronRight />
+          </button>
+        </div>
+
+        <div className="mt-3">
+          <div className="h-3 rounded-full bg-black/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#F37120]"
+              style={{ width: `${remainingPct}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Updates Feed (slidable + auto every 10s) */}
+      <div className="space-y-3">
+        <div className="text-xl font-extrabold text-[#1f4ea8]">Updates Feed</div>
+
+        <div
+          ref={updatesRef}
+          className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
-          <BellIcon />
-          <Badge value={notifCount} color="red" />
-        </button>
-      </div>
-
-      {/* ✅ Greeting card + floating tabs row */}
-      <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-6 items-center">
-        {/* Greeting / Time / Weather combined (one piece) */}
-        <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
-          <div>
-            <div className="text-black/35 text-sm">Hello, {userName} • Welcome back</div>
-            <div className="mt-3 text-black/50 text-lg">{location}</div>
-            <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
-            <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
-          </div>
-
-          <div className="h-24 w-24 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
-            <div className="text-4xl">☁️</div>
-            <div className="mt-1 text-lg font-semibold">{tempC}°C</div>
-          </div>
-        </div>
-
-        {/* Floating tabs (Daily Summary / Workouts / Nutrition) */}
-        <div className="flex md:justify-center">
-          <div className="inline-flex rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
-            <button
-              onClick={() => setSummaryTab("daily")}
-              className={[
-                "px-6 py-3 rounded-full text-sm font-semibold transition",
-                summaryTab === "daily" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-              ].join(" ")}
+          {updatesSlides.map((s, i) => (
+            <div
+              key={i}
+              data-bf-slide="updates"
+              className="min-w-[86%] sm:min-w-[520px] rounded-[28px] overflow-hidden bg-white shadow-sm ring-1 ring-black/5 relative"
             >
-              Daily Summary
-            </button>
-            <button
-              onClick={() => setSummaryTab("workouts")}
-              className={[
-                "px-6 py-3 rounded-full text-sm font-semibold transition",
-                summaryTab === "workouts" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-              ].join(" ")}
-            >
-              Workouts
-            </button>
-            <button
-              onClick={() => setSummaryTab("nutrition")}
-              className={[
-                "px-6 py-3 rounded-full text-sm font-semibold transition",
-                summaryTab === "nutrition" ? "bg-[#0b1220] text-white" : "text-black/40 hover:text-black/70",
-              ].join(" ")}
-            >
-              Nutrition
-            </button>
-          </div>
-        </div>
-      </div>
+              <div className="relative h-[170px]">
+                <img src={s.img} alt={s.title} className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-black/35" />
 
-      {/* ✅ Image Announcement slider (auto every 10 sec) */}
-      <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
-        <div className="relative h-[220px] md:h-[240px]">
-          <img
-            src={announcements[annIdx].img}
-            alt={announcements[annIdx].title}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/25" />
+                <div className="relative h-full p-5 flex flex-col justify-between">
+                  <div>
+                    <div className="inline-flex items-center rounded-full bg-black/35 px-3 py-1 text-white text-xs font-bold">
+                      {s.tag}
+                    </div>
+                    <div className="mt-3 text-white font-extrabold text-2xl leading-tight">
+                      {s.title}
+                    </div>
+                    <div className="mt-1 text-white/85 text-sm">{s.subtitle}</div>
+                  </div>
 
-          <div className="relative h-full p-6 flex flex-col justify-between">
-            <div>
-              <div className="text-white/85 text-sm">{announcements[annIdx].date}</div>
-              <div className="mt-2 text-3xl md:text-4xl font-extrabold text-white drop-shadow">
-                {announcements[annIdx].title}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-white/85">{announcements[annIdx].body}</div>
-
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  onClick={() => setTabAnimated("announcements")}
-                  className="rounded-2xl bg-white/20 backdrop-blur px-4 py-3 text-white font-semibold"
-                >
-                  Mark as read
-                </button>
-                <button
-                  onClick={() => setTabAnimated("announcements")}
-                  className="rounded-2xl bg-[#F37120] px-4 py-3 text-white font-extrabold shadow-sm"
-                >
-                  Acknowledge
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upcoming class card (unchanged) */}
-      <div className="rounded-[32px] bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
-        <div className="relative h-[420px] md:h-[360px]">
-          <img
-            src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1400&q=60"
-            alt="Workout class"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/25" />
-
-          <div className="relative h-full p-7 flex flex-col justify-between">
-            <div>
-              <div className="inline-flex items-center rounded-full bg-[#F37120] px-4 py-2 text-white text-sm font-bold shadow-sm">
-                Upcoming
-              </div>
-
-              <div className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow">
-                Coach Session
-              </div>
-
-              <div className="mt-2 text-white/85 text-lg drop-shadow">
-                {location} • Studio A • 6:00–7:00 PM
-              </div>
-            </div>
-
-            <div className="rounded-[28px] bg-white/20 backdrop-blur px-6 py-5 flex items-center justify-between gap-4">
-              <Countdown target={nextSessionAt} now={now} />
-              <button
-                onClick={() => setTabAnimated("schedule")}
-                className="rounded-full bg-white px-6 py-3 font-bold text-[#0b1220] shadow-sm"
-              >
-                Manage
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ Big Package block w bar (main goal) */}
-      <PackageBlock title={packageTitle} plan={packagePlan} used={sessionsUsed} left={sessionsLeftComputed} total={totalSessions} />
-
-      {/* Week strip (keep as-is) */}
-      <Card>
-        <div className="grid grid-cols-7 gap-2 text-center">
-          {weekDays.map((d, i) => {
-            const isToday = i === todayIdxMon0;
-            return (
-              <div key={i} className="flex flex-col items-center justify-center gap-2">
-                <div className="text-black/40 text-lg">{dayLabel(i)}</div>
-                <div
-                  className={[
-                    "h-14 w-14 rounded-full flex items-center justify-center text-xl font-semibold",
-                    isToday ? "bg-[#6ea8ff] text-white shadow-md" : "text-black/70",
-                  ].join(" ")}
-                >
-                  {d.getDate()}
+                  <div className="flex items-center justify-between gap-3">
+                    <button className="rounded-2xl bg-white/15 backdrop-blur px-4 py-2.5 text-white font-bold">
+                      {s.cta}
+                    </button>
+                    <div className="text-white/85 text-xs font-semibold">{s.meta}</div>
+                  </div>
                 </div>
-                <div className={["h-2 w-2 rounded-full", i < todayIdxMon0 ? "bg-[#6ea8ff]" : "bg-transparent"].join(" ")} />
               </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* Goals activity (keep as-is) */}
-      <div>
-        <div className="text-3xl font-bold">Goals Activity</div>
-
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-3xl bg-white shadow-sm ring-1 ring-black/5 p-6 flex items-center justify-between">
-            <div>
-              <div className="text-black/50 text-lg">{location}</div>
-              <div className="text-4xl font-extrabold mt-1">{formatTime(now)}</div>
-              <div className="text-black/40 text-xl mt-2">{formatDate(now)}</div>
             </div>
-
-            <div className="h-28 w-28 rounded-3xl bg-[#F37120] flex flex-col items-center justify-center text-white shadow-md">
-              <div className="text-4xl">☁️</div>
-              <div className="mt-2 text-xl font-semibold">{tempC}°C</div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-[#F37120] shadow-sm ring-1 ring-black/5 p-6 flex flex-col justify-center text-white">
-            <div className="text-white/80 text-xl">Goals Today</div>
-            <div className="mt-2 text-4xl font-extrabold">{todayGoal.title}</div>
-            <div className="mt-2 text-white/85 text-xl">{todayGoal.detail}</div>
-
-            <button
-              onClick={() => setTabAnimated("schedule")}
-              className="mt-6 rounded-2xl bg-white/15 px-4 py-3 text-white/95 text-left flex items-center justify-between"
-            >
-              <span>View schedule</span>
-              <ChevronRight />
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* ❌ Removed ONLY X-marked area:
-          - Quick Actions
-          - Small announcements list card
-      */}
+      {/* Schedule for this week (slidable) */}
+      <div className="space-y-3">
+        <div className="text-xl font-extrabold text-[#F37120]">Schedule for this week</div>
+
+        <div
+          ref={scheduleRef}
+          className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {scheduleCards.map((c, i) => (
+            <div
+              key={i}
+              className="min-w-[88%] sm:min-w-[620px] rounded-[34px] overflow-hidden shadow-sm ring-1 ring-black/5 relative"
+            >
+              <div className="relative h-[260px] bg-black">
+                <img src={c.img} alt={c.title} className="absolute inset-0 h-full w-full object-cover opacity-95" />
+                <div className="absolute inset-0 bg-[#0b3b7a]/60" />
+
+                <div className="relative h-full p-6 flex flex-col justify-between text-white">
+                  <div>
+                    <div className="inline-flex items-center rounded-2xl bg-[#F37120] px-4 py-2 text-sm font-extrabold shadow-sm">
+                      {c.badge}
+                    </div>
+                    <div className="mt-4 text-4xl font-extrabold tracking-tight">{c.title}</div>
+                    <div className="mt-2 text-white/85 text-sm">{c.sub1}</div>
+                    <div className="text-white/85 text-sm">{c.sub2}</div>
+                  </div>
+
+                  <div className="flex items-end justify-between gap-4">
+                    <Countdown target={c.target} now={now} />
+                    <button
+                      onClick={() => setTabAnimated("schedule")}
+                      className="rounded-xl bg-white px-4 py-3 text-[#0b1220] font-extrabold shadow-sm"
+                    >
+                      {c.action}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Activity Log */}
+      <div className="rounded-[28px] bg-white/75 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
+        <div className="p-5 flex items-center justify-between">
+          <div className="text-xl font-extrabold">Activity Log</div>
+          <button className="text-sm font-extrabold text-[#F37120]">View All</button>
+        </div>
+
+        <div className="px-5 pb-4">
+          <div className="rounded-full bg-black/5 p-1 flex items-center gap-1 overflow-x-auto">
+            {(["All", "Sessions", "Check-ins", "Payments", "Place"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setActivityTab(t)}
+                className={[
+                  "px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition",
+                  activityTab === t ? "bg-[#F37120] text-white shadow-sm" : "text-black/45 hover:text-black/70",
+                ].join(" ")}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-5 pb-5 space-y-3">
+          {filteredActivity.map((x, idx) => (
+            <div
+              key={idx}
+              className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-12 w-12 rounded-2xl bg-[#eef3fb] ring-1 ring-black/10 grid place-items-center text-xl">
+                  {x.icon}
+                </div>
+                <div className="min-w-0">
+                  <div className="font-extrabold truncate">{x.title}</div>
+                  <div className="text-black/50 text-sm truncate">{x.sub}</div>
+                  <div className="text-black/40 text-xs">{x.when}</div>
+                </div>
+              </div>
+
+              <div className="shrink-0 text-right">
+                <div className="text-[#F37120] font-extrabold text-lg">{x.delta}</div>
+                <div className="text-black/35 text-xs font-semibold">
+                  {x.type === "Sessions" ? "1 Session Used" : x.type}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-
   const MemberSchedule = (
     <div className="space-y-6">
       <HeaderRow title="Schedule" role={role} onRoleChange={onSwitchRole} />
@@ -605,7 +744,11 @@ export default function DashboardPage() {
 
       <Card title="Upcoming Sessions" subtitle="Your next trainings">
         <div className="space-y-3">
-          {upcoming.map((x, idx) => (
+          {[
+            { when: "Today • 6:00 PM", what: "Coach Session — Better Form", where: "Sikatuna" },
+            { when: "Wed • 7:00 PM", what: "Strength — Better Fitness", where: "E. Rodriguez" },
+            { when: "Sat • 9:00 AM", what: "Mobility — Better Function", where: "Cainta" },
+          ].map((x, idx) => (
             <div key={idx} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
               <div className="text-black/50">{x.when}</div>
               <div className="mt-1 text-lg font-semibold">{x.what}</div>
@@ -640,7 +783,10 @@ export default function DashboardPage() {
         <div className="mt-5 rounded-2xl bg-white ring-1 ring-black/10 p-4">
           <div className="text-black/50 mb-2">Quick message</div>
           <div className="flex gap-2">
-            <input className="flex-1 rounded-2xl bg-[#eef3fb] px-4 py-3 outline-none ring-1 ring-black/5" placeholder="Type here…" />
+            <input
+              className="flex-1 rounded-2xl bg-[#eef3fb] px-4 py-3 outline-none ring-1 ring-black/5"
+              placeholder="Type here…"
+            />
             <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Send</button>
           </div>
         </div>
@@ -716,15 +862,15 @@ export default function DashboardPage() {
       <HeaderRow title="Profile" role={role} onRoleChange={onSwitchRole} />
       <Card title="Member Info" subtitle="Your account">
         <div className="space-y-3">
-          <RowItem label="Name" value={userName} />
+          <RowItem label="Name" value={memberName} />
           <RowItem label="Role" value="Member" />
-          <RowItem label="Home branch" value="Sikatuna" />
+          <RowItem label="Home branch" value={branchName} />
         </div>
       </Card>
       <Card title="Settings" subtitle="App preferences">
         <div className="space-y-3">
           <RowItem label="Notifications" value="On" />
-          <RowItem label="Preferred Branch" value="Sikatuna" />
+          <RowItem label="Preferred Branch" value={branchName} />
           <RowItem label="Dark mode" value="Auto" />
         </div>
         <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Log out</button>
@@ -1064,6 +1210,7 @@ export default function DashboardPage() {
       </Card>
     </div>
   );
+
   // Choose content
   const content = (() => {
     if (role === "member") {
@@ -1185,8 +1332,19 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+/* -------------------- Shared Components -------------------- */
 function Countdown({ target, now }: { target: Date; now: Date }) {
-  const total = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick((x) => x + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const liveNow = useMemo(() => new Date(now.getTime() + tick * 1000), [now, tick]);
+
+  const total = Math.max(0, Math.floor((target.getTime() - liveNow.getTime()) / 1000));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
@@ -1194,15 +1352,15 @@ function Countdown({ target, now }: { target: Date; now: Date }) {
   const two = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <div className="flex items-end gap-6 text-white">
-      <div className="text-5xl font-extrabold tracking-tight">
-        {two(h)}:{two(m)}:{two(s)}
+    <div className="flex flex-col items-start">
+      <div className="text-3xl font-extrabold tracking-tight">
+        {two(h)} : {two(m)} : {two(s)}
       </div>
-      <div className="pb-1 text-white/85 text-sm">
+      <div className="mt-1 text-white/85 text-[11px] font-semibold">
         <div className="grid grid-cols-3 gap-3">
-          <span className="text-center">Hours</span>
-          <span className="text-center">Minutes</span>
-          <span className="text-center">Seconds</span>
+          <span className="text-left">Hours</span>
+          <span className="text-left">Minutes</span>
+          <span className="text-left">Seconds</span>
         </div>
       </div>
     </div>
@@ -1299,45 +1457,3 @@ function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => voi
   );
 }
 
-function PackageBlock({
-  title,
-  plan,
-  used,
-  left,
-  total,
-}: {
-  title: string;
-  plan: string;
-  used: number;
-  left: number;
-  total: number;
-}) {
-  const usedPct = Math.min(100, Math.round((used / total) * 100));
-  const leftPct = 100 - usedPct;
-
-  return (
-    <div className="rounded-[32px] bg-[#F37120] shadow-sm ring-1 ring-black/5 overflow-hidden">
-      <div className="p-8 text-white">
-        <div className="text-5xl font-extrabold leading-none">{title}</div>
-        <div className="mt-2 text-3xl tracking-wide text-black/90">{plan}</div>
-
-        {/* yellow/blue bar like reference */}
-        <div className="mt-6 rounded-full bg-white/25 h-10 overflow-hidden">
-          <div className="h-full flex">
-            <div className="h-full bg-[#FFE36E]" style={{ width: `${usedPct}%` }} />
-            <div className="h-full bg-[#0B4FD6]" style={{ width: `${leftPct}%` }} />
-          </div>
-        </div>
-
-        <div className="mt-6 flex items-center justify-between text-2xl">
-          <div className="text-white/95">
-            Sessions used: <span className="font-extrabold">{used}</span>
-          </div>
-          <div className="text-white/95">
-            Sessions left: <span className="font-extrabold">{left}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
