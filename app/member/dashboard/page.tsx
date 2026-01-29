@@ -1,38 +1,24 @@
-// PART 1/6
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 
 /**
- * BearFit Dashboard (UI only)
- * ✅ Member Home redesigned to match mobile app screenshot:
- * - Top app bar (logo/title, search icon, avatar)
- * - Greeting
- * - Hero banner: "Track Your Daily Activities" (orange)
- * - 3 session cards row
- * - Activity Log section (replaces Goal Progress)
- * - Payments section
- * - Promo banner: "50% off on Premium Membership" (same size as hero)
- * - Bottom nav labels: Overview / Workout / Goals / Schedule / More
+ * Mobile-first Fitness App (single-file page.tsx)
+ * - Standardized typography + spacing (app-like)
+ * - Safe-area padding + phone-width canvas
+ * - Session cards: horizontal scroll + snap
+ * - Hero + Promo: same visual height & padding
+ * - Goal Progress removed (Activity Log + Payments instead)
  */
 
 type Role = "member" | "staff" | "admin";
-
 type MemberTab = "home" | "schedule" | "chat" | "announcements" | "payments" | "profile";
 type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
 type AdminTab = "home" | "overview" | "clients" | "sales" | "settings";
-
 type TabKey = MemberTab | StaffTab | AdminTab;
 
 function dayLabel(i: number) {
   return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
-}
-function formatTime(d: Date) {
-  const h = d.getHours();
-  const m = d.getMinutes().toString().padStart(2, "0");
-  const hour12 = ((h + 11) % 12) + 1;
-  const ampm = h >= 12 ? "PM" : "AM";
-  return `${hour12}.${m} ${ampm}`;
 }
 function formatDate(d: Date) {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -51,16 +37,6 @@ function iconBase(cls = "") {
 }
 
 /* -------------------- Icons -------------------- */
-function BellIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5l-2 2v1h18v-1l-2-2Z"
-      />
-    </svg>
-  );
-}
 function HomeIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
@@ -138,7 +114,6 @@ function TargetIcon() {
     </svg>
   );
 }
-// PART 2/6
 function ChevronRightIcon() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -146,58 +121,34 @@ function ChevronRightIcon() {
     </svg>
   );
 }
+
+/* -------------------- Small UI primitives -------------------- */
 function Badge({ value, color = "red" }: { value: number; color?: "red" | "orange" | "blue" }) {
   if (!value) return null;
   const bg = color === "red" ? "bg-red-500" : color === "orange" ? "bg-[#F37120]" : "bg-blue-500";
   return (
-    <span className={`absolute -top-1 -right-1 ${bg} text-white text-xs font-extrabold rounded-full px-2 py-0.5 shadow`}>
+    <span className={`absolute -top-1 -right-1 ${bg} text-white text-[10px] font-extrabold rounded-full px-2 py-0.5 shadow`}>
       {value}
     </span>
   );
 }
 
-function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
-  const btn = (r: Role, label: string) => (
-    <button
-      onClick={() => onChange(r)}
-      className={[
-        "px-4 py-2 rounded-full text-sm font-semibold transition",
-        role === r ? "bg-[#0b1220] text-white" : "text-black/45 hover:text-black/70",
-      ].join(" ")}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div className="inline-flex rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
-      {btn("member", "Member")}
-      {btn("staff", "Staff")}
-      {btn("admin", "Admin")}
-    </div>
-  );
-}
-
 function Card({
   title,
-  subtitle,
   right,
   children,
   className = "",
 }: {
   title?: string;
-  subtitle?: string;
   right?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <div className={["rounded-3xl bg-white/80 backdrop-blur shadow-sm ring-1 ring-black/5", className].join(" ")}>
-      {(title || subtitle || right) && (
-        <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-4">
-          <div>
-            {title && <div className="text-lg font-extrabold text-black/80">{title}</div>}
-            {subtitle && <div className="text-sm text-black/45 mt-0.5">{subtitle}</div>}
-          </div>
+    <div className={["rounded-3xl bg-white/90 backdrop-blur shadow-sm ring-1 ring-black/5", className].join(" ")}>
+      {(title || right) && (
+        <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
+          {title && <div className="text-[18px] font-extrabold tracking-[-0.02em] text-black/75">{title}</div>}
           {right}
         </div>
       )}
@@ -206,16 +157,10 @@ function Card({
   );
 }
 
-function SectionHeader({
-  title,
-  onViewAll,
-}: {
-  title: string;
-  onViewAll?: () => void;
-}) {
+function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => void }) {
   return (
     <div className="flex items-center justify-between">
-      <div className="text-lg font-extrabold text-black/70">{title}</div>
+      <div className="text-[18px] font-extrabold tracking-[-0.02em] text-black/70">{title}</div>
       {onViewAll && (
         <button onClick={onViewAll} className="text-[#F37120] font-semibold text-sm inline-flex items-center gap-1">
           View All <ChevronRightIcon />
@@ -225,11 +170,143 @@ function SectionHeader({
   );
 }
 
-function WaveBg({ tone }: { tone: "teal" | "orange" | "purple" }) {
-  const tint =
-    tone === "teal" ? "text-black/10" : tone === "orange" ? "text-black/10" : "text-black/10";
+function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <svg className={`absolute inset-0 h-full w-full ${tint}`} viewBox="0 0 400 220" preserveAspectRatio="none">
+    <div className="rounded-full bg-orange-100 text-[#F37120] font-extrabold text-sm px-3 py-1">
+      {children}
+    </div>
+  );
+}
+
+function ListRow({
+  leftIcon,
+  title,
+  subtitle,
+  right,
+  onClick,
+}: {
+  leftIcon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  right?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left flex items-center gap-4 rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 active:scale-[0.99] transition"
+    >
+      <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">{leftIcon}</div>
+
+      <div className="min-w-0 flex-1">
+        <div className="font-extrabold text-[15px] text-black/75 truncate">{title}</div>
+        <div className="text-[13px] text-black/45 truncate">{subtitle}</div>
+      </div>
+
+      {right && <div className="shrink-0">{right}</div>}
+    </button>
+  );
+}
+
+/* -------------------- App Top Bar -------------------- */
+function AppTopBar({ avatarUrl, onSearch }: { avatarUrl: string; onSearch?: () => void }) {
+  return (
+    <div className="flex items-center justify-between px-4 pt-[max(16px,env(safe-area-inset-top))]">
+      <div className="flex items-center gap-2">
+        <div className="h-10 w-10 rounded-2xl bg-orange-100 flex items-center justify-center">
+          <span className="text-[#F37120] text-xl">🏋️</span>
+        </div>
+        <div className="text-[22px] font-extrabold tracking-[-0.02em] text-[#F37120]">Fitness</div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onSearch}
+          className="h-11 w-11 rounded-full bg-white ring-1 ring-black/5 flex items-center justify-center text-black/55 active:scale-[0.98] transition"
+          aria-label="Search"
+        >
+          <SearchIcon />
+        </button>
+
+        <img
+          src={avatarUrl}
+          alt="Profile"
+          className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* -------------------- Hero + Promo (same height) -------------------- */
+function BannerShell({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={["relative rounded-3xl overflow-hidden ring-1 ring-black/5 shadow-sm min-h-[152px]", className].join(" ")}>
+      {children}
+    </div>
+  );
+}
+
+function HeroBanner() {
+  return (
+    <BannerShell className="bg-gradient-to-r from-orange-600 to-orange-400 text-white">
+      <img
+        src="https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?auto=format&fit=crop&w=1200&q=60"
+        alt="Daily activities"
+        className="absolute inset-0 h-full w-full object-cover opacity-35"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/85 to-orange-400/35" />
+
+      <div className="relative p-5">
+        <div className="text-[22px] font-extrabold tracking-[-0.02em] leading-tight">Track Your Daily Activities</div>
+        <div className="mt-2 text-[13px] text-white/85 max-w-[270px] leading-relaxed">
+          Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
+        </div>
+      </div>
+    </BannerShell>
+  );
+}
+
+function PromoBanner() {
+  return (
+    <BannerShell className="bg-gradient-to-r from-purple-600 to-purple-400 text-white">
+      <div className="absolute inset-0 opacity-25">
+        <div className="absolute -right-16 -bottom-16 h-56 w-56 rounded-full bg-white/20" />
+      </div>
+
+      <div className="relative p-5 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-[20px] font-extrabold tracking-[-0.02em] leading-tight">
+            50% off on Premium Membership
+          </div>
+          <div className="mt-2 text-[13px] text-white/85 leading-relaxed">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
+          </div>
+          <button className="mt-4 rounded-2xl bg-[#F37120] px-6 py-3 text-[14px] font-extrabold shadow-sm active:scale-[0.99] transition">
+            Upgrade
+          </button>
+        </div>
+
+        <img
+          src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=700&q=60"
+          alt="Promo"
+          className="h-24 w-24 rounded-2xl object-cover ring-2 ring-white/30 shrink-0"
+        />
+      </div>
+    </BannerShell>
+  );
+}
+
+/* -------------------- Session Tiles (scroll + snap) -------------------- */
+function WaveBg() {
+  return (
+    <svg className="absolute inset-0 h-full w-full text-black/10" viewBox="0 0 400 220" preserveAspectRatio="none">
       <path
         fill="currentColor"
         d="M0 130 C 60 110, 90 160, 150 140 C 210 120, 250 80, 310 105 C 350 120, 370 160, 400 150 L 400 220 L 0 220 Z"
@@ -268,146 +345,42 @@ function SessionTile({
       : "from-purple-600 to-purple-500";
 
   return (
-    <div className={`relative min-w-[150px] flex-1 rounded-2xl overflow-hidden bg-gradient-to-br ${bg} text-white p-4`}>
-      <WaveBg tone={tone} />
+    <div
+      className={[
+        "relative w-[280px] sm:w-[300px] snap-start rounded-2xl overflow-hidden bg-gradient-to-br",
+        bg,
+        "text-white p-4 ring-1 ring-black/10 shadow-sm",
+      ].join(" ")}
+    >
+      <WaveBg />
+
       <div className="relative">
         <div className="flex items-start gap-3">
           <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">{icon}</div>
           <div className="min-w-0">
-            <div className="font-extrabold leading-tight">{title}</div>
-            <div className="text-white/80 text-xs mt-1">{branch}</div>
-            <div className="text-white/80 text-xs">{time}</div>
-            {coach && <div className="text-white/70 text-xs">{coach}</div>}
+            <div className="font-extrabold text-[15px] leading-tight">{title}</div>
+            <div className="text-white/80 text-[12px] mt-1">{branch}</div>
+            <div className="text-white/80 text-[12px]">{time}</div>
+            {coach && <div className="text-white/70 text-[12px]">{coach}</div>}
           </div>
         </div>
 
         <div className="mt-6">
-          <div className="font-extrabold tracking-wider">{timer}</div>
+          <div className="font-extrabold tracking-wider text-[16px]">{timer}</div>
           <div className="text-[10px] text-white/70 mt-0.5">Hours&nbsp;&nbsp;&nbsp;Minutes&nbsp;&nbsp;&nbsp;Seconds</div>
         </div>
 
         <div className="mt-2 flex justify-end">
-          <button className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold">Manage</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-// PART 3/6
-function ListRow({
-  leftIcon,
-  title,
-  subtitle,
-  right,
-  onClick,
-}: {
-  leftIcon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  right?: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left flex items-center gap-4 rounded-2xl bg-white/70 ring-1 ring-black/5 px-4 py-3 hover:bg-white/90 transition"
-    >
-      <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">{leftIcon}</div>
-
-      <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-black/75 truncate">{title}</div>
-        <div className="text-sm text-black/45 truncate">{subtitle}</div>
-      </div>
-
-      {right && <div className="shrink-0">{right}</div>}
-    </button>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-full bg-orange-100 text-[#F37120] font-extrabold text-sm px-3 py-1">{children}</div>;
-}
-
-function AppTopBar({
-  onSearch,
-  avatarUrl,
-}: {
-  onSearch?: () => void;
-  avatarUrl: string;
-}) {
-  return (
-    <div className="flex items-center justify-between px-4 pt-4">
-      <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-2xl bg-orange-100 flex items-center justify-center">
-          <span className="text-[#F37120] text-xl">🏋️</span>
-        </div>
-        <div className="text-xl font-extrabold text-[#F37120]">Fitness</div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onSearch}
-          className="h-11 w-11 rounded-full bg-white/80 ring-1 ring-black/5 flex items-center justify-center text-black/60"
-          aria-label="Search"
-        >
-          <SearchIcon />
-        </button>
-        <img
-          src={avatarUrl}
-          alt="Profile"
-          className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
-        />
-      </div>
-    </div>
-  );
-}
-
-function HeroBanner() {
-  return (
-    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 to-orange-400 text-white ring-1 ring-black/5 shadow-sm">
-      <img
-        src="https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?auto=format&fit=crop&w=1200&q=60"
-        alt="Daily activities"
-        className="absolute inset-0 h-full w-full object-cover opacity-35"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/85 to-orange-400/40" />
-
-      <div className="relative p-5">
-        <div className="text-2xl font-extrabold leading-tight">Track Your Daily Activities</div>
-        <div className="mt-2 text-sm text-white/85 max-w-[260px]">
-          Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
+          <button className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold active:scale-[0.99] transition">
+            Manage
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function PromoBanner() {
-  return (
-    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-600 to-purple-400 text-white ring-1 ring-black/5 shadow-sm">
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute -right-16 -bottom-16 h-56 w-56 rounded-full bg-white/20" />
-      </div>
-
-      <div className="relative p-5 flex items-end justify-between gap-4">
-        <div className="min-w-0">
-          <div className="text-xl font-extrabold">50% off on Premium Membership</div>
-          <div className="mt-2 text-sm text-white/85">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
-          </div>
-          <button className="mt-4 rounded-2xl bg-[#F37120] px-6 py-3 font-extrabold shadow-sm">Upgrade</button>
-        </div>
-
-        <img
-          src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=700&q=60"
-          alt="Promo"
-          className="h-24 w-24 rounded-2xl object-cover ring-2 ring-white/30 shrink-0"
-        />
-      </div>
-    </div>
-  );
-}
-
+/* -------------------- Bottom Nav -------------------- */
 function BottomNav({
   items,
   active,
@@ -420,7 +393,13 @@ function BottomNav({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30">
       <div className="mx-auto max-w-[430px]">
-        <div className="bg-white/85 backdrop-blur ring-1 ring-black/5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] rounded-t-3xl px-2 py-2">
+        <div
+          className={[
+            "bg-white/90 backdrop-blur ring-1 ring-black/5",
+            "shadow-[0_-10px_30px_rgba(0,0,0,0.08)]",
+            "rounded-t-3xl px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]",
+          ].join(" ")}
+        >
           <div className="grid grid-cols-5 gap-1">
             {items.map((it) => {
               const isActive = it.key === active;
@@ -430,7 +409,8 @@ function BottomNav({
                   onClick={() => onChange(it.key)}
                   className={[
                     "relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition",
-                    isActive ? "text-[#F37120]" : "text-black/45 hover:text-black/70",
+                    isActive ? "text-[#F37120]" : "text-black/45",
+                    "active:scale-[0.99]",
                   ].join(" ")}
                 >
                   <div className="relative">
@@ -447,11 +427,33 @@ function BottomNav({
     </div>
   );
 }
-// PART 4/6
+
+/* -------------------- Role Switch (kept) -------------------- */
+function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
+  const btn = (r: Role, label: string) => (
+    <button
+      onClick={() => onChange(r)}
+      className={[
+        "px-4 py-2 rounded-full text-sm font-semibold transition",
+        role === r ? "bg-[#0b1220] text-white" : "text-black/45 hover:text-black/70",
+      ].join(" ")}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="inline-flex rounded-full bg-white/80 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
+      {btn("member", "Member")}
+      {btn("staff", "Staff")}
+      {btn("admin", "Admin")}
+    </div>
+  );
+}
+
+/* ============================ PAGE ============================ */
 export default function Page() {
   const [role, setRole] = useState<Role>("member");
 
-  // Keep existing state + animated tabs behavior
   const [tab, setTab] = useState<TabKey>("home");
   const [tabAnimated, setTabAnimated] = useState<TabKey>("home");
   const [animDir, setAnimDir] = useState<"left" | "right">("right");
@@ -472,6 +474,7 @@ export default function Page() {
 
   const switchTab = (next: TabKey) => {
     if (next === tab) return;
+
     const order: TabKey[] =
       role === "member"
         ? (["home", "chat", "announcements", "schedule", "profile"] as TabKey[])
@@ -484,113 +487,80 @@ export default function Page() {
     setAnimDir(to > from ? "right" : "left");
     setTab(next);
 
-    // delay swap for slide animation
     window.setTimeout(() => {
       setTabAnimated(next);
       setAnimKey((k) => k + 1);
     }, 110);
   };
 
-  // Member demo data
+  // demo user
   const userName = "Aya Mohamed";
-  const avatarUrl =
-    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
+  const avatarUrl = "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
 
-  // badges (keep)
   const unreadChat = 3;
   const unreadAnnouncements = 2;
 
-  // Activity + Payments demo rows (for Home)
   const activityRows = useMemo(
     () => [
-      {
-        title: "Weights Session",
-        subtitle: "Malingap Branch / 6:00 - 7:00pm",
-        right: <Pill>45 → 46</Pill>,
-        emoji: "🥊",
-      },
-      {
-        title: "Cardio Sessions",
-        subtitle: "Malingap Branch / 5:00 - 6:00pm",
-        right: <Pill>46</Pill>,
-        emoji: "🧘",
-      },
+      { title: "Weights Session", subtitle: "Malingap Branch / 6:00 - 7:00pm", right: <Pill>45 → 46</Pill>, emoji: "🥊" },
+      { title: "Cardio Sessions", subtitle: "Malingap Branch / 5:00 - 6:00pm", right: <Pill>46</Pill>, emoji: "🧘" },
     ],
     []
   );
 
   const paymentRows = useMemo(
     () => [
-      {
-        title: "Via Gcash",
-        subtitle: "1st-6th - NEW    P800   Due: January 25",
-        amount: "₱8000",
-        last: "Last: ₱5800",
-        emoji: "💳",
-      },
-      {
-        title: "Via BPI",
-        subtitle: "Full Paid   P48000    Due: January 21",
-        amount: "₱48000",
-        last: "Last: ₱48000",
-        emoji: "🎁",
-      },
+      { title: "Via Gcash", subtitle: "1st-6th - NEW    P800   Due: January 25", amount: "₱8000", last: "Last: ₱5800", emoji: "💳" },
+      { title: "Via BPI", subtitle: "Full Paid   P48000    Due: January 21", amount: "₱48000", last: "Last: ₱48000", emoji: "🎁" },
     ],
     []
   );
 
-  /* -------------------- Member Home (MOBILE APP) -------------------- */
+  /* -------------------- Member Home -------------------- */
   const MemberHome = (
     <div className="pb-28">
-      {/* App top bar */}
-      <AppTopBar onSearch={() => {}} avatarUrl={avatarUrl} />
+      <AppTopBar avatarUrl={avatarUrl} onSearch={() => {}} />
 
-      {/* Greeting */}
       <div className="px-4 mt-4">
-        <div className="text-black/55 text-sm">Good Morning!</div>
-        <div className="text-2xl font-extrabold text-black/75">Welcome Back!</div>
+        <div className="text-black/55 text-[13px]">Good Morning!</div>
+        <div className="text-[26px] font-extrabold tracking-[-0.03em] text-black/75">Welcome Back!</div>
       </div>
 
       <div className="px-4 mt-4 space-y-4">
-        {/* Hero banner (size reference) */}
         <HeroBanner />
 
-        {/* 3 session tiles row */}
-        <div className="flex gap-3">
-          <SessionTile
-            tone="teal"
-            title="Weight Sessions"
-            branch="Malingap Branch"
-            time="6:00 - 7:00pm"
-            timer="01 : 42 : 50"
-            icon={<span className="text-lg">🏋️</span>}
-          />
-          <SessionTile
-            tone="orange"
-            title="Cardio Sessions"
-            branch="Malingap Branch"
-            time="5:00 - 6:00pm"
-            coach="Coach Amiel"
-            timer="46 : 36 : 26"
-            icon={<span className="text-lg">🔥</span>}
-          />
-          <SessionTile
-            tone="purple"
-            title="Muay Thai/Boxing"
-            branch="Malingap Branch"
-            time="5:00 - 6:00pm"
-            timer="90 : 60 : 30"
-            icon={<span className="text-lg">🥊</span>}
-          />
+        {/* session row: scroll + snap */}
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="flex gap-3 snap-x snap-mandatory">
+            <SessionTile
+              tone="teal"
+              title="Weight Sessions"
+              branch="Malingap Branch"
+              time="6:00 - 7:00pm"
+              timer="01 : 42 : 50"
+              icon={<span className="text-lg">🏋️</span>}
+            />
+            <SessionTile
+              tone="orange"
+              title="Cardio Sessions"
+              branch="Malingap Branch"
+              time="5:00 - 6:00pm"
+              coach="Coach Amiel"
+              timer="46 : 36 : 26"
+              icon={<span className="text-lg">🔥</span>}
+            />
+            <SessionTile
+              tone="purple"
+              title="Muay Thai/Boxing"
+              branch="Malingap Branch"
+              time="5:00 - 6:00pm"
+              timer="90 : 60 : 30"
+              icon={<span className="text-lg">🥊</span>}
+            />
+          </div>
         </div>
 
-        {/* Activity Log */}
-        <Card
-          className="px-0"
-          title={undefined}
-          subtitle={undefined}
-          right={undefined}
-        >
+        <Card className="px-0">
           <div className="px-5 pt-5 pb-4">
             <SectionHeader title="Activity Log" onViewAll={() => switchTab("announcements")} />
           </div>
@@ -608,7 +578,6 @@ export default function Page() {
           </div>
         </Card>
 
-        {/* Payments */}
         <Card className="px-0">
           <div className="px-5 pt-5 pb-4">
             <SectionHeader title="Payments" onViewAll={() => switchTab("payments")} />
@@ -619,47 +588,39 @@ export default function Page() {
               <button
                 key={i}
                 onClick={() => switchTab("payments")}
-                className="w-full text-left flex items-start gap-4 rounded-2xl bg-white/70 ring-1 ring-black/5 px-4 py-3 hover:bg-white/90 transition"
+                className="w-full text-left flex items-start gap-4 rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 active:scale-[0.99] transition"
               >
                 <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
                   <span className="text-xl">{p.emoji}</span>
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-black/75">{p.title}</div>
-                  <div className="text-sm text-black/45 mt-0.5">{p.subtitle}</div>
+                  <div className="font-extrabold text-[15px] text-black/75">{p.title}</div>
+                  <div className="text-[13px] text-black/45 mt-0.5 leading-snug">{p.subtitle}</div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="font-extrabold text-black/75">{p.amount}</div>
-                  <div className="text-xs text-black/40 mt-1">{p.last}</div>
+                  <div className="font-extrabold text-[16px] text-black/75">{p.amount}</div>
+                  <div className="text-[11px] text-black/40 mt-1">{p.last}</div>
                 </div>
               </button>
             ))}
           </div>
         </Card>
 
-        {/* Promo banner (same visual size as hero) */}
         <PromoBanner />
       </div>
     </div>
   );
 
-  /* -------------------- Existing pages (kept) -------------------- */
+  /* -------------------- Other pages (kept) -------------------- */
   const MemberSchedule = (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <RoleSwitch role={role} onChange={onSwitchRole} />
-        <button
-          onClick={() => switchTab("home")}
-          className="h-12 w-12 rounded-full bg-white/70 ring-1 ring-black/5 flex items-center justify-center"
-          aria-label="Back"
-        >
-          <ChevronRightIcon />
-        </button>
       </div>
 
-      <Card title="My Schedule" subtitle="This week overview">
+      <Card title="My Schedule" right={<div className="text-sm text-black/40 font-semibold">{formatDate(now)}</div>}>
         {(() => {
           const start = startOfWeekMonday(now);
           const days = Array.from({ length: 7 }, (_, i) => {
@@ -671,12 +632,9 @@ export default function Page() {
           return (
             <div className="grid grid-cols-7 gap-2">
               {days.map((d, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl bg-black/5 ring-1 ring-black/5 px-2 py-3 text-center"
-                >
-                  <div className="text-xs text-black/45">{dayLabel(i)}</div>
-                  <div className="mt-1 text-sm font-extrabold text-black/70">{d.getDate()}</div>
+                <div key={i} className="rounded-2xl bg-black/5 ring-1 ring-black/5 px-2 py-3 text-center">
+                  <div className="text-[11px] text-black/45">{dayLabel(i)}</div>
+                  <div className="mt-1 text-[14px] font-extrabold text-black/70">{d.getDate()}</div>
                 </div>
               ))}
             </div>
@@ -684,21 +642,21 @@ export default function Page() {
         })()}
       </Card>
 
-      <Card title="Upcoming" subtitle="Sessions lined up">
+      <Card title="Upcoming">
         <div className="space-y-3">
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
             <div className="font-extrabold text-black/70">Weights Session</div>
-            <div className="text-sm text-black/45 mt-1">Today • 6:00 - 7:00pm • Malingap Branch</div>
+            <div className="text-[13px] text-black/45 mt-1">Today • 6:00 - 7:00pm • Malingap Branch</div>
           </div>
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
             <div className="font-extrabold text-black/70">Cardio Session</div>
-            <div className="text-sm text-black/45 mt-1">Tomorrow • 5:00 - 6:00pm • Malingap Branch</div>
+            <div className="text-[13px] text-black/45 mt-1">Tomorrow • 5:00 - 6:00pm • Malingap Branch</div>
           </div>
         </div>
       </Card>
     </div>
   );
-// PART 5/6
+
   const MemberChat = (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -706,21 +664,21 @@ export default function Page() {
         <div className="text-black/45 font-semibold">Workout</div>
       </div>
 
-      <Card title="Coach Chat" subtitle="Messages">
+      <Card title="Coach Chat">
         <div className="space-y-3">
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
             <div>
               <div className="font-extrabold text-black/70">Coach JP</div>
-              <div className="text-sm text-black/45 mt-1">Send me your availability for this week.</div>
+              <div className="text-[13px] text-black/45 mt-1">Send me your availability for this week.</div>
             </div>
-            <div className="text-xs text-black/35 font-bold">2h</div>
+            <div className="text-[11px] text-black/35 font-bold">2h</div>
           </div>
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
             <div>
-              <div className="font-extrabold text-black/70">BearFit Support</div>
-              <div className="text-sm text-black/45 mt-1">Your assessment is confirmed. See you!</div>
+              <div className="font-extrabold text-black/70">Support</div>
+              <div className="text-[13px] text-black/45 mt-1">Your assessment is confirmed. See you!</div>
             </div>
-            <div className="text-xs text-black/35 font-bold">1d</div>
+            <div className="text-[11px] text-black/35 font-bold">1d</div>
           </div>
         </div>
       </Card>
@@ -734,30 +692,26 @@ export default function Page() {
         <div className="text-black/45 font-semibold">Goals</div>
       </div>
 
-      <Card
-        title="Activity Log"
-        subtitle="Recent updates"
-        right={<span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All</span>}
-      >
+      <Card title="Activity Log" right={<span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All</span>}>
         <div className="space-y-3">
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
             <div>
               <div className="font-extrabold text-black/70">Weights Session</div>
-              <div className="text-sm text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
+              <div className="text-[13px] text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
             </div>
             <Pill>20 → 19</Pill>
           </div>
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
             <div>
               <div className="font-extrabold text-black/70">Cardio Session</div>
-              <div className="text-sm text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
+              <div className="text-[13px] text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
             </div>
             <Pill>21 → 20</Pill>
           </div>
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
             <div>
               <div className="font-extrabold text-black/70">Bonus Session Added</div>
-              <div className="text-sm text-black/45 mt-1">Package Renewal • +3 Session Added</div>
+              <div className="text-[13px] text-black/45 mt-1">Package Renewal • +3 Session Added</div>
             </div>
             <Pill>48 + 3</Pill>
           </div>
@@ -773,13 +727,13 @@ export default function Page() {
         <div className="text-black/45 font-semibold">Payments</div>
       </div>
 
-      <Card title="Payments" subtitle="Billing & history">
+      <Card title="Payments" right={<div className="text-sm text-black/40 font-semibold">Billing</div>}>
         <div className="space-y-3">
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
             <div>
               <div className="font-extrabold text-black/70">Via Gcash</div>
-              <div className="text-sm text-black/45 mt-1">1st-6th - NEW • Due: January 25</div>
-              <div className="text-sm text-black/45 mt-1">Last Payment: ₱5800</div>
+              <div className="text-[13px] text-black/45 mt-1">1st-6th - NEW • Due: January 25</div>
+              <div className="text-[13px] text-black/45 mt-1">Last Payment: ₱5800</div>
             </div>
             <div className="font-extrabold text-black/70">₱8000</div>
           </div>
@@ -787,8 +741,8 @@ export default function Page() {
           <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
             <div>
               <div className="font-extrabold text-black/70">Via BPI</div>
-              <div className="text-sm text-black/45 mt-1">Full Paid • Due: January 21</div>
-              <div className="text-sm text-black/45 mt-1">Last Payment: ₱48000</div>
+              <div className="text-[13px] text-black/45 mt-1">Full Paid • Due: January 21</div>
+              <div className="text-[13px] text-black/45 mt-1">Last Payment: ₱48000</div>
             </div>
             <div className="font-extrabold text-black/70">₱48000</div>
           </div>
@@ -804,45 +758,45 @@ export default function Page() {
         <div className="text-black/45 font-semibold">More</div>
       </div>
 
-      <Card title={userName} subtitle={`Member • ${formatDate(now)}`}>
+      <Card title={userName} right={<div className="text-sm text-black/40 font-semibold">{formatDate(now)}</div>}>
         <div className="flex items-center gap-4">
           <img src={avatarUrl} alt="profile" className="h-16 w-16 rounded-2xl object-cover ring-1 ring-black/5" />
           <div className="min-w-0">
             <div className="font-extrabold text-black/70 truncate">{userName}</div>
-            <div className="text-sm text-black/45 mt-1 truncate">Malingap Branch • Active</div>
+            <div className="text-[13px] text-black/45 mt-1 truncate">Malingap Branch • Active</div>
           </div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <button
             onClick={() => switchTab("payments")}
-            className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left hover:bg-black/[0.02] transition"
+            className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left active:scale-[0.99] transition"
           >
             <div className="font-extrabold text-black/70">Payments</div>
-            <div className="text-sm text-black/45 mt-1">View billing</div>
+            <div className="text-[13px] text-black/45 mt-1">View billing</div>
           </button>
-          <button className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left hover:bg-black/[0.02] transition">
+          <button className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left active:scale-[0.99] transition">
             <div className="font-extrabold text-black/70">Settings</div>
-            <div className="text-sm text-black/45 mt-1">App & profile</div>
+            <div className="text-[13px] text-black/45 mt-1">App & profile</div>
           </button>
         </div>
       </Card>
     </div>
   );
 
-  /* -------------------- Staff / Admin (kept minimal) -------------------- */
+  // Staff/Admin placeholders
   const StaffHome = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Staff Home" subtitle="Quick overview">
-        <div className="text-black/55">Attendance, clients, sessions, sales.</div>
+      <Card title="Staff Home">
+        <div className="text-black/55 text-sm">Attendance, clients, sessions, sales.</div>
       </Card>
     </div>
   );
   const StaffAttendance = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Attendance" subtitle="Pending check-ins">
+      <Card title="Attendance">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Attendance list (demo)</div>
       </Card>
     </div>
@@ -850,7 +804,7 @@ export default function Page() {
   const StaffClients = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Clients" subtitle="Member directory">
+      <Card title="Clients">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients list (demo)</div>
       </Card>
     </div>
@@ -858,7 +812,7 @@ export default function Page() {
   const StaffSessions = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sessions" subtitle="Today’s sessions">
+      <Card title="Sessions">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sessions list (demo)</div>
       </Card>
     </div>
@@ -866,7 +820,7 @@ export default function Page() {
   const StaffSales = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sales" subtitle="Leads & follow-ups">
+      <Card title="Sales">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales pipeline (demo)</div>
       </Card>
     </div>
@@ -875,15 +829,15 @@ export default function Page() {
   const AdminHome = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Admin Home" subtitle="Owner dashboard">
-        <div className="text-black/55">Overview, clients, sales, settings.</div>
+      <Card title="Admin Home">
+        <div className="text-black/55 text-sm">Overview, clients, sales, settings.</div>
       </Card>
     </div>
   );
   const AdminOverview = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Overview" subtitle="Stats snapshot">
+      <Card title="Overview">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Overview (demo)</div>
       </Card>
     </div>
@@ -891,7 +845,7 @@ export default function Page() {
   const AdminClients = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Clients" subtitle="All memberships">
+      <Card title="Clients">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients (demo)</div>
       </Card>
     </div>
@@ -899,7 +853,7 @@ export default function Page() {
   const AdminSales = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sales" subtitle="Revenue & invoices">
+      <Card title="Sales">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales (demo)</div>
       </Card>
     </div>
@@ -907,13 +861,12 @@ export default function Page() {
   const AdminSettings = (
     <div className="space-y-6">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Settings" subtitle="Manage branches & roles">
+      <Card title="Settings">
         <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Settings (demo)</div>
       </Card>
     </div>
   );
 
-  /* -------------------- Active content -------------------- */
   const content =
     role === "member"
       ? tabAnimated === "home"
@@ -946,7 +899,7 @@ export default function Page() {
       : tabAnimated === "sales"
       ? AdminSales
       : AdminSettings;
-// PART 6/6
+
   const memberNav: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: "home", label: "Overview", icon: <HomeIcon /> },
     { key: "chat", label: "Workout", icon: <DumbbellIcon />, badge: unreadChat },
@@ -974,8 +927,25 @@ export default function Page() {
   const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
 
   return (
-    <div className="min-h-screen bg-[#F4F6FB]">
-      {/* small role switch for dev/testing (kept, but not inside MemberHome UI) */}
+    <div className="min-h-screen bg-[#F4F6FB] text-black">
+      {/* Typography baseline */}
+      <style jsx global>{`
+        :root {
+          -webkit-tap-highlight-color: transparent;
+          text-rendering: optimizeLegibility;
+        }
+        html,
+        body {
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+            "Segoe UI Emoji";
+        }
+        /* smoother horizontal scroll on iOS */
+        .momentum-scroll {
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
+
+      {/* Dev role switch (kept but subtle) */}
       <div className="mx-auto max-w-[430px] px-4 pt-3">
         <div className="flex justify-center">
           <RoleSwitch role={role} onChange={onSwitchRole} />
@@ -995,11 +965,7 @@ export default function Page() {
         </div>
       </div>
 
-      <BottomNav
-        items={nav}
-        active={tab}
-        onChange={(k) => switchTab(k)}
-      />
+      <BottomNav items={nav} active={tab} onChange={(k) => switchTab(k)} />
 
       {/* keyframes */}
       <style jsx global>{`
