@@ -1,22 +1,19 @@
+// PART 1/6
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 /**
  * BearFit Dashboard (UI only)
- * - Animated tab transitions (slide)
- * - Badge counters
- * - Role switching: Member / Staff / Admin(Owner) with different nav items
- * - Member Schedule includes a simple week calendar grid
- *
- * ✅ Updated Member HOME to match screenshot:
- * - Top row: BearFit logo (left), centered Role switch, bell + small caret (right)
- * - Profile card with plan pill on right + sessions remaining bar + View Profile
- * - Updates Feed: slidable image cards + AUTO SLIDE every 10s (NO countdown)
- * - Schedule for this week: slidable big cards (countdown allowed here)
- * - Activity Log section with tabs + list items
- *
- * ❗Other tabs / pages are preserved from your uploaded file.
+ * ✅ Member Home redesigned to match mobile app screenshot:
+ * - Top app bar (logo/title, search icon, avatar)
+ * - Greeting
+ * - Hero banner: "Track Your Daily Activities" (orange)
+ * - 3 session cards row
+ * - Activity Log section (replaces Goal Progress)
+ * - Payments section
+ * - Promo banner: "50% off on Premium Membership" (same size as hero)
+ * - Bottom nav labels: Overview / Workout / Goals / Schedule / More
  */
 
 type Role = "member" | "staff" | "admin";
@@ -67,19 +64,16 @@ function BellIcon() {
 function HomeIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M12 3 2.5 11.2l1.3 1.5L5 11.7V20a2 2 0 0 0 2 2h4v-6h2v6h4a2 2 0 0 0 2-2v-8.3l1.2 1 1.3-1.5L12 3z"
-      />
+      <path fill="currentColor" d="M12 3 2.5 11.2l1.3 1.5L5 11.7V21h6v-6h2v6h6v-9.3l1.2 1 1.3-1.5L12 3Z" />
     </svg>
   );
 }
-function ScheduleIcon() {
+function CalendarIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm14 8H3v9a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-9ZM6 6a1 1 0 0 0-1 1v1h14V7a1 1 0 0 0-1-1H6Z"
+        d="M7 2h2v2h6V2h2v2h3a2 2 0 0 1 2 2v15a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2h3V2Zm14 8H3v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V10ZM20 6H4v2h16V6Z"
       />
     </svg>
   );
@@ -89,7 +83,7 @@ function ChatIcon() {
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm3 7a1 1 0 1 0 0 2h10a1 1 0 1 0 0-2H7Z"
+        d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 5h12v2H6V9Zm0 4h9v2H6v-2Z"
       />
     </svg>
   );
@@ -99,7 +93,7 @@ function WalletIcon() {
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M4 7a3 3 0 0 1 3-3h12a1 1 0 1 1 0 2H7a1 1 0 0 0 0 2h13a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Zm15 6a1.5 1.5 0 1 0 0 3h2v-3h-2Z"
+        d="M3 7a3 3 0 0 1 3-3h12a2 2 0 0 1 2 2v2h-9a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3h9v2a2 2 0 0 1-2 2H6a3 3 0 0 1-3-3V7Zm18 4h-9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h9v-4Zm-3 1.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Z"
       />
     </svg>
   );
@@ -109,27 +103,17 @@ function UserIcon() {
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"
+        d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.4 0-8 2.1-8 4.7V21h16v-2.3c0-2.6-3.6-4.7-8-4.7Z"
       />
     </svg>
   );
 }
-function ClipboardIcon() {
+function SearchIcon() {
   return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
+    <svg className={iconBase("h-5 w-5")} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm6 2H9v2h6V4Zm4 4H5v12h14V8Z"
-      />
-    </svg>
-  );
-}
-function UsersIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M16 11a4 4 0 1 0-3.999-4A4 4 0 0 0 16 11ZM8 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8 2c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4ZM8 13c-.44 0-.92.03-1.43.1C4.03 13.4 2 14.44 2 17v3h5v-3.2c0-1.86.98-3.02 2.37-3.8A10.2 10.2 0 0 0 8 13Z"
+        d="M10 2a8 8 0 1 1 5.3 14l4.2 4.2-1.4 1.4-4.2-4.2A8 8 0 0 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"
       />
     </svg>
   );
@@ -139,655 +123,604 @@ function DumbbellIcon() {
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M3 10h2V8a2 2 0 0 1 2-2h1v12H7a2 2 0 0 1-2-2v-2H3v-4Zm16 0h2v4h-2v2a2 2 0 0 1-2 2h-1V6h1a2 2 0 0 1 2 2v2Zm-4 1H9v2h6v-2Z"
+        d="M7 5h2v14H7V5Zm8 0h2v14h-2V5ZM3 9h2v6H3V9Zm18 0h-2v6h2V9ZM9 11h6v2H9v-2Z"
       />
     </svg>
   );
 }
-function ChartIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M4 19h16v2H2V3h2v16Zm4-8h2v6H8v-6Zm5-4h2v10h-2V7Zm5 6h2v4h-2v-4Z" />
-    </svg>
-  );
-}
-function SettingsIcon() {
+function TargetIcon() {
   return (
     <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M19.4 13a7.9 7.9 0 0 0 0-2l2-1.2a.9.9 0 0 0 .3-1.2l-1.9-3.3a.9.9 0 0 0-1.1-.4l-2.2.9a8.2 8.2 0 0 0-1.7-1l-.3-2.4A.9.9 0 0 0 13.6 1h-3.2a.9.9 0 0 0-.9.8l-.3 2.4a8.2 8.2 0 0 0-1.7 1l-2.2-.9a.9.9 0 0 0-1.1.4L2.3 8a.9.9 0 0 0 .3 1.2l2 1.2a7.9 7.9 0 0 0 0 2l-2 1.2a.9.9 0 0 0-.3 1.2l1.9 3.3a.9.9 0 0 0 1.1.4l2.2-.9a8.2 8.2 0 0 0 1.7 1l.3 2.4a.9.9 0 0 0 .9.8h3.2a.9.9 0 0 0 .9-.8l.3-2.4a8.2 8.2 0 0 0 1.7-1l2.2.9a.9.9 0 0 0 1.1-.4l1.9-3.3a.9.9 0 0 0-.3-1.2L19.4 13ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 2a8 8 0 1 1-8 8 8 8 0 0 1 8-8Zm0 3a5 5 0 1 0 5 5 5 5 0 0 0-5-5Zm0 2a3 3 0 1 1-3 3 3 3 0 0 1 3-3Z"
       />
     </svg>
   );
 }
-function ChevronRight() {
+// PART 2/6
+function ChevronRightIcon() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M9 18 15 12 9 6l1.4-1.4L18.8 12l-8.4 7.4L9 18Z" />
+      <path fill="currentColor" d="M9 6l6 6-6 6-1.4-1.4L12.2 12 7.6 7.4 9 6Z" />
     </svg>
   );
 }
-function CaretDown() {
+function Badge({ value, color = "red" }: { value: number; color?: "red" | "orange" | "blue" }) {
+  if (!value) return null;
+  const bg = color === "red" ? "bg-red-500" : color === "orange" ? "bg-[#F37120]" : "bg-blue-500";
   return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M7 10l5 5 5-5H7z" />
-    </svg>
+    <span className={`absolute -top-1 -right-1 ${bg} text-white text-xs font-extrabold rounded-full px-2 py-0.5 shadow`}>
+      {value}
+    </span>
   );
 }
 
-/* -------------------- UI Primitives -------------------- */
+function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
+  const btn = (r: Role, label: string) => (
+    <button
+      onClick={() => onChange(r)}
+      className={[
+        "px-4 py-2 rounded-full text-sm font-semibold transition",
+        role === r ? "bg-[#0b1220] text-white" : "text-black/45 hover:text-black/70",
+      ].join(" ")}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="inline-flex rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
+      {btn("member", "Member")}
+      {btn("staff", "Staff")}
+      {btn("admin", "Admin")}
+    </div>
+  );
+}
+
 function Card({
   title,
   subtitle,
   right,
   children,
+  className = "",
 }: {
   title?: string;
   subtitle?: string;
   right?: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-6">
+    <div className={["rounded-3xl bg-white/80 backdrop-blur shadow-sm ring-1 ring-black/5", className].join(" ")}>
       {(title || subtitle || right) && (
-        <div className="flex items-start justify-between gap-4">
+        <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-4">
           <div>
-            {title && <div className="text-xl font-bold">{title}</div>}
-            {subtitle && <div className="mt-1 text-black/50">{subtitle}</div>}
+            {title && <div className="text-lg font-extrabold text-black/80">{title}</div>}
+            {subtitle && <div className="text-sm text-black/45 mt-0.5">{subtitle}</div>}
           </div>
           {right}
         </div>
       )}
-      <div className={title || subtitle || right ? "mt-5" : ""}>{children}</div>
+      <div className="px-5 pb-5">{children}</div>
     </div>
   );
 }
 
-function Badge({ value, color = "orange" }: { value: number; color?: "orange" | "red" | "blue" }) {
-  const bg = color === "red" ? "bg-red-500" : color === "blue" ? "bg-blue-500" : "bg-[#F37120]";
-  if (value <= 0) return null;
+function SectionHeader({
+  title,
+  onViewAll,
+}: {
+  title: string;
+  onViewAll?: () => void;
+}) {
   return (
-    <span
-      className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full ${bg} text-white text-[11px] font-bold flex items-center justify-center`}
+    <div className="flex items-center justify-between">
+      <div className="text-lg font-extrabold text-black/70">{title}</div>
+      {onViewAll && (
+        <button onClick={onViewAll} className="text-[#F37120] font-semibold text-sm inline-flex items-center gap-1">
+          View All <ChevronRightIcon />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function WaveBg({ tone }: { tone: "teal" | "orange" | "purple" }) {
+  const tint =
+    tone === "teal" ? "text-black/10" : tone === "orange" ? "text-black/10" : "text-black/10";
+  return (
+    <svg className={`absolute inset-0 h-full w-full ${tint}`} viewBox="0 0 400 220" preserveAspectRatio="none">
+      <path
+        fill="currentColor"
+        d="M0 130 C 60 110, 90 160, 150 140 C 210 120, 250 80, 310 105 C 350 120, 370 160, 400 150 L 400 220 L 0 220 Z"
+      />
+      <path
+        fill="currentColor"
+        opacity="0.55"
+        d="M0 155 C 60 130, 110 190, 170 165 C 230 140, 260 120, 320 140 C 360 152, 380 190, 400 175 L 400 220 L 0 220 Z"
+      />
+    </svg>
+  );
+}
+
+function SessionTile({
+  tone,
+  title,
+  branch,
+  time,
+  coach,
+  timer,
+  icon,
+}: {
+  tone: "teal" | "orange" | "purple";
+  title: string;
+  branch: string;
+  time: string;
+  coach?: string;
+  timer: string;
+  icon: React.ReactNode;
+}) {
+  const bg =
+    tone === "teal"
+      ? "from-cyan-600 to-cyan-500"
+      : tone === "orange"
+      ? "from-orange-600 to-orange-500"
+      : "from-purple-600 to-purple-500";
+
+  return (
+    <div className={`relative min-w-[150px] flex-1 rounded-2xl overflow-hidden bg-gradient-to-br ${bg} text-white p-4`}>
+      <WaveBg tone={tone} />
+      <div className="relative">
+        <div className="flex items-start gap-3">
+          <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">{icon}</div>
+          <div className="min-w-0">
+            <div className="font-extrabold leading-tight">{title}</div>
+            <div className="text-white/80 text-xs mt-1">{branch}</div>
+            <div className="text-white/80 text-xs">{time}</div>
+            {coach && <div className="text-white/70 text-xs">{coach}</div>}
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="font-extrabold tracking-wider">{timer}</div>
+          <div className="text-[10px] text-white/70 mt-0.5">Hours&nbsp;&nbsp;&nbsp;Minutes&nbsp;&nbsp;&nbsp;Seconds</div>
+        </div>
+
+        <div className="mt-2 flex justify-end">
+          <button className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold">Manage</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 3/6
+function ListRow({
+  leftIcon,
+  title,
+  subtitle,
+  right,
+  onClick,
+}: {
+  leftIcon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  right?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left flex items-center gap-4 rounded-2xl bg-white/70 ring-1 ring-black/5 px-4 py-3 hover:bg-white/90 transition"
     >
-      {value > 99 ? "99+" : value}
-    </span>
+      <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">{leftIcon}</div>
+
+      <div className="min-w-0 flex-1">
+        <div className="font-extrabold text-black/75 truncate">{title}</div>
+        <div className="text-sm text-black/45 truncate">{subtitle}</div>
+      </div>
+
+      {right && <div className="shrink-0">{right}</div>}
+    </button>
   );
 }
 
-function BearFitLogo() {
+function Pill({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-full bg-orange-100 text-[#F37120] font-extrabold text-sm px-3 py-1">{children}</div>;
+}
+
+function AppTopBar({
+  onSearch,
+  avatarUrl,
+}: {
+  onSearch?: () => void;
+  avatarUrl: string;
+}) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-10 w-10 rounded-2xl bg-[#F37120] grid place-items-center shadow-sm">
-        <span className="text-white font-extrabold text-lg">B</span>
+    <div className="flex items-center justify-between px-4 pt-4">
+      <div className="flex items-center gap-2">
+        <div className="h-10 w-10 rounded-2xl bg-orange-100 flex items-center justify-center">
+          <span className="text-[#F37120] text-xl">🏋️</span>
+        </div>
+        <div className="text-xl font-extrabold text-[#F37120]">Fitness</div>
       </div>
-      <div className="leading-tight">
-        <div className="text-[#F37120] font-extrabold tracking-wide">BEARFIT</div>
-        <div className="text-[11px] text-black/35 -mt-0.5">Better Fitness</div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onSearch}
+          className="h-11 w-11 rounded-full bg-white/80 ring-1 ring-black/5 flex items-center justify-center text-black/60"
+          aria-label="Search"
+        >
+          <SearchIcon />
+        </button>
+        <img
+          src={avatarUrl}
+          alt="Profile"
+          className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
+        />
       </div>
     </div>
   );
 }
-export default function DashboardPage() {
-  const now = new Date();
 
-  // Member demo data to match screenshot vibe
-  const memberName = "Aya Mohamed";
-  const memberSubtitle = "Beast Member";
-  const branchName = "Malingap Branch - A01";
-  const planTitle = "Sustain 48 Membership";
-  const planStatus = "Active";
-  const totalSessions = 48;
-  const sessionsRemaining = 40;
-  const sessionsUsed = Math.max(0, totalSessions - sessionsRemaining);
+function HeroBanner() {
+  return (
+    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 to-orange-400 text-white ring-1 ring-black/5 shadow-sm">
+      <img
+        src="https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?auto=format&fit=crop&w=1200&q=60"
+        alt="Daily activities"
+        className="absolute inset-0 h-full w-full object-cover opacity-35"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/85 to-orange-400/40" />
 
-  const remainingPct = Math.max(0, Math.min(100, Math.round((sessionsRemaining / totalSessions) * 100)));
+      <div className="relative p-5">
+        <div className="text-2xl font-extrabold leading-tight">Track Your Daily Activities</div>
+        <div className="mt-2 text-sm text-white/85 max-w-[260px]">
+          Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // Role switching
+function PromoBanner() {
+  return (
+    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-600 to-purple-400 text-white ring-1 ring-black/5 shadow-sm">
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute -right-16 -bottom-16 h-56 w-56 rounded-full bg-white/20" />
+      </div>
+
+      <div className="relative p-5 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-xl font-extrabold">50% off on Premium Membership</div>
+          <div className="mt-2 text-sm text-white/85">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
+          </div>
+          <button className="mt-4 rounded-2xl bg-[#F37120] px-6 py-3 font-extrabold shadow-sm">Upgrade</button>
+        </div>
+
+        <img
+          src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=700&q=60"
+          alt="Promo"
+          className="h-24 w-24 rounded-2xl object-cover ring-2 ring-white/30 shrink-0"
+        />
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({
+  items,
+  active,
+  onChange,
+}: {
+  items: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[];
+  active: TabKey;
+  onChange: (k: TabKey) => void;
+}) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-30">
+      <div className="mx-auto max-w-[430px]">
+        <div className="bg-white/85 backdrop-blur ring-1 ring-black/5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] rounded-t-3xl px-2 py-2">
+          <div className="grid grid-cols-5 gap-1">
+            {items.map((it) => {
+              const isActive = it.key === active;
+              return (
+                <button
+                  key={String(it.key)}
+                  onClick={() => onChange(it.key)}
+                  className={[
+                    "relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition",
+                    isActive ? "text-[#F37120]" : "text-black/45 hover:text-black/70",
+                  ].join(" ")}
+                >
+                  <div className="relative">
+                    <div className={isActive ? "scale-105" : ""}>{it.icon}</div>
+                    {it.badge ? <Badge value={it.badge} color="red" /> : null}
+                  </div>
+                  <div className="text-[11px] font-semibold">{it.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 4/6
+export default function Page() {
   const [role, setRole] = useState<Role>("member");
 
-  // Active tab + animation direction
+  // Keep existing state + animated tabs behavior
   const [tab, setTab] = useState<TabKey>("home");
+  const [tabAnimated, setTabAnimated] = useState<TabKey>("home");
   const [animDir, setAnimDir] = useState<"left" | "right">("right");
+  const [animKey, setAnimKey] = useState(0);
 
-  const setTabAnimated = (next: TabKey) => {
-    if (next === tab) return;
-
-    const orderMember: MemberTab[] = ["home", "schedule", "chat", "announcements", "payments", "profile"];
-    const orderStaff: StaffTab[] = ["home", "attendance", "clients", "sessions", "sales"];
-    const orderAdmin: AdminTab[] = ["home", "overview", "clients", "sales", "settings"];
-
-    const order =
-      role === "member"
-        ? (orderMember as TabKey[])
-        : role === "staff"
-        ? (orderStaff as TabKey[])
-        : (orderAdmin as TabKey[]);
-
-    const cur = order.indexOf(tab);
-    const nxt = order.indexOf(next);
-
-    setAnimDir(nxt >= cur ? "right" : "left");
-    setTab(next);
-  };
+  const [now, setNow] = useState<Date>(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000 * 30);
+    return () => clearInterval(t);
+  }, []);
 
   const onSwitchRole = (r: Role) => {
     setRole(r);
-    setAnimDir("right");
+    setAnimKey((k) => k + 1);
     setTab("home");
+    setTabAnimated("home");
   };
 
-  // Week data
-  const monday = startOfWeekMonday(now);
-  const weekDays = useMemo(() => {
-    return Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      return d;
-    });
-  }, [monday]);
+  const switchTab = (next: TabKey) => {
+    if (next === tab) return;
+    const order: TabKey[] =
+      role === "member"
+        ? (["home", "chat", "announcements", "schedule", "profile"] as TabKey[])
+        : role === "staff"
+        ? (["home", "attendance", "clients", "sessions", "sales"] as TabKey[])
+        : (["home", "overview", "clients", "sales", "settings"] as TabKey[]);
 
-  const todayIdxMon0 = (() => {
-    const js = now.getDay();
-    return js === 0 ? 6 : js - 1;
-  })();
+    const from = order.indexOf(tab);
+    const to = order.indexOf(next);
+    setAnimDir(to > from ? "right" : "left");
+    setTab(next);
 
-  // Announcements (used for counts + announcements page)
-  const announcements = useMemo(
-    () => [
-      {
-        title: "Valentine’s Special",
-        body: "Stronger Together — Train with your partner this Valentine’s. Feb 10–14 only.",
-        date: "Feb 10–14",
-        unread: true,
-        img: "https://images.unsplash.com/photo-1599058917765-3e8a1d7b7d9f?auto=format&fit=crop&w=1600&q=70",
-      },
-      {
-        title: "New Class Drop",
-        body: "Mobility — Better Function starts this Wednesday 7PM.",
-        date: "Jan 29",
-        unread: true,
-        img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1600&q=60",
-      },
-      {
-        title: "Bring-a-Friend Promo",
-        body: "Bring a friend this week and get 1 free session add-on.",
-        date: "Jan 23",
-        unread: false,
-        img: "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=1600&q=60",
-      },
-    ],
-    []
-  );
+    // delay swap for slide animation
+    window.setTimeout(() => {
+      setTabAnimated(next);
+      setAnimKey((k) => k + 1);
+    }, 110);
+  };
 
-  const unreadAnnouncements = announcements.filter((a) => a.unread).length;
+  // Member demo data
+  const userName = "Aya Mohamed";
+  const avatarUrl =
+    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
 
-  // Counters
+  // badges (keep)
   const unreadChat = 3;
-  const unpaidBalancePhp = 980;
-  const notifCount = unreadAnnouncements;
+  const unreadAnnouncements = 2;
 
-  // Staff counters
-  const attendancePending = 5;
-  const salesLeads = 2;
-
-  // Admin counters
-  const unpaidInvoices = 7;
-  const adminNotif = 4;
-
-  // Payments demo
-  const packageName = "24 Sessions (Staggered)";
-  const sessionsLeft = 9;
-
-  // Chat demo
-  const threads = useMemo(
-    () => [
-      { name: "Coach JP", last: "Send me your availability for this week.", time: "2h" },
-      { name: "BearFit Support", last: "Your assessment is confirmed. See you!", time: "1d" },
-    ],
-    []
-  );
-
-  // Home: Updates Feed (AUTO every 10 seconds, slidable)
-  const updatesSlides = useMemo(
+  // Activity + Payments demo rows (for Home)
+  const activityRows = useMemo(
     () => [
       {
-        tag: "Valentine’s Special 💞",
-        title: "STRONGER TOGETHER 💪❤️",
-        subtitle: "Train with your partner this Valentine’s",
-        cta: "Train as a Duo",
-        meta: "124 couples joined",
-        img: "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?auto=format&fit=crop&w=1600&q=70",
+        title: "Weights Session",
+        subtitle: "Malingap Branch / 6:00 - 7:00pm",
+        right: <Pill>45 → 46</Pill>,
+        emoji: "🥊",
       },
       {
-        tag: "Tutorial",
-        title: "How to create Savings Goals",
-        subtitle: "Quick steps to track progress",
-        cta: "Click to watch",
-        meta: "1 min video",
-        img: "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1600&q=70",
-      },
-      {
-        tag: "Reminder",
-        title: "Hydrate + Stretch",
-        subtitle: "Recovery keeps you consistent",
-        cta: "View tips",
-        meta: "Updated today",
-        img: "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=1600&q=60",
-      },
-    ],
-    []
-  );
-
-  const updatesRef = useRef<HTMLDivElement | null>(null);
-  const [updIdx, setUpdIdx] = useState(0);
-
-  useEffect(() => {
-    const el = updatesRef.current;
-    if (!el) return;
-
-    const t = setInterval(() => {
-      setUpdIdx((i) => (i + 1) % updatesSlides.length);
-    }, 10000);
-
-    return () => clearInterval(t);
-  }, [updatesSlides.length]);
-
-  useEffect(() => {
-    const el = updatesRef.current;
-    if (!el) return;
-
-    const card = el.querySelector<HTMLElement>("[data-bf-slide='updates']");
-    if (!card) return;
-
-    const gap = 16;
-    const cardW = card.offsetWidth + gap;
-
-    el.scrollTo({ left: updIdx * cardW, behavior: "smooth" });
-  }, [updIdx]);
-
-  // Home: Schedule for this week (slidable)
-  const scheduleRef = useRef<HTMLDivElement | null>(null);
-
-  const nextSessionAt = useMemo(() => {
-    const d = new Date(now);
-    d.setHours(18, 0, 0, 0); // 6:00 PM today
-    if (d.getTime() < now.getTime()) d.setDate(d.getDate() + 1);
-    return d;
-  }, [now]);
-
-  const scheduleCards = useMemo(
-    () => [
-      {
-        badge: "Today",
-        title: "Weights Sessions",
-        sub1: `${branchName} • 6:00 - 7:00pm`,
-        sub2: "Coach Joaquin",
-        img: "https://images.unsplash.com/photo-1517964603305-11c0f6f66012?auto=format&fit=crop&w=1600&q=70",
-        action: "View Details",
-        target: nextSessionAt,
-      },
-      {
-        badge: "Wed",
         title: "Cardio Sessions",
-        sub1: `${branchName} • 7:00 - 8:00pm`,
-        sub2: "Coach Aly",
-        img: "https://images.unsplash.com/photo-1517838277536-f5f99be50112?auto=format&fit=crop&w=1600&q=70",
-        action: "View Details",
-        target: new Date(nextSessionAt.getTime() + 2 * 24 * 60 * 60 * 1000),
-      },
-      {
-        badge: "Sat",
-        title: "Mobility Session",
-        sub1: `${branchName} • 9:00 - 10:00am`,
-        sub2: "Coach Ken",
-        img: "https://images.unsplash.com/photo-1518611012118-f0c5b74c62b5?auto=format&fit=crop&w=1600&q=70",
-        action: "View Details",
-        target: new Date(nextSessionAt.getTime() + 4 * 24 * 60 * 60 * 1000),
+        subtitle: "Malingap Branch / 5:00 - 6:00pm",
+        right: <Pill>46</Pill>,
+        emoji: "🧘",
       },
     ],
-    [branchName, nextSessionAt]
+    []
   );
 
-  // Home: Activity Log
-  type ActivityTab = "All" | "Sessions" | "Check-ins" | "Payments" | "Place";
-  const [activityTab, setActivityTab] = useState<ActivityTab>("All");
-
-  const activityItems = useMemo(
+  const paymentRows = useMemo(
     () => [
       {
-        type: "Sessions",
-        title: "Weights Session",
-        sub: `${branchName}`,
-        when: "Today • 6:00 - 7:00pm",
-        delta: "20 → 19",
-        icon: "🏋️",
+        title: "Via Gcash",
+        subtitle: "1st-6th - NEW    P800   Due: January 25",
+        amount: "₱8000",
+        last: "Last: ₱5800",
+        emoji: "💳",
       },
       {
-        type: "Sessions",
-        title: "Cardio Session",
-        sub: `${branchName}`,
-        when: "Today • 6:00 - 7:00pm",
-        delta: "21 → 20",
-        icon: "🚴",
-      },
-      {
-        type: "Payments",
-        title: "Bonus Session Added",
-        sub: "Package Renewal",
-        when: "Tues, Jan 23",
-        delta: "48 + 3",
-        icon: "🧾",
-      },
-      {
-        type: "Sessions",
-        title: "Weights Session",
-        sub: `${branchName}`,
-        when: "Today • 6:00 - 7:00pm",
-        delta: "20 → 19",
-        icon: "🏋️",
+        title: "Via BPI",
+        subtitle: "Full Paid   P48000    Due: January 21",
+        amount: "₱48000",
+        last: "Last: ₱48000",
+        emoji: "🎁",
       },
     ],
-    [branchName]
+    []
   );
 
-  const filteredActivity = activityTab === "All" ? activityItems : activityItems.filter((x) => x.type === activityTab);
-
-  /* -------------------- Tab Content -------------------- */
+  /* -------------------- Member Home (MOBILE APP) -------------------- */
   const MemberHome = (
-    <div className="space-y-6">
-      {/* Top bar: logo + role switch centered + bell & caret */}
-      <div className="relative flex items-center justify-between">
-        <BearFitLogo />
+    <div className="pb-28">
+      {/* App top bar */}
+      <AppTopBar onSearch={() => {}} avatarUrl={avatarUrl} />
 
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <RoleSwitch role={role} onChange={onSwitchRole} />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setTabAnimated("announcements")}
-            className="relative h-12 w-12 rounded-full bg-white/65 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center"
-            aria-label="Open announcements"
-          >
-            <BellIcon />
-            <Badge value={notifCount} color="red" />
-          </button>
-
-          <button className="h-12 w-12 rounded-full bg-white/65 backdrop-blur shadow-sm ring-1 ring-black/5 flex items-center justify-center">
-            <CaretDown />
-          </button>
-        </div>
+      {/* Greeting */}
+      <div className="px-4 mt-4">
+        <div className="text-black/55 text-sm">Good Morning!</div>
+        <div className="text-2xl font-extrabold text-black/75">Welcome Back!</div>
       </div>
 
-      {/* Profile Card (matches screenshot layout) */}
-      <div className="rounded-[32px] bg-white/75 backdrop-blur shadow-sm ring-1 ring-black/5 p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-black/10 bg-black/5">
-              <img
-                alt="avatar"
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=70"
-                className="h-full w-full object-cover"
+      <div className="px-4 mt-4 space-y-4">
+        {/* Hero banner (size reference) */}
+        <HeroBanner />
+
+        {/* 3 session tiles row */}
+        <div className="flex gap-3">
+          <SessionTile
+            tone="teal"
+            title="Weight Sessions"
+            branch="Malingap Branch"
+            time="6:00 - 7:00pm"
+            timer="01 : 42 : 50"
+            icon={<span className="text-lg">🏋️</span>}
+          />
+          <SessionTile
+            tone="orange"
+            title="Cardio Sessions"
+            branch="Malingap Branch"
+            time="5:00 - 6:00pm"
+            coach="Coach Amiel"
+            timer="46 : 36 : 26"
+            icon={<span className="text-lg">🔥</span>}
+          />
+          <SessionTile
+            tone="purple"
+            title="Muay Thai/Boxing"
+            branch="Malingap Branch"
+            time="5:00 - 6:00pm"
+            timer="90 : 60 : 30"
+            icon={<span className="text-lg">🥊</span>}
+          />
+        </div>
+
+        {/* Activity Log */}
+        <Card
+          className="px-0"
+          title={undefined}
+          subtitle={undefined}
+          right={undefined}
+        >
+          <div className="px-5 pt-5 pb-4">
+            <SectionHeader title="Activity Log" onViewAll={() => switchTab("announcements")} />
+          </div>
+          <div className="px-5 pb-5 space-y-3">
+            {activityRows.map((r, i) => (
+              <ListRow
+                key={i}
+                leftIcon={<span className="text-xl">{r.emoji}</span>}
+                title={r.title}
+                subtitle={r.subtitle}
+                right={r.right}
+                onClick={() => {}}
               />
-            </div>
+            ))}
+          </div>
+        </Card>
 
-            <div className="min-w-0">
-              <div className="text-black/40 text-sm">Welcome Back</div>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xl font-extrabold truncate">{memberName}</div>
-                <span className="text-[#F37120]">🏅</span>
-                <span className="text-[#2b6fff]">✔️</span>
-              </div>
-              <div className="text-black/45 text-sm font-semibold">{memberSubtitle}</div>
-            </div>
+        {/* Payments */}
+        <Card className="px-0">
+          <div className="px-5 pt-5 pb-4">
+            <SectionHeader title="Payments" onViewAll={() => switchTab("payments")} />
           </div>
 
-          <div className="shrink-0 rounded-2xl bg-[#0b1220]/10 ring-1 ring-black/10 px-4 py-3 text-right">
-            <div className="text-sm font-extrabold text-[#0b1220]">{planTitle}</div>
-            <div className="text-xs text-black/50 font-semibold">{planStatus}</div>
-            <div className="text-xs text-black/50 mt-1">{branchName}</div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <div className="text-sm text-black/60 font-semibold">
-            You Have:{" "}
-            <span className="text-[#F37120] font-extrabold">
-              {sessionsRemaining} of {totalSessions}
-            </span>{" "}
-            sessions remaining
-          </div>
-
-          <button
-            onClick={() => setTabAnimated("profile")}
-            className="text-sm font-extrabold text-[#F37120] flex items-center gap-2"
-          >
-            View Profile <ChevronRight />
-          </button>
-        </div>
-
-        <div className="mt-3">
-          <div className="h-3 rounded-full bg-black/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[#F37120]"
-              style={{ width: `${remainingPct}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Updates Feed (slidable + auto every 10s) */}
-      <div className="space-y-3">
-        <div className="text-xl font-extrabold text-[#1f4ea8]">Updates Feed</div>
-
-        <div
-          ref={updatesRef}
-          className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {updatesSlides.map((s, i) => (
-            <div
-              key={i}
-              data-bf-slide="updates"
-              className="min-w-[86%] sm:min-w-[520px] rounded-[28px] overflow-hidden bg-white shadow-sm ring-1 ring-black/5 relative"
-            >
-              <div className="relative h-[170px]">
-                <img src={s.img} alt={s.title} className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-black/35" />
-
-                <div className="relative h-full p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="inline-flex items-center rounded-full bg-black/35 px-3 py-1 text-white text-xs font-bold">
-                      {s.tag}
-                    </div>
-                    <div className="mt-3 text-white font-extrabold text-2xl leading-tight">
-                      {s.title}
-                    </div>
-                    <div className="mt-1 text-white/85 text-sm">{s.subtitle}</div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3">
-                    <button className="rounded-2xl bg-white/15 backdrop-blur px-4 py-2.5 text-white font-bold">
-                      {s.cta}
-                    </button>
-                    <div className="text-white/85 text-xs font-semibold">{s.meta}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Schedule for this week (slidable) */}
-      <div className="space-y-3">
-        <div className="text-xl font-extrabold text-[#F37120]">Schedule for this week</div>
-
-        <div
-          ref={scheduleRef}
-          className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {scheduleCards.map((c, i) => (
-            <div
-              key={i}
-              className="min-w-[88%] sm:min-w-[620px] rounded-[34px] overflow-hidden shadow-sm ring-1 ring-black/5 relative"
-            >
-              <div className="relative h-[260px] bg-black">
-                <img src={c.img} alt={c.title} className="absolute inset-0 h-full w-full object-cover opacity-95" />
-                <div className="absolute inset-0 bg-[#0b3b7a]/60" />
-
-                <div className="relative h-full p-6 flex flex-col justify-between text-white">
-                  <div>
-                    <div className="inline-flex items-center rounded-2xl bg-[#F37120] px-4 py-2 text-sm font-extrabold shadow-sm">
-                      {c.badge}
-                    </div>
-                    <div className="mt-4 text-4xl font-extrabold tracking-tight">{c.title}</div>
-                    <div className="mt-2 text-white/85 text-sm">{c.sub1}</div>
-                    <div className="text-white/85 text-sm">{c.sub2}</div>
-                  </div>
-
-                  <div className="flex items-end justify-between gap-4">
-                    <Countdown target={c.target} now={now} />
-                    <button
-                      onClick={() => setTabAnimated("schedule")}
-                      className="rounded-xl bg-white px-4 py-3 text-[#0b1220] font-extrabold shadow-sm"
-                    >
-                      {c.action}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Activity Log */}
-      <div className="rounded-[28px] bg-white/75 backdrop-blur shadow-sm ring-1 ring-black/5 overflow-hidden">
-        <div className="p-5 flex items-center justify-between">
-          <div className="text-xl font-extrabold">Activity Log</div>
-          <button className="text-sm font-extrabold text-[#F37120]">View All</button>
-        </div>
-
-        <div className="px-5 pb-4">
-          <div className="rounded-full bg-black/5 p-1 flex items-center gap-1 overflow-x-auto">
-            {(["All", "Sessions", "Check-ins", "Payments", "Place"] as const).map((t) => (
+          <div className="px-5 pb-5 space-y-3">
+            {paymentRows.map((p, i) => (
               <button
-                key={t}
-                onClick={() => setActivityTab(t)}
-                className={[
-                  "px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition",
-                  activityTab === t ? "bg-[#F37120] text-white shadow-sm" : "text-black/45 hover:text-black/70",
-                ].join(" ")}
+                key={i}
+                onClick={() => switchTab("payments")}
+                className="w-full text-left flex items-start gap-4 rounded-2xl bg-white/70 ring-1 ring-black/5 px-4 py-3 hover:bg-white/90 transition"
               >
-                {t}
+                <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                  <span className="text-xl">{p.emoji}</span>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="font-extrabold text-black/75">{p.title}</div>
+                  <div className="text-sm text-black/45 mt-0.5">{p.subtitle}</div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <div className="font-extrabold text-black/75">{p.amount}</div>
+                  <div className="text-xs text-black/40 mt-1">{p.last}</div>
+                </div>
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="px-5 pb-5 space-y-3">
-          {filteredActivity.map((x, idx) => (
-            <div
-              key={idx}
-              className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between gap-4"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-12 w-12 rounded-2xl bg-[#eef3fb] ring-1 ring-black/10 grid place-items-center text-xl">
-                  {x.icon}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-extrabold truncate">{x.title}</div>
-                  <div className="text-black/50 text-sm truncate">{x.sub}</div>
-                  <div className="text-black/40 text-xs">{x.when}</div>
-                </div>
-              </div>
-
-              <div className="shrink-0 text-right">
-                <div className="text-[#F37120] font-extrabold text-lg">{x.delta}</div>
-                <div className="text-black/35 text-xs font-semibold">
-                  {x.type === "Sessions" ? "1 Session Used" : x.type}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Promo banner (same visual size as hero) */}
+        <PromoBanner />
       </div>
     </div>
   );
+
+  /* -------------------- Existing pages (kept) -------------------- */
   const MemberSchedule = (
     <div className="space-y-6">
-      <HeaderRow title="Schedule" role={role} onRoleChange={onSwitchRole} />
+      <div className="flex items-center justify-between">
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+        <button
+          onClick={() => switchTab("home")}
+          className="h-12 w-12 rounded-full bg-white/70 ring-1 ring-black/5 flex items-center justify-center"
+          aria-label="Back"
+        >
+          <ChevronRightIcon />
+        </button>
+      </div>
 
-      <Card title="Week View" subtitle="UI-only calendar (tap a day)">
-        <div className="grid grid-cols-7 gap-2">
-          {weekDays.map((d, i) => {
-            const isToday = i === todayIdxMon0;
-            return (
-              <button
-                key={i}
-                className={[
-                  "rounded-2xl py-4 text-center ring-1 ring-black/10 bg-white hover:bg-black/[0.02] transition",
-                  isToday ? "bg-[#0b1220] text-white ring-black/20" : "text-black",
-                ].join(" ")}
-              >
-                <div className={isToday ? "text-white/80" : "text-black/50"}>{dayLabel(i)}</div>
-                <div className="text-xl font-bold">{d.getDate()}</div>
-              </button>
-            );
-          })}
-        </div>
+      <Card title="My Schedule" subtitle="This week overview">
+        {(() => {
+          const start = startOfWeekMonday(now);
+          const days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            return d;
+          });
+
+          return (
+            <div className="grid grid-cols-7 gap-2">
+              {days.map((d, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl bg-black/5 ring-1 ring-black/5 px-2 py-3 text-center"
+                >
+                  <div className="text-xs text-black/45">{dayLabel(i)}</div>
+                  <div className="mt-1 text-sm font-extrabold text-black/70">{d.getDate()}</div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </Card>
 
-      <Card title="Upcoming Sessions" subtitle="Your next trainings">
+      <Card title="Upcoming" subtitle="Sessions lined up">
         <div className="space-y-3">
-          {[
-            { when: "Today • 6:00 PM", what: "Coach Session — Better Form", where: "Sikatuna" },
-            { when: "Wed • 7:00 PM", what: "Strength — Better Fitness", where: "E. Rodriguez" },
-            { when: "Sat • 9:00 AM", what: "Mobility — Better Function", where: "Cainta" },
-          ].map((x, idx) => (
-            <div key={idx} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-              <div className="text-black/50">{x.when}</div>
-              <div className="mt-1 text-lg font-semibold">{x.what}</div>
-              <div className="mt-1 text-black/50">{x.where}</div>
-            </div>
-          ))}
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
+            <div className="font-extrabold text-black/70">Weights Session</div>
+            <div className="text-sm text-black/45 mt-1">Today • 6:00 - 7:00pm • Malingap Branch</div>
+          </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
+            <div className="font-extrabold text-black/70">Cardio Session</div>
+            <div className="text-sm text-black/45 mt-1">Tomorrow • 5:00 - 6:00pm • Malingap Branch</div>
+          </div>
         </div>
-        <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">Book a new session</button>
       </Card>
     </div>
   );
-
+// PART 5/6
   const MemberChat = (
     <div className="space-y-6">
-      <HeaderRow title="Chat" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Messages" subtitle="Coach support & updates">
-        <div className="space-y-3">
-          {threads.map((t, idx) => (
-            <button
-              key={idx}
-              className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-start justify-between gap-4"
-            >
-              <div>
-                <div className="font-semibold">{t.name}</div>
-                <div className="mt-1 text-black/50">{t.last}</div>
-              </div>
-              <div className="text-black/40">{t.time}</div>
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center justify-between">
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+        <div className="text-black/45 font-semibold">Workout</div>
+      </div>
 
-        <div className="mt-5 rounded-2xl bg-white ring-1 ring-black/10 p-4">
-          <div className="text-black/50 mb-2">Quick message</div>
-          <div className="flex gap-2">
-            <input
-              className="flex-1 rounded-2xl bg-[#eef3fb] px-4 py-3 outline-none ring-1 ring-black/5"
-              placeholder="Type here…"
-            />
-            <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Send</button>
+      <Card title="Coach Chat" subtitle="Messages">
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="font-extrabold text-black/70">Coach JP</div>
+              <div className="text-sm text-black/45 mt-1">Send me your availability for this week.</div>
+            </div>
+            <div className="text-xs text-black/35 font-bold">2h</div>
+          </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="font-extrabold text-black/70">BearFit Support</div>
+              <div className="text-sm text-black/45 mt-1">Your assessment is confirmed. See you!</div>
+            </div>
+            <div className="text-xs text-black/35 font-bold">1d</div>
           </div>
         </div>
       </Card>
@@ -796,42 +729,38 @@ export default function DashboardPage() {
 
   const MemberAnnouncements = (
     <div className="space-y-6">
-      <HeaderRow title="Announcements" role={role} onRoleChange={onSwitchRole} />
+      <div className="flex items-center justify-between">
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+        <div className="text-black/45 font-semibold">Goals</div>
+      </div>
 
       <Card
-        title="Latest Updates"
-        subtitle="Gym news, promos, reminders"
-        right={
-          unreadAnnouncements > 0 ? (
-            <span className="rounded-full bg-red-500 text-white px-3 py-1 text-sm font-bold">{unreadAnnouncements} unread</span>
-          ) : (
-            <span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All caught up</span>
-          )
-        }
+        title="Activity Log"
+        subtitle="Recent updates"
+        right={<span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All</span>}
       >
         <div className="space-y-3">
-          {announcements.map((a, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 overflow-hidden">
-              <div className="relative h-40">
-                <img src={a.img} alt={a.title} className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-black/25" />
-                <div className="relative p-4 text-white">
-                  <div className="text-white/85 text-sm">{a.date}</div>
-                  <div className="mt-1 text-xl font-extrabold">
-                    {a.title} {a.unread ? <span className="ml-2 text-[#F37120]">•</span> : null}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <div className="text-black/55">{a.body}</div>
-                <div className="mt-3 flex gap-2">
-                  <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Mark as read</button>
-                  <button className="rounded-xl bg-[#F37120] px-3 py-2 font-semibold text-white">Acknowledge</button>
-                </div>
-              </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="font-extrabold text-black/70">Weights Session</div>
+              <div className="text-sm text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
             </div>
-          ))}
+            <Pill>20 → 19</Pill>
+          </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="font-extrabold text-black/70">Cardio Session</div>
+              <div className="text-sm text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
+            </div>
+            <Pill>21 → 20</Pill>
+          </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="font-extrabold text-black/70">Bonus Session Added</div>
+              <div className="text-sm text-black/45 mt-1">Package Renewal • +3 Session Added</div>
+            </div>
+            <Pill>48 + 3</Pill>
+          </div>
         </div>
       </Card>
     </div>
@@ -839,621 +768,262 @@ export default function DashboardPage() {
 
   const MemberPayments = (
     <div className="space-y-6">
-      <HeaderRow title="Payments" role={role} onRoleChange={onSwitchRole} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Balance" subtitle="Amount due">
-          <div className="text-5xl font-extrabold">₱{unpaidBalancePhp}</div>
-          <button className="mt-5 w-full rounded-2xl bg-[#F37120] py-4 font-semibold text-white">Pay now</button>
-        </Card>
-
-        <Card title="Package" subtitle="Your current plan">
-          <RowItem label="Plan" value={packageName} />
-          <div className="mt-3">
-            <RowItem label="Sessions left" value={String(sessionsLeft)} />
-          </div>
-          <button className="mt-5 w-full rounded-2xl bg-[#0b1220] py-4 font-semibold text-white">Buy more sessions</button>
-        </Card>
+      <div className="flex items-center justify-between">
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+        <div className="text-black/45 font-semibold">Payments</div>
       </div>
+
+      <Card title="Payments" subtitle="Billing & history">
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
+            <div>
+              <div className="font-extrabold text-black/70">Via Gcash</div>
+              <div className="text-sm text-black/45 mt-1">1st-6th - NEW • Due: January 25</div>
+              <div className="text-sm text-black/45 mt-1">Last Payment: ₱5800</div>
+            </div>
+            <div className="font-extrabold text-black/70">₱8000</div>
+          </div>
+
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
+            <div>
+              <div className="font-extrabold text-black/70">Via BPI</div>
+              <div className="text-sm text-black/45 mt-1">Full Paid • Due: January 21</div>
+              <div className="text-sm text-black/45 mt-1">Last Payment: ₱48000</div>
+            </div>
+            <div className="font-extrabold text-black/70">₱48000</div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 
   const MemberProfile = (
     <div className="space-y-6">
-      <HeaderRow title="Profile" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Member Info" subtitle="Your account">
-        <div className="space-y-3">
-          <RowItem label="Name" value={memberName} />
-          <RowItem label="Role" value="Member" />
-          <RowItem label="Home branch" value={branchName} />
+      <div className="flex items-center justify-between">
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+        <div className="text-black/45 font-semibold">More</div>
+      </div>
+
+      <Card title={userName} subtitle={`Member • ${formatDate(now)}`}>
+        <div className="flex items-center gap-4">
+          <img src={avatarUrl} alt="profile" className="h-16 w-16 rounded-2xl object-cover ring-1 ring-black/5" />
+          <div className="min-w-0">
+            <div className="font-extrabold text-black/70 truncate">{userName}</div>
+            <div className="text-sm text-black/45 mt-1 truncate">Malingap Branch • Active</div>
+          </div>
         </div>
-      </Card>
-      <Card title="Settings" subtitle="App preferences">
-        <div className="space-y-3">
-          <RowItem label="Notifications" value="On" />
-          <RowItem label="Preferred Branch" value={branchName} />
-          <RowItem label="Dark mode" value="Auto" />
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button
+            onClick={() => switchTab("payments")}
+            className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left hover:bg-black/[0.02] transition"
+          >
+            <div className="font-extrabold text-black/70">Payments</div>
+            <div className="text-sm text-black/45 mt-1">View billing</div>
+          </button>
+          <button className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left hover:bg-black/[0.02] transition">
+            <div className="font-extrabold text-black/70">Settings</div>
+            <div className="text-sm text-black/45 mt-1">App & profile</div>
+          </button>
         </div>
-        <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Log out</button>
       </Card>
     </div>
   );
-  // ---------- STAFF PAGES ----------
+
+  /* -------------------- Staff / Admin (kept minimal) -------------------- */
   const StaffHome = (
     <div className="space-y-6">
-      <HeaderRow title="Staff Dashboard" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Today" subtitle="Quick ops snapshot">
-          <div className="space-y-3">
-            <RowItem label="Pending check-ins" value={String(attendancePending)} />
-            <RowItem label="Sessions today" value="12" />
-            <RowItem label="New leads" value={String(salesLeads)} />
-          </div>
-        </Card>
-
-        <Card title="Actions" subtitle="Fast shortcuts">
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTabAnimated("attendance")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
-              Check-in
-            </button>
-            <button onClick={() => setTabAnimated("clients")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Clients
-            </button>
-            <button onClick={() => setTabAnimated("sessions")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Sessions
-            </button>
-            <button onClick={() => setTabAnimated("sales")} className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
-              Sales
-            </button>
-          </div>
-        </Card>
-
-        <Card title="Notes" subtitle="What to prioritize">
-          <div className="text-black/55 leading-relaxed">
-            • Confirm assessments<br />
-            • Follow up inactive members<br />
-            • Update session deductions<br />
-            • Close leads for packages
-          </div>
-        </Card>
-      </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Staff Home" subtitle="Quick overview">
+        <div className="text-black/55">Attendance, clients, sessions, sales.</div>
+      </Card>
     </div>
   );
-
   const StaffAttendance = (
     <div className="space-y-6">
-      <HeaderRow title="Attendance" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Quick Check-in" subtitle="Kiosk-friendly flow">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <button className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Scan QR</button>
-          <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Search Member</button>
-        </div>
-        <div className="mt-5 space-y-3">
-          {[
-            { name: "Manny", status: "Arrived", time: "10:05 AM" },
-            { name: "Ria", status: "Arrived", time: "10:20 AM" },
-            { name: "Jed", status: "Booked", time: "11:00 AM" },
-          ].map((x, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{x.name}</div>
-                <div className="text-black/45">{x.time}</div>
-              </div>
-              <div className="text-black/60 font-semibold">{x.status}</div>
-            </div>
-          ))}
-        </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Attendance" subtitle="Pending check-ins">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Attendance list (demo)</div>
       </Card>
     </div>
   );
-
   const StaffClients = (
     <div className="space-y-6">
-      <HeaderRow title="Clients" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Member List" subtitle="Search + quick actions">
-        <div className="flex gap-2">
-          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search client…" />
-          <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Find</button>
-        </div>
-
-        <div className="mt-5 space-y-3">
-          {[
-            { name: "Sophia", plan: "24 Full", left: 6 },
-            { name: "Chich", plan: "24 Staggered", left: 4 },
-            { name: "Leo", plan: "48 Full", left: 19 },
-          ].map((x, i) => (
-            <button key={i} className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{x.name}</div>
-                <div className="text-black/50">
-                  {x.plan} • {x.left} left
-                </div>
-              </div>
-              <ChevronRight />
-            </button>
-          ))}
-        </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Clients" subtitle="Member directory">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients list (demo)</div>
       </Card>
     </div>
   );
-
   const StaffSessions = (
     <div className="space-y-6">
-      <HeaderRow title="Sessions" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Today’s Sessions" subtitle="Tap to mark complete">
-        <div className="space-y-3">
-          {[
-            { time: "6:00 PM", who: "Manny", type: "Coached Strength" },
-            { time: "7:00 PM", who: "Ria", type: "Mobility / Function" },
-            { time: "8:00 PM", who: "Jed", type: "Better Form" },
-          ].map((x, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div>
-                <div className="text-black/50">{x.time}</div>
-                <div className="font-semibold">{x.who}</div>
-                <div className="text-black/50">{x.type}</div>
-              </div>
-              <button className="rounded-2xl bg-[#F37120] text-white px-4 py-3 font-semibold">Complete</button>
-            </div>
-          ))}
-        </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Sessions" subtitle="Today’s sessions">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sessions list (demo)</div>
       </Card>
     </div>
   );
-
   const StaffSales = (
     <div className="space-y-6">
-      <HeaderRow title="Sales" role={role} onRoleChange={onSwitchRole} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Leads" subtitle="Follow up today">
-          <div className="space-y-3">
-            {[
-              { name: "Victor", stage: "Assessment booked" },
-              { name: "Karen", stage: "Considering 24 Full" },
-            ].map((x, i) => (
-              <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{x.name}</div>
-                  <div className="text-black/50">{x.stage}</div>
-                </div>
-                <button className="rounded-2xl bg-[#0b1220] text-white px-4 py-3 font-semibold">Message</button>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Revenue Snapshot" subtitle="This week">
-          <div className="space-y-3">
-            <RowItem label="Packages sold" value="7" />
-            <RowItem label="Assessments" value="14" />
-            <RowItem label="Projected revenue" value="₱72,000" />
-          </div>
-          <button className="mt-5 w-full rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Create invoice</button>
-        </Card>
-      </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Sales" subtitle="Leads & follow-ups">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales pipeline (demo)</div>
+      </Card>
     </div>
   );
 
-  // ---------- ADMIN / OWNER PAGES ----------
   const AdminHome = (
     <div className="space-y-6">
-      <HeaderRow title="Owner Dashboard" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Today" subtitle="High-level snapshot">
-          <div className="space-y-3">
-            <RowItem label="Revenue today" value="₱12,300" />
-            <RowItem label="Check-ins" value="38" />
-            <RowItem label="Invoices unpaid" value={String(unpaidInvoices)} />
-          </div>
-        </Card>
-
-        <Card title="Quick Actions" subtitle="Owner shortcuts">
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setTabAnimated("overview")} className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">
-              KPI
-            </button>
-            <button onClick={() => setTabAnimated("clients")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Clients
-            </button>
-            <button onClick={() => setTabAnimated("sales")} className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">
-              Sales
-            </button>
-            <button onClick={() => setTabAnimated("settings")} className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">
-              Settings
-            </button>
-          </div>
-        </Card>
-
-        <Card title="Alerts" subtitle="What needs attention">
-          <div className="text-black/55 leading-relaxed">
-            • 7 unpaid invoices<br />
-            • 12 members at-risk<br />
-            • 3 coaches need schedule confirmation<br />
-            • Stock low: protein drinks
-          </div>
-        </Card>
-      </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Admin Home" subtitle="Owner dashboard">
+        <div className="text-black/55">Overview, clients, sales, settings.</div>
+      </Card>
     </div>
   );
-
   const AdminOverview = (
     <div className="space-y-6">
-      <HeaderRow title="KPI Overview" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Revenue" subtitle="This week">
-          <div className="text-5xl font-extrabold">₱72,000</div>
-          <div className="mt-2 text-black/50">+12% vs last week</div>
-        </Card>
-        <Card title="Retention" subtitle="Active members">
-          <div className="text-5xl font-extrabold">184</div>
-          <div className="mt-2 text-black/50">12 at-risk</div>
-        </Card>
-        <Card title="Utilization" subtitle="Sessions delivered">
-          <div className="text-5xl font-extrabold">96</div>
-          <div className="mt-2 text-black/50">Avg 13.7/day</div>
-        </Card>
-      </div>
-
-      <Card title="Management To-Do" subtitle="Owner checklist">
-        <div className="space-y-3">
-          {["Review staff schedule coverage", "Follow up unpaid invoices", "Approve promos for next week", "Audit session deductions"].map((t, i) => (
-            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div className="font-semibold">{t}</div>
-              <button className="rounded-xl bg-black/5 px-3 py-2 font-semibold text-black/60 hover:bg-black/10">Done</button>
-            </div>
-          ))}
-        </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Overview" subtitle="Stats snapshot">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Overview (demo)</div>
       </Card>
     </div>
   );
-
   const AdminClients = (
     <div className="space-y-6">
-      <HeaderRow title="All Clients" role={role} onRoleChange={onSwitchRole} />
-      <Card title="Search + segments" subtitle="Owners see everything (UI only)">
-        <div className="flex gap-2">
-          <input className="flex-1 rounded-2xl bg-white px-4 py-3 outline-none ring-1 ring-black/10" placeholder="Search member…" />
-          <button className="rounded-2xl bg-[#0b1220] text-white px-5 font-semibold">Find</button>
-        </div>
-
-        <div className="mt-4 flex gap-2 flex-wrap">
-          {["All", "Active", "At-risk", "Unpaid", "New leads"].map((x) => (
-            <span key={x} className="rounded-full bg-black/5 px-4 py-2 text-sm font-semibold text-black/60">
-              {x}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-5 space-y-3">
-          {[
-            { name: "Sophia", status: "Active", note: "24 Full • 6 left" },
-            { name: "Chich", status: "Unpaid", note: "Balance ₱980" },
-            { name: "Leo", status: "At-risk", note: "No visit in 10 days" },
-          ].map((x, i) => (
-            <button key={i} className="w-full text-left rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{x.name}</div>
-                <div className="text-black/50">
-                  {x.status} • {x.note}
-                </div>
-              </div>
-              <ChevronRight />
-            </button>
-          ))}
-        </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Clients" subtitle="All memberships">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients (demo)</div>
       </Card>
     </div>
   );
-
   const AdminSales = (
     <div className="space-y-6">
-      <HeaderRow title="Sales & Billing" role={role} onRoleChange={onSwitchRole} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Unpaid Invoices" subtitle="Needs follow-up">
-          <div className="text-5xl font-extrabold">{unpaidInvoices}</div>
-          <div className="mt-2 text-black/50">Tap an invoice (UI only)</div>
-
-          <div className="mt-5 space-y-3">
-            {[
-              { who: "Chich", amount: "₱980", age: "3d" },
-              { who: "Manny", amount: "₱1,500", age: "5d" },
-              { who: "Ria", amount: "₱800", age: "7d" },
-            ].map((x, i) => (
-              <div key={i} className="rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{x.who}</div>
-                  <div className="text-black/50">
-                    {x.amount} • overdue {x.age}
-                  </div>
-                </div>
-                <button className="rounded-2xl bg-[#0b1220] text-white px-4 py-3 font-semibold">Remind</button>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Create" subtitle="Owner tools">
-          <div className="grid grid-cols-1 gap-3">
-            <button className="rounded-2xl bg-[#F37120] text-white py-4 font-semibold">Create invoice</button>
-            <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Record cash sale</button>
-            <button className="rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Promo / discount</button>
-            <button className="rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">Export report</button>
-          </div>
-        </Card>
-      </div>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Sales" subtitle="Revenue & invoices">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales (demo)</div>
+      </Card>
     </div>
   );
-
   const AdminSettings = (
     <div className="space-y-6">
-      <HeaderRow title="Gym Settings" role={role} onRoleChange={onSwitchRole} />
-
-      <Card title="Branches" subtitle="Locations + hours (UI only)">
-        <div className="space-y-3">
-          <RowItem label="Sikatuna" value="Mon–Fri 7AM–10PM" />
-          <RowItem label="E. Rodriguez" value="Mon–Fri 7AM–10PM" />
-          <RowItem label="Cainta" value="Sat 7AM–2PM" />
-        </div>
-        <button className="mt-5 w-full rounded-2xl bg-white ring-1 ring-black/10 py-4 font-semibold">Add branch</button>
-      </Card>
-
-      <Card title="Packages" subtitle="Plans + pricing (UI only)">
-        <div className="space-y-3">
-          <RowItem label="24 Full" value="₱xxxx" />
-          <RowItem label="24 Staggered" value="₱xxxx" />
-          <RowItem label="48 Full" value="₱xxxx" />
-        </div>
-        <button className="mt-5 w-full rounded-2xl bg-[#0b1220] text-white py-4 font-semibold">Edit packages</button>
+      <RoleSwitch role={role} onChange={onSwitchRole} />
+      <Card title="Settings" subtitle="Manage branches & roles">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Settings (demo)</div>
       </Card>
     </div>
   );
 
-  // Choose content
-  const content = (() => {
-    if (role === "member") {
-      if (tab === "home") return MemberHome;
-      if (tab === "schedule") return MemberSchedule;
-      if (tab === "chat") return MemberChat;
-      if (tab === "announcements") return MemberAnnouncements;
-      if (tab === "payments") return MemberPayments;
-      return MemberProfile;
-    }
-    if (role === "staff") {
-      if (tab === "home") return StaffHome;
-      if (tab === "attendance") return StaffAttendance;
-      if (tab === "clients") return StaffClients;
-      if (tab === "sessions") return StaffSessions;
-      return StaffSales;
-    }
-    // admin
-    if (tab === "home") return AdminHome;
-    if (tab === "overview") return AdminOverview;
-    if (tab === "clients") return AdminClients;
-    if (tab === "sales") return AdminSales;
-    return AdminSettings;
-  })();
-
-  // Nav config (role-based)
-  const navItems =
+  /* -------------------- Active content -------------------- */
+  const content =
     role === "member"
-      ? ([
-          { key: "home", label: "Home", icon: <HomeIcon /> },
-          { key: "schedule", label: "Schedule", icon: <ScheduleIcon /> },
-          { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat, badgeColor: "red" as const },
-          { key: "payments", label: "Pay", icon: <WalletIcon />, badge: unpaidBalancePhp > 0 ? 1 : 0, badgeColor: "orange" as const },
-          { key: "profile", label: "Profile", icon: <UserIcon /> },
-        ] as { key: MemberTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
+      ? tabAnimated === "home"
+        ? MemberHome
+        : tabAnimated === "schedule"
+        ? MemberSchedule
+        : tabAnimated === "chat"
+        ? MemberChat
+        : tabAnimated === "announcements"
+        ? MemberAnnouncements
+        : tabAnimated === "payments"
+        ? MemberPayments
+        : MemberProfile
       : role === "staff"
-      ? ([
-          { key: "home", label: "Home", icon: <HomeIcon /> },
-          { key: "attendance", label: "Attend", icon: <ClipboardIcon />, badge: attendancePending, badgeColor: "blue" as const },
-          { key: "clients", label: "Clients", icon: <UsersIcon /> },
-          { key: "sessions", label: "Sessions", icon: <DumbbellIcon /> },
-          { key: "sales", label: "Sales", icon: <ChartIcon />, badge: salesLeads, badgeColor: "orange" as const },
-        ] as { key: StaffTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[])
-      : ([
-          { key: "home", label: "Home", icon: <HomeIcon />, badge: adminNotif, badgeColor: "red" as const },
-          { key: "overview", label: "KPI", icon: <ChartIcon /> },
-          { key: "clients", label: "Clients", icon: <UsersIcon /> },
-          { key: "sales", label: "Sales", icon: <WalletIcon />, badge: unpaidInvoices, badgeColor: "orange" as const },
-          { key: "settings", label: "Settings", icon: <SettingsIcon /> },
-        ] as { key: AdminTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: "orange" | "red" | "blue" }[]);
+      ? tabAnimated === "home"
+        ? StaffHome
+        : tabAnimated === "attendance"
+        ? StaffAttendance
+        : tabAnimated === "clients"
+        ? StaffClients
+        : tabAnimated === "sessions"
+        ? StaffSessions
+        : StaffSales
+      : tabAnimated === "home"
+      ? AdminHome
+      : tabAnimated === "overview"
+      ? AdminOverview
+      : tabAnimated === "clients"
+      ? AdminClients
+      : tabAnimated === "sales"
+      ? AdminSales
+      : AdminSettings;
+// PART 6/6
+  const memberNav: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
+    { key: "home", label: "Overview", icon: <HomeIcon /> },
+    { key: "chat", label: "Workout", icon: <DumbbellIcon />, badge: unreadChat },
+    { key: "announcements", label: "Goals", icon: <TargetIcon />, badge: unreadAnnouncements },
+    { key: "schedule", label: "Schedule", icon: <CalendarIcon /> },
+    { key: "profile", label: "More", icon: <UserIcon /> },
+  ];
+
+  const staffNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+    { key: "home", label: "Home", icon: <HomeIcon /> },
+    { key: "attendance", label: "Attendance", icon: <CalendarIcon /> },
+    { key: "clients", label: "Clients", icon: <UserIcon /> },
+    { key: "sessions", label: "Sessions", icon: <ChatIcon /> },
+    { key: "sales", label: "Sales", icon: <WalletIcon /> },
+  ];
+
+  const adminNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+    { key: "home", label: "Home", icon: <HomeIcon /> },
+    { key: "overview", label: "Overview", icon: <TargetIcon /> },
+    { key: "clients", label: "Clients", icon: <UserIcon /> },
+    { key: "sales", label: "Sales", icon: <WalletIcon /> },
+    { key: "settings", label: "Settings", icon: <ChatIcon /> },
+  ];
+
+  const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
 
   return (
-    <div className="min-h-screen bg-[#eef3fb] text-[#0b1220]">
-      {/* main */}
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-6 pb-28">
-        <div key={`${role}-${tab}`} className={`bf-pane ${animDir === "right" ? "bf-in-right" : "bf-in-left"}`}>
+    <div className="min-h-screen bg-[#F4F6FB]">
+      {/* small role switch for dev/testing (kept, but not inside MemberHome UI) */}
+      <div className="mx-auto max-w-[430px] px-4 pt-3">
+        <div className="flex justify-center">
+          <RoleSwitch role={role} onChange={onSwitchRole} />
+        </div>
+      </div>
+
+      {/* phone-width canvas */}
+      <div className="mx-auto max-w-[430px] px-4 pt-3 pb-28">
+        <div
+          key={animKey}
+          className={[
+            "transition-all duration-300",
+            animDir === "right" ? "animate-[slideInRight_.25s_ease-out]" : "animate-[slideInLeft_.25s_ease-out]",
+          ].join(" ")}
+        >
           {content}
         </div>
       </div>
 
-      {/* bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-auto w-full max-w-[1100px] px-5 pb-4">
-          <div className="rounded-3xl bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 px-4 py-3">
-            <div className="grid grid-cols-5 gap-2">
-              {navItems.map((item) => (
-                <NavItem
-                  key={item.key}
-                  active={tab === item.key}
-                  label={item.label}
-                  onClick={() => setTabAnimated(item.key)}
-                  badge={item.badge}
-                  badgeColor={item.badgeColor}
-                >
-                  {item.icon}
-                </NavItem>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <BottomNav
+        items={nav}
+        active={tab}
+        onChange={(k) => switchTab(k)}
+      />
 
-      {/* Animations */}
+      {/* keyframes */}
       <style jsx global>{`
-        .bf-pane {
-          opacity: 0;
-          animation-duration: 260ms;
-          animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-          animation-fill-mode: forwards;
-          will-change: transform, opacity;
-        }
-        .bf-in-right {
-          animation-name: bfSlideInRight;
-        }
-        .bf-in-left {
-          animation-name: bfSlideInLeft;
-        }
-        @keyframes bfSlideInRight {
+        @keyframes slideInRight {
           from {
-            opacity: 0;
             transform: translateX(14px);
+            opacity: 0.6;
           }
           to {
-            opacity: 1;
             transform: translateX(0);
+            opacity: 1;
           }
         }
-        @keyframes bfSlideInLeft {
+        @keyframes slideInLeft {
           from {
-            opacity: 0;
             transform: translateX(-14px);
+            opacity: 0.6;
           }
           to {
-            opacity: 1;
             transform: translateX(0);
+            opacity: 1;
           }
         }
       `}</style>
     </div>
   );
 }
-
-/* -------------------- Shared Components -------------------- */
-function Countdown({ target, now }: { target: Date; now: Date }) {
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setTick((x) => x + 1), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const liveNow = useMemo(() => new Date(now.getTime() + tick * 1000), [now, tick]);
-
-  const total = Math.max(0, Math.floor((target.getTime() - liveNow.getTime()) / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-
-  const two = (n: number) => String(n).padStart(2, "0");
-
-  return (
-    <div className="flex flex-col items-start">
-      <div className="text-3xl font-extrabold tracking-tight">
-        {two(h)} : {two(m)} : {two(s)}
-      </div>
-      <div className="mt-1 text-white/85 text-[11px] font-semibold">
-        <div className="grid grid-cols-3 gap-3">
-          <span className="text-left">Hours</span>
-          <span className="text-left">Minutes</span>
-          <span className="text-left">Seconds</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function NavItem({
-  active,
-  label,
-  onClick,
-  badge = 0,
-  badgeColor = "orange",
-  children,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-  badge?: number;
-  badgeColor?: "orange" | "red" | "blue";
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        "relative flex flex-col items-center justify-center gap-1 rounded-2xl py-2 transition",
-        active ? "bg-[#F37120] text-white shadow-sm" : "text-black/55 hover:bg-black/5",
-      ].join(" ")}
-    >
-      <div className={active ? "text-white" : "text-black/60"}>{children}</div>
-      <Badge value={badge ?? 0} color={badgeColor} />
-      <div className={["text-xs font-semibold", active ? "text-white" : "text-black/45"].join(" ")}>{label}</div>
-    </button>
-  );
-}
-
-function RowItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl bg-white ring-1 ring-black/10 px-4 py-4">
-      <span className="text-black/50">{label}</span>
-      <span className="font-semibold">{value}</span>
-    </div>
-  );
-}
-
-function HeaderRow({
-  title,
-  role,
-  onRoleChange,
-}: {
-  title: string;
-  role: Role;
-  onRoleChange: (r: Role) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="text-4xl font-extrabold">{title}</div>
-      <RoleSwitch role={role} onChange={onRoleChange} />
-    </div>
-  );
-}
-
-function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
-  return (
-    <div className="rounded-full bg-white/70 backdrop-blur shadow-sm ring-1 ring-black/5 p-1 flex items-center">
-      <button
-        onClick={() => onChange("member")}
-        className={[
-          "px-3 py-2 rounded-full text-sm font-semibold transition",
-          role === "member" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
-        ].join(" ")}
-      >
-        Member
-      </button>
-      <button
-        onClick={() => onChange("staff")}
-        className={[
-          "px-3 py-2 rounded-full text-sm font-semibold transition",
-          role === "staff" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
-        ].join(" ")}
-      >
-        Staff
-      </button>
-      <button
-        onClick={() => onChange("admin")}
-        className={[
-          "px-3 py-2 rounded-full text-sm font-semibold transition",
-          role === "admin" ? "bg-[#0b1220] text-white" : "text-black/50 hover:text-black/70",
-        ].join(" ")}
-      >
-        Admin
-      </button>
-    </div>
-  );
-}
-
