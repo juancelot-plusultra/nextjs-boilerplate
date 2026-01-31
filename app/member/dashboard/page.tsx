@@ -2,36 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 
-/**
- * Mobile-first Fitness App (single-file page.tsx)
- * - Standardized typography + spacing (app-like)
- * - Safe-area padding + phone-width canvas
- * - Session cards: horizontal scroll + snap
- * - Hero + Promo: same visual height & padding
- * - Goal Progress removed (Activity Log + Payments instead)
- */
-
 type Role = "member" | "staff" | "admin";
-type MemberTab = "home" | "schedule" | "chat" | "announcements" | "payments" | "profile";
+
+type MemberTab = "home" | "chat" | "schedule" | "payments" | "profile" | "announcements";
 type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
 type AdminTab = "home" | "overview" | "clients" | "sales" | "settings";
+
 type TabKey = MemberTab | StaffTab | AdminTab;
 
-function dayLabel(i: number) {
-  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
-}
-function formatDate(d: Date) {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
-}
-function startOfWeekMonday(d: Date) {
-  const copy = new Date(d);
-  const day = copy.getDay(); // Sun=0
-  const diffToMonday = (day === 0 ? -6 : 1) - day;
-  copy.setDate(copy.getDate() + diffToMonday);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
 function iconBase(cls = "") {
   return `h-6 w-6 ${cls}`;
 }
@@ -84,36 +62,6 @@ function UserIcon() {
     </svg>
   );
 }
-function SearchIcon() {
-  return (
-    <svg className={iconBase("h-5 w-5")} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M10 2a8 8 0 1 1 5.3 14l4.2 4.2-1.4 1.4-4.2-4.2A8 8 0 0 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"
-      />
-    </svg>
-  );
-}
-function DumbbellIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M7 5h2v14H7V5Zm8 0h2v14h-2V5ZM3 9h2v6H3V9Zm18 0h-2v6h2V9ZM9 11h6v2H9v-2Z"
-      />
-    </svg>
-  );
-}
-function TargetIcon() {
-  return (
-    <svg className={iconBase()} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 2a8 8 0 1 1-8 8 8 8 0 0 1 8-8Zm0 3a5 5 0 1 0 5 5 5 5 0 0 0-5-5Zm0 2a3 3 0 1 1-3 3 3 3 0 0 1 3-3Z"
-      />
-    </svg>
-  );
-}
 function ChevronRightIcon() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -122,265 +70,158 @@ function ChevronRightIcon() {
   );
 }
 
-/* -------------------- Small UI primitives -------------------- */
-function Badge({ value, color = "red" }: { value: number; color?: "red" | "orange" | "blue" }) {
+function Badge({ value }: { value: number }) {
   if (!value) return null;
-  const bg = color === "red" ? "bg-red-500" : color === "orange" ? "bg-[#F37120]" : "bg-blue-500";
   return (
-    <span className={`absolute -top-1 -right-1 ${bg} text-white text-[10px] font-extrabold rounded-full px-2 py-0.5 shadow`}>
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-extrabold rounded-full px-2 py-0.5 shadow">
       {value}
     </span>
   );
 }
 
-function Card({
-  title,
-  right,
-  children,
-  className = "",
-}: {
-  title?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={["rounded-3xl bg-white/90 backdrop-blur shadow-sm ring-1 ring-black/5", className].join(" ")}>
-      {(title || right) && (
-        <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
-          {title && <div className="text-[18px] font-extrabold tracking-[-0.02em] text-black/75">{title}</div>}
-          {right}
-        </div>
-      )}
-      <div className="px-5 pb-5">{children}</div>
-    </div>
-  );
-}
-
-function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => void }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="text-[18px] font-extrabold tracking-[-0.02em] text-black/70">{title}</div>
-      {onViewAll && (
-        <button onClick={onViewAll} className="text-[#F37120] font-semibold text-sm inline-flex items-center gap-1">
-          View All <ChevronRightIcon />
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-full bg-orange-100 text-[#F37120] font-extrabold text-sm px-3 py-1">
-      {children}
-    </div>
-  );
-}
-
-function ListRow({
-  leftIcon,
-  title,
-  subtitle,
-  right,
-  onClick,
-}: {
-  leftIcon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  right?: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
+function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
+  const btn = (r: Role, label: string) => (
     <button
-      onClick={onClick}
-      className="w-full text-left flex items-center gap-4 rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 active:scale-[0.99] transition"
+      onClick={() => onChange(r)}
+      className={[
+        "px-4 py-2 rounded-full text-sm font-semibold transition",
+        role === r ? "bg-[#0b1220] text-white" : "text-black/55 hover:text-black/80",
+      ].join(" ")}
     >
-      <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">{leftIcon}</div>
-
-      <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-[15px] text-black/75 truncate">{title}</div>
-        <div className="text-[13px] text-black/45 truncate">{subtitle}</div>
-      </div>
-
-      {right && <div className="shrink-0">{right}</div>}
+      {label}
     </button>
   );
-}
-
-/* -------------------- App Top Bar -------------------- */
-function AppTopBar({ avatarUrl, onSearch }: { avatarUrl: string; onSearch?: () => void }) {
   return (
-    <div className="flex items-center justify-between px-4 pt-[max(16px,env(safe-area-inset-top))]">
-      <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-2xl bg-orange-100 flex items-center justify-center">
-          <span className="text-[#F37120] text-xl">🏋️</span>
-        </div>
-        <div className="text-[22px] font-extrabold tracking-[-0.02em] text-[#F37120]">Fitness</div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onSearch}
-          className="h-11 w-11 rounded-full bg-white ring-1 ring-black/5 flex items-center justify-center text-black/55 active:scale-[0.98] transition"
-          aria-label="Search"
-        >
-          <SearchIcon />
-        </button>
-
-        <img
-          src={avatarUrl}
-          alt="Profile"
-          className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
-        />
-      </div>
+    <div className="inline-flex rounded-full bg-white/85 backdrop-blur shadow-sm ring-1 ring-black/10 p-1">
+      {btn("member", "Member")}
+      {btn("staff", "Staff")}
+      {btn("admin", "Admin")}
     </div>
   );
 }
-
-/* -------------------- Hero + Promo (same height) -------------------- */
-function BannerShell({
+function DarkCard({
   children,
   className = "",
 }: {
   children: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <div className={["relative rounded-3xl overflow-hidden ring-1 ring-black/5 shadow-sm min-h-[152px]", className].join(" ")}>
-      {children}
-    </div>
-  );
-}
-
-function HeroBanner() {
-  return (
-    <BannerShell className="bg-gradient-to-r from-orange-600 to-orange-400 text-white">
-      <img
-        src="https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?auto=format&fit=crop&w=1200&q=60"
-        alt="Daily activities"
-        className="absolute inset-0 h-full w-full object-cover opacity-35"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/85 to-orange-400/35" />
-
-      <div className="relative p-5">
-        <div className="text-[22px] font-extrabold tracking-[-0.02em] leading-tight">Track Your Daily Activities</div>
-        <div className="mt-2 text-[13px] text-white/85 max-w-[270px] leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
-        </div>
-      </div>
-    </BannerShell>
-  );
-}
-
-function PromoBanner() {
-  return (
-    <BannerShell className="bg-gradient-to-r from-purple-600 to-purple-400 text-white">
-      <div className="absolute inset-0 opacity-25">
-        <div className="absolute -right-16 -bottom-16 h-56 w-56 rounded-full bg-white/20" />
-      </div>
-
-      <div className="relative p-5 flex items-end justify-between gap-4">
-        <div className="min-w-0">
-          <div className="text-[20px] font-extrabold tracking-[-0.02em] leading-tight">
-            50% off on Premium Membership
-          </div>
-          <div className="mt-2 text-[13px] text-white/85 leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
-          </div>
-          <button className="mt-4 rounded-2xl bg-[#F37120] px-6 py-3 text-[14px] font-extrabold shadow-sm active:scale-[0.99] transition">
-            Upgrade
-          </button>
-        </div>
-
-        <img
-          src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=700&q=60"
-          alt="Promo"
-          className="h-24 w-24 rounded-2xl object-cover ring-2 ring-white/30 shrink-0"
-        />
-      </div>
-    </BannerShell>
-  );
-}
-
-/* -------------------- Session Tiles (scroll + snap) -------------------- */
-function WaveBg() {
-  return (
-    <svg className="absolute inset-0 h-full w-full text-black/10" viewBox="0 0 400 220" preserveAspectRatio="none">
-      <path
-        fill="currentColor"
-        d="M0 130 C 60 110, 90 160, 150 140 C 210 120, 250 80, 310 105 C 350 120, 370 160, 400 150 L 400 220 L 0 220 Z"
-      />
-      <path
-        fill="currentColor"
-        opacity="0.55"
-        d="M0 155 C 60 130, 110 190, 170 165 C 230 140, 260 120, 320 140 C 360 152, 380 190, 400 175 L 400 220 L 0 220 Z"
-      />
-    </svg>
-  );
-}
-
-function SessionTile({
-  tone,
-  title,
-  branch,
-  time,
-  coach,
-  timer,
-  icon,
-}: {
-  tone: "teal" | "orange" | "purple";
-  title: string;
-  branch: string;
-  time: string;
-  coach?: string;
-  timer: string;
-  icon: React.ReactNode;
-}) {
-  const bg =
-    tone === "teal"
-      ? "from-cyan-600 to-cyan-500"
-      : tone === "orange"
-      ? "from-orange-600 to-orange-500"
-      : "from-purple-600 to-purple-500";
-
   return (
     <div
       className={[
-        "relative w-[280px] sm:w-[300px] snap-start rounded-2xl overflow-hidden bg-gradient-to-br",
-        bg,
-        "text-white p-4 ring-1 ring-black/10 shadow-sm",
+        "rounded-3xl bg-[#0f1623]/90 ring-1 ring-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]",
+        className,
       ].join(" ")}
     >
-      <WaveBg />
+      {children}
+    </div>
+  );
+}
 
-      <div className="relative">
-        <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">{icon}</div>
-          <div className="min-w-0">
-            <div className="font-extrabold text-[15px] leading-tight">{title}</div>
-            <div className="text-white/80 text-[12px] mt-1">{branch}</div>
-            <div className="text-white/80 text-[12px]">{time}</div>
-            {coach && <div className="text-white/70 text-[12px]">{coach}</div>}
+function SoftGlowBorder({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={[
+        "absolute inset-0 rounded-3xl pointer-events-none",
+        "ring-1 ring-white/10",
+        "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]",
+        className,
+      ].join(" ")}
+    />
+  );
+}
+
+function StatTile({
+  title,
+  big,
+  sub,
+  accent = "amber",
+  ribbon,
+}: {
+  title: string;
+  big: React.ReactNode;
+  sub?: string;
+  accent?: "amber" | "orange" | "red";
+  ribbon?: string;
+}) {
+  const border =
+    accent === "amber"
+      ? "from-[#FFD36A] to-[#F59E0B]"
+      : accent === "orange"
+      ? "from-[#FFB54A] to-[#F37120]"
+      : "from-[#FF6B6B] to-[#F87171]";
+
+  return (
+    <div className="relative flex-1 min-w-[0]">
+      <div className={`rounded-3xl p-[1px] bg-gradient-to-br ${border}`}>
+        <div className="relative rounded-3xl bg-[#0c111b] px-4 py-4 overflow-hidden">
+          <div className="text-white/70 text-sm font-semibold">{title}</div>
+          <div className="mt-4 text-white font-extrabold leading-none">{big}</div>
+          {sub ? <div className="mt-3 text-white/60 text-sm font-semibold">{sub}</div> : null}
+
+          <div className="absolute inset-0 pointer-events-none opacity-25">
+            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
           </div>
-        </div>
 
-        <div className="mt-6">
-          <div className="font-extrabold tracking-wider text-[16px]">{timer}</div>
-          <div className="text-[10px] text-white/70 mt-0.5">Hours&nbsp;&nbsp;&nbsp;Minutes&nbsp;&nbsp;&nbsp;Seconds</div>
-        </div>
-
-        <div className="mt-2 flex justify-end">
-          <button className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold active:scale-[0.99] transition">
-            Manage
-          </button>
+          {ribbon ? (
+            <div className="absolute left-0 bottom-4">
+              <div className="relative">
+                <div className="bg-gradient-to-r from-[#F37120] to-[#FFB54A] text-white font-extrabold text-sm px-4 py-2 rounded-r-2xl shadow">
+                  {ribbon}
+                </div>
+                <div className="absolute right-0 top-0 h-full w-5 bg-black/20 skew-x-[-18deg]" />
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- Bottom Nav -------------------- */
+function SectionRow({ title, right }: { title: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="text-white/85 font-extrabold text-lg">{title}</div>
+      {right}
+    </div>
+  );
+}
+
+function ChipTabs({
+  value,
+  onChange,
+}: {
+  value: "activity" | "points" | "payments" | "placeholder";
+  onChange: (v: "activity" | "points" | "payments" | "placeholder") => void;
+}) {
+  const tabs: { key: any; label: string }[] = [
+    { key: "activity", label: "Activity Log" },
+    { key: "points", label: "Points" },
+    { key: "payments", label: "Payments" },
+    { key: "placeholder", label: "Placeholder" },
+  ];
+
+  return (
+    <div className="flex items-center gap-6 border-b border-white/10">
+      {tabs.map((t) => {
+        const active = t.key === value;
+        return (
+          <button
+            key={t.key}
+            onClick={() => onChange(t.key)}
+            className={[
+              "pb-3 text-sm font-extrabold transition",
+              active ? "text-[#F37120]" : "text-white/50 hover:text-white/75",
+            ].join(" ")}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 function BottomNav({
   items,
   active,
@@ -393,13 +234,7 @@ function BottomNav({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30">
       <div className="mx-auto max-w-[430px]">
-        <div
-          className={[
-            "bg-white/90 backdrop-blur ring-1 ring-black/5",
-            "shadow-[0_-10px_30px_rgba(0,0,0,0.08)]",
-            "rounded-t-3xl px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]",
-          ].join(" ")}
-        >
+        <div className="bg-white/95 backdrop-blur ring-1 ring-black/10 shadow-[0_-10px_30px_rgba(0,0,0,0.12)] rounded-t-3xl px-2 py-2">
           <div className="grid grid-cols-5 gap-1">
             {items.map((it) => {
               const isActive = it.key === active;
@@ -409,13 +244,12 @@ function BottomNav({
                   onClick={() => onChange(it.key)}
                   className={[
                     "relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition",
-                    isActive ? "text-[#F37120]" : "text-black/45",
-                    "active:scale-[0.99]",
+                    isActive ? "text-[#F37120]" : "text-black hover:text-black/80", // inactive = BLACK (requested)
                   ].join(" ")}
                 >
                   <div className="relative">
                     <div className={isActive ? "scale-105" : ""}>{it.icon}</div>
-                    {it.badge ? <Badge value={it.badge} color="red" /> : null}
+                    {it.badge ? <Badge value={it.badge} /> : null}
                   </div>
                   <div className="text-[11px] font-semibold">{it.label}</div>
                 </button>
@@ -428,29 +262,17 @@ function BottomNav({
   );
 }
 
-/* -------------------- Role Switch (kept) -------------------- */
-function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
-  const btn = (r: Role, label: string) => (
-    <button
-      onClick={() => onChange(r)}
-      className={[
-        "px-4 py-2 rounded-full text-sm font-semibold transition",
-        role === r ? "bg-[#0b1220] text-white" : "text-black/45 hover:text-black/70",
-      ].join(" ")}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div className="inline-flex rounded-full bg-white/80 backdrop-blur shadow-sm ring-1 ring-black/5 p-1">
-      {btn("member", "Member")}
-      {btn("staff", "Staff")}
-      {btn("admin", "Admin")}
-    </div>
-  );
+function formatMoneyPHP(n: number) {
+  return `₱${n.toLocaleString("en-PH")}`;
 }
 
-/* ============================ PAGE ============================ */
+function PillValue({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full bg-[#F37120]/15 text-[#FFB54A] px-3 py-1 text-sm font-extrabold">
+      {children}
+    </span>
+  );
+}
 export default function Page() {
   const [role, setRole] = useState<Role>("member");
 
@@ -477,7 +299,7 @@ export default function Page() {
 
     const order: TabKey[] =
       role === "member"
-        ? (["home", "chat", "announcements", "schedule", "profile"] as TabKey[])
+        ? (["home", "chat", "schedule", "payments", "profile"] as TabKey[])
         : role === "staff"
         ? (["home", "attendance", "clients", "sessions", "sales"] as TabKey[])
         : (["home", "overview", "clients", "sales", "settings"] as TabKey[]);
@@ -493,377 +315,375 @@ export default function Page() {
     }, 110);
   };
 
-  // demo user
-  const userName = "Aya Mohamed";
-  const avatarUrl = "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
+  const unreadChat = 2;
 
-  const unreadChat = 3;
-  const unreadAnnouncements = 2;
+  // Demo member data (matches screenshot vibe)
+  const member = {
+    name: "Alex",
+    code: "M00-1",
+    branch: "Malingap Branch",
+    packageLabel: "Full 48 Package+",
+    sessionsUsed: 8,
+    sessionsTotal: 48,
+    activeLabel: "Active Member",
+    streakDays: 17,
+    bearforce: 1540,
+    bearforceDelta: "+120 this month",
+    prestige: { season: 2, since: 2023, label: "Prestige Member" as const },
+  };
+
+  const [logTab, setLogTab] = useState<"activity" | "points" | "payments" | "placeholder">("activity");
 
   const activityRows = useMemo(
     () => [
-      { title: "Weights Session", subtitle: "Malingap Branch / 6:00 - 7:00pm", right: <Pill>45 → 46</Pill>, emoji: "🥊" },
-      { title: "Cardio Sessions", subtitle: "Malingap Branch / 5:00 - 6:00pm", right: <Pill>46</Pill>, emoji: "🧘" },
+      { icon: "🏋️", title: "Weights Session", details: "Malingap", time: "6:00 - 7:00pm", value: "20 → 19" },
+      { icon: "🔥", title: "Cardio Session", details: "E.Rod", time: "1:00 - 3:00pm", value: "48 → 47" },
+      { icon: "🎁", title: "Package Renewal", details: "Via Gcash", time: formatMoneyPHP(48600), value: "0 + 48" },
+      { icon: "⚡", title: "Cardio Session", details: "E.Rod", time: "1:00 - 3:00pm", value: "48 → 47" },
+    ],
+    []
+  );
+
+  const pointsRows = useMemo(
+    () => [
+      { icon: "🐻", title: "BearForce Earned", details: "Session Attendance", time: "This week", value: "+80" },
+      { icon: "🏅", title: "Streak Bonus", details: "7-Day Streak", time: "Today", value: "+40" },
+      { icon: "🔒", title: "Prestige Bonus", details: "Season 2", time: "This month", value: "+120" },
     ],
     []
   );
 
   const paymentRows = useMemo(
     () => [
-      { title: "Via Gcash", subtitle: "1st-6th - NEW    P800   Due: January 25", amount: "₱8000", last: "Last: ₱5800", emoji: "💳" },
-      { title: "Via BPI", subtitle: "Full Paid   P48000    Due: January 21", amount: "₱48000", last: "Last: ₱48000", emoji: "🎁" },
+      { icon: "💳", title: "Payment Received", details: "Via Gcash", time: "Jan 25", value: formatMoneyPHP(8000) },
+      { icon: "🏦", title: "Payment Received", details: "Via BPI", time: "Jan 21", value: formatMoneyPHP(48000) },
     ],
     []
   );
 
-  /* -------------------- Member Home -------------------- */
-  const MemberHome = (
+  const upcoming = useMemo(
+    () => [
+      { tag: "Upcoming", title: "Weights Sessions", subtitle: "Malingap Branch • 6:00 - 7:00pm", coach: "Coach Joaquin" },
+      { tag: "Upcoming", title: "Cardio Sessions", subtitle: "Malingap Branch • 5:00 - 6:00pm", coach: "Coach Amiel" },
+    ],
+    []
+  );
+
+  const percent = Math.max(0, Math.min(1, (member.sessionsTotal - member.sessionsUsed) / member.sessionsTotal));
+
+const MemberHome = (
     <div className="pb-28">
-      <AppTopBar avatarUrl={avatarUrl} onSearch={() => {}} />
+      {/* Top strip: brand + role switch */}
+      <div className="px-4 pt-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-2xl bg-[#F37120]/20 flex items-center justify-center">
+            <span className="text-[#F37120] text-lg">🐻</span>
+          </div>
+          <div className="leading-tight">
+            <div className="text-[#F37120] font-extrabold tracking-wide">BEARFIT</div>
+            <div className="text-white/40 text-[11px] -mt-0.5">Member Fitness</div>
+          </div>
+        </div>
 
+        <RoleSwitch role={role} onChange={onSwitchRole} />
+      </div>
+
+      {/* Dark hero/profile block */}
+      <div className="px-4 mt-3">
+        <DarkCard className="relative overflow-hidden p-4">
+          <SoftGlowBorder />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/70">
+              <span className="text-white/35">👤</span>
+              <span className="font-semibold">Welcome,</span>
+              <span className="font-extrabold text-white">{member.name}</span>
+            </div>
+            <button className="h-10 w-10 rounded-2xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center text-white/70">
+              💬
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-[110px_1fr] gap-4">
+            {/* Hex avatar */}
+            <div className="relative">
+              <div className="h-[96px] w-[96px] mx-auto rounded-[26px] rotate-45 bg-gradient-to-br from-[#FFB54A] to-[#F37120] p-[2px] shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+                <div className="h-full w-full rounded-[24px] -rotate-45 bg-[#101826] overflow-hidden flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=60"
+                    alt="profile"
+                    className="h-full w-full object-cover opacity-95"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 text-center">
+                <div className="text-white font-extrabold tracking-wider">{member.code}</div>
+                <div className="text-white/55 text-sm font-semibold">{member.branch}</div>
+
+                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-white/55">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">🏅</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">💎</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">🛡️</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">✅</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Package + progress */}
+            <div className="min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="text-white/80 font-bold">{member.packageLabel}</div>
+                <div className="text-emerald-300/90 text-sm font-extrabold">{member.activeLabel}</div>
+              </div>
+
+              <div className="mt-3 h-3 rounded-full bg-white/10 overflow-hidden ring-1 ring-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#FFD36A] via-[#F59E0B] to-[#F37120]"
+                  style={{ width: `${Math.round(percent * 100)}%` }}
+                />
+              </div>
+
+              <div className="mt-3 flex items-center justify-between">
+                <div className="text-white/70 font-semibold">
+                  {member.sessionsTotal - member.sessionsUsed} of {member.sessionsTotal} sessions
+                </div>
+                <button className="text-[#FFB54A] font-extrabold inline-flex items-center gap-1">
+                  View Profile <ChevronRightIcon />
+                </button>
+              </div>
+
+              {/* Stats row */}
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <StatTile
+                  title="Workout Streak"
+                  accent="amber"
+                  big={
+                    <div className="text-4xl">
+                      {member.streakDays}
+                      <span className="block text-3xl mt-1">Days</span>
+                    </div>
+                  }
+                  ribbon="Personal Best"
+                />
+
+                <StatTile
+                  title="Bearforce Points"
+                  accent="amber"
+                  big={
+                    <div className="text-4xl">
+                      {member.bearforce}
+                      <span className="block text-3xl mt-1">MP</span>
+                    </div>
+                  }
+                  sub={member.bearforceDelta}
+                />
+
+                <StatTile
+                  title={member.prestige.label}
+                  accent="red"
+                  big={
+                    <div className="text-3xl">
+                      Season
+                      <span className="block text-4xl mt-1">{member.prestige.season}</span>
+                    </div>
+                  }
+                  sub={`Member since ${member.prestige.since}`}
+                />
+              </div>
+            </div>
+          </div>
+        </DarkCard>
+      </div>
+
+      {/* Upcoming carousel */}
       <div className="px-4 mt-4">
-        <div className="text-black/55 text-[13px]">Good Morning!</div>
-        <div className="text-[26px] font-extrabold tracking-[-0.03em] text-black/75">Welcome Back!</div>
-      </div>
-
-      <div className="px-4 mt-4 space-y-4">
-        <HeroBanner />
-
-        {/* session row: scroll + snap */}
-        <div className="overflow-x-auto -mx-4 px-4">
-          <div className="flex gap-3 snap-x snap-mandatory">
-            <SessionTile
-              tone="teal"
-              title="Weight Sessions"
-              branch="Malingap Branch"
-              time="6:00 - 7:00pm"
-              timer="01 : 42 : 50"
-              icon={<span className="text-lg">🏋️</span>}
-            />
-            <SessionTile
-              tone="orange"
-              title="Cardio Sessions"
-              branch="Malingap Branch"
-              time="5:00 - 6:00pm"
-              coach="Coach Amiel"
-              timer="46 : 36 : 26"
-              icon={<span className="text-lg">🔥</span>}
-            />
-            <SessionTile
-              tone="purple"
-              title="Muay Thai/Boxing"
-              branch="Malingap Branch"
-              time="5:00 - 6:00pm"
-              timer="90 : 60 : 30"
-              icon={<span className="text-lg">🥊</span>}
-            />
-          </div>
-        </div>
-
-        <Card className="px-0">
-          <div className="px-5 pt-5 pb-4">
-            <SectionHeader title="Activity Log" onViewAll={() => switchTab("announcements")} />
-          </div>
-          <div className="px-5 pb-5 space-y-3">
-            {activityRows.map((r, i) => (
-              <ListRow
-                key={i}
-                leftIcon={<span className="text-xl">{r.emoji}</span>}
-                title={r.title}
-                subtitle={r.subtitle}
-                right={r.right}
-                onClick={() => {}}
+        <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory">
+          {upcoming.map((u, idx) => (
+            <div
+              key={idx}
+              className="snap-start min-w-[320px] w-[320px] relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#7C3AED] via-[#F43F5E] to-[#F37120] ring-1 ring-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=60"
+                alt="session"
+                className="absolute inset-0 h-full w-full object-cover opacity-25"
               />
-            ))}
-          </div>
-        </Card>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70" />
 
-        <Card className="px-0">
-          <div className="px-5 pt-5 pb-4">
-            <SectionHeader title="Payments" onViewAll={() => switchTab("payments")} />
-          </div>
+              <div className="relative p-4">
+                <div className="inline-flex rounded-xl bg-[#F37120] px-3 py-1 text-xs font-extrabold text-white">
+                  {u.tag}
+                </div>
+                <div className="mt-3 text-3xl font-extrabold text-white leading-tight">{u.title}</div>
+                <div className="mt-2 text-white/75 text-sm font-semibold">{u.subtitle}</div>
+                <div className="text-white/60 text-sm font-semibold">{u.coach}</div>
 
-          <div className="px-5 pb-5 space-y-3">
-            {paymentRows.map((p, i) => (
-              <button
-                key={i}
-                onClick={() => switchTab("payments")}
-                className="w-full text-left flex items-start gap-4 rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 active:scale-[0.99] transition"
-              >
-                <div className="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                  <span className="text-xl">{p.emoji}</span>
+                <div className="mt-6">
+                  <div className="text-white font-extrabold text-4xl tracking-wider">09 : 25 : 26</div>
+                  <div className="text-white/55 text-[11px] mt-1">Hours&nbsp;&nbsp;&nbsp;&nbsp;Minutes&nbsp;&nbsp;&nbsp;&nbsp;Seconds</div>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-[15px] text-black/75">{p.title}</div>
-                  <div className="text-[13px] text-black/45 mt-0.5 leading-snug">{p.subtitle}</div>
+                <div className="mt-4 flex justify-end">
+                  <button className="rounded-2xl bg-white/90 text-black px-4 py-2 font-extrabold text-sm shadow">
+                    View Details
+                  </button>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <div className="font-extrabold text-[16px] text-black/75">{p.amount}</div>
-                  <div className="text-[11px] text-black/40 mt-1">{p.last}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        <PromoBanner />
-      </div>
-    </div>
-  );
-
-  /* -------------------- Other pages (kept) -------------------- */
-  const MemberSchedule = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <RoleSwitch role={role} onChange={onSwitchRole} />
-      </div>
-
-      <Card title="My Schedule" right={<div className="text-sm text-black/40 font-semibold">{formatDate(now)}</div>}>
-        {(() => {
-          const start = startOfWeekMonday(now);
-          const days = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(start);
-            d.setDate(start.getDate() + i);
-            return d;
-          });
-
-          return (
-            <div className="grid grid-cols-7 gap-2">
-              {days.map((d, i) => (
-                <div key={i} className="rounded-2xl bg-black/5 ring-1 ring-black/5 px-2 py-3 text-center">
-                  <div className="text-[11px] text-black/45">{dayLabel(i)}</div>
-                  <div className="mt-1 text-[14px] font-extrabold text-black/70">{d.getDate()}</div>
-                </div>
-              ))}
+              </div>
             </div>
-          );
-        })()}
-      </Card>
+          ))}
 
-      <Card title="Upcoming">
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
-            <div className="font-extrabold text-black/70">Weights Session</div>
-            <div className="text-[13px] text-black/45 mt-1">Today • 6:00 - 7:00pm • Malingap Branch</div>
+          {/* extra card (for the side peek effect) */}
+          <div className="snap-start min-w-[90px] w-[90px] rounded-3xl bg-white/5 ring-1 ring-white/10" />
+        </div>
+      </div>
+
+      {/* Log block */}
+      <div className="px-4 mt-4">
+        <DarkCard className="p-4">
+          <SectionRow title=" " />
+          <ChipTabs value={logTab} onChange={setLogTab} />
+
+          <div className="mt-4 rounded-2xl overflow-hidden ring-1 ring-white/10 bg-[#0b111b]">
+            <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-0 px-4 py-3 text-[11px] font-extrabold text-[#FFB54A]/70 border-b border-white/10">
+              <div>Transactions</div>
+              <div>Details</div>
+              <div>Time/Date</div>
+              <div className="text-right">Balance</div>
+            </div>
+
+            {(logTab === "activity" ? activityRows : logTab === "points" ? pointsRows : logTab === "payments" ? paymentRows : []).map(
+              (r, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-0 px-4 py-3 text-sm text-white/85 border-b border-white/5 last:border-b-0"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10">
+                      {r.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-extrabold truncate">{r.title}</div>
+                      <div className="text-[11px] text-white/45 font-semibold">1 Session Used</div>
+                    </div>
+                  </div>
+                  <div className="text-white/60 font-semibold self-center">{r.details}</div>
+                  <div className="text-white/60 font-semibold self-center">{r.time}</div>
+                  <div className="text-right self-center">
+                    <span className="text-[#FFB54A] font-extrabold">{r.value}</span>
+                  </div>
+                </div>
+              )
+            )}
+
+            {logTab === "placeholder" ? (
+              <div className="px-4 py-10 text-center text-white/45 font-semibold">Placeholder tab</div>
+            ) : null}
           </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">
-            <div className="font-extrabold text-black/70">Cardio Session</div>
-            <div className="text-[13px] text-black/45 mt-1">Tomorrow • 5:00 - 6:00pm • Malingap Branch</div>
+
+          <div className="mt-4 text-white/45 text-sm font-semibold flex items-center justify-between">
+            <span>Total transactions</span>
+            <span className="text-white/70 font-extrabold">506</span>
+          </div>
+        </DarkCard>
+      </div>
+
+      {/* Bottom banner */}
+      <div className="px-4 mt-4">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#F37120] to-[#FFB54A] ring-1 ring-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+          <img
+            src="https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?auto=format&fit=crop&w=1200&q=60"
+            alt="banner"
+            className="absolute inset-0 h-full w-full object-cover opacity-25"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F37120]/85 via-[#F37120]/55 to-black/15" />
+          <div className="relative p-4">
+            <div className="text-white text-xl font-extrabold">Track Your Daily Activities</div>
+            <div className="mt-2 text-white/80 text-sm font-semibold max-w-[320px]">
+              Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
-
   const MemberChat = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="pb-28">
+      <div className="px-4 pt-4">
         <RoleSwitch role={role} onChange={onSwitchRole} />
-        <div className="text-black/45 font-semibold">Workout</div>
       </div>
-
-      <Card title="Coach Chat">
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
-            <div>
-              <div className="font-extrabold text-black/70">Coach JP</div>
-              <div className="text-[13px] text-black/45 mt-1">Send me your availability for this week.</div>
-            </div>
-            <div className="text-[11px] text-black/35 font-bold">2h</div>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
-            <div>
-              <div className="font-extrabold text-black/70">Support</div>
-              <div className="text-[13px] text-black/45 mt-1">Your assessment is confirmed. See you!</div>
-            </div>
-            <div className="text-[11px] text-black/35 font-bold">1d</div>
-          </div>
-        </div>
-      </Card>
+      <div className="px-4 mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Chat</div>
+          <div className="mt-3 text-white/55 font-semibold">Messages (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
-  const MemberAnnouncements = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+  const MemberSchedule = (
+    <div className="pb-28">
+      <div className="px-4 pt-4">
         <RoleSwitch role={role} onChange={onSwitchRole} />
-        <div className="text-black/45 font-semibold">Goals</div>
       </div>
-
-      <Card title="Activity Log" right={<span className="rounded-full bg-black/5 text-black/60 px-3 py-1 text-sm font-bold">All</span>}>
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
-            <div>
-              <div className="font-extrabold text-black/70">Weights Session</div>
-              <div className="text-[13px] text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
-            </div>
-            <Pill>20 → 19</Pill>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
-            <div>
-              <div className="font-extrabold text-black/70">Cardio Session</div>
-              <div className="text-[13px] text-black/45 mt-1">Malingap Branch • 6:00 - 7:00pm</div>
-            </div>
-            <Pill>21 → 20</Pill>
-          </div>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-center justify-between">
-            <div>
-              <div className="font-extrabold text-black/70">Bonus Session Added</div>
-              <div className="text-[13px] text-black/45 mt-1">Package Renewal • +3 Session Added</div>
-            </div>
-            <Pill>48 + 3</Pill>
-          </div>
-        </div>
-      </Card>
+      <div className="px-4 mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Schedule</div>
+          <div className="mt-3 text-white/55 font-semibold">This week (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
   const MemberPayments = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="pb-28">
+      <div className="px-4 pt-4">
         <RoleSwitch role={role} onChange={onSwitchRole} />
-        <div className="text-black/45 font-semibold">Payments</div>
       </div>
-
-      <Card title="Payments" right={<div className="text-sm text-black/40 font-semibold">Billing</div>}>
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
-            <div>
-              <div className="font-extrabold text-black/70">Via Gcash</div>
-              <div className="text-[13px] text-black/45 mt-1">1st-6th - NEW • Due: January 25</div>
-              <div className="text-[13px] text-black/45 mt-1">Last Payment: ₱5800</div>
-            </div>
-            <div className="font-extrabold text-black/70">₱8000</div>
-          </div>
-
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4 flex items-start justify-between gap-4">
-            <div>
-              <div className="font-extrabold text-black/70">Via BPI</div>
-              <div className="text-[13px] text-black/45 mt-1">Full Paid • Due: January 21</div>
-              <div className="text-[13px] text-black/45 mt-1">Last Payment: ₱48000</div>
-            </div>
-            <div className="font-extrabold text-black/70">₱48000</div>
-          </div>
-        </div>
-      </Card>
+      <div className="px-4 mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Payment</div>
+          <div className="mt-3 text-white/55 font-semibold">Billing & history (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
   const MemberProfile = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="pb-28">
+      <div className="px-4 pt-4">
         <RoleSwitch role={role} onChange={onSwitchRole} />
-        <div className="text-black/45 font-semibold">More</div>
       </div>
-
-      <Card title={userName} right={<div className="text-sm text-black/40 font-semibold">{formatDate(now)}</div>}>
-        <div className="flex items-center gap-4">
-          <img src={avatarUrl} alt="profile" className="h-16 w-16 rounded-2xl object-cover ring-1 ring-black/5" />
-          <div className="min-w-0">
-            <div className="font-extrabold text-black/70 truncate">{userName}</div>
-            <div className="text-[13px] text-black/45 mt-1 truncate">Malingap Branch • Active</div>
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <button
-            onClick={() => switchTab("payments")}
-            className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left active:scale-[0.99] transition"
-          >
-            <div className="font-extrabold text-black/70">Payments</div>
-            <div className="text-[13px] text-black/45 mt-1">View billing</div>
-          </button>
-          <button className="rounded-2xl bg-white ring-1 ring-black/5 p-4 text-left active:scale-[0.99] transition">
-            <div className="font-extrabold text-black/70">Settings</div>
-            <div className="text-[13px] text-black/45 mt-1">App & profile</div>
-          </button>
-        </div>
-      </Card>
+      <div className="px-4 mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Profile</div>
+          <div className="mt-3 text-white/55 font-semibold">Member details (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
-  // Staff/Admin placeholders
   const StaffHome = (
-    <div className="space-y-6">
+    <div className="pb-28 px-4 pt-4">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Staff Home">
-        <div className="text-black/55 text-sm">Attendance, clients, sessions, sales.</div>
-      </Card>
-    </div>
-  );
-  const StaffAttendance = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Attendance">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Attendance list (demo)</div>
-      </Card>
-    </div>
-  );
-  const StaffClients = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Clients">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients list (demo)</div>
-      </Card>
-    </div>
-  );
-  const StaffSessions = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sessions">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sessions list (demo)</div>
-      </Card>
-    </div>
-  );
-  const StaffSales = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sales">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales pipeline (demo)</div>
-      </Card>
+      <div className="mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Staff Home</div>
+          <div className="mt-2 text-white/55 font-semibold">Attendance, clients, sessions, sales (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
   const AdminHome = (
-    <div className="space-y-6">
+    <div className="pb-28 px-4 pt-4">
       <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Admin Home">
-        <div className="text-black/55 text-sm">Overview, clients, sales, settings.</div>
-      </Card>
-    </div>
-  );
-  const AdminOverview = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Overview">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Overview (demo)</div>
-      </Card>
-    </div>
-  );
-  const AdminClients = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Clients">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Clients (demo)</div>
-      </Card>
-    </div>
-  );
-  const AdminSales = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Sales">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Sales (demo)</div>
-      </Card>
-    </div>
-  );
-  const AdminSettings = (
-    <div className="space-y-6">
-      <RoleSwitch role={role} onChange={onSwitchRole} />
-      <Card title="Settings">
-        <div className="rounded-2xl bg-white ring-1 ring-black/5 p-4">Settings (demo)</div>
-      </Card>
+      <div className="mt-4">
+        <DarkCard className="p-4">
+          <div className="text-white font-extrabold text-xl">Admin Home</div>
+          <div className="mt-2 text-white/55 font-semibold">Overview, clients, sales, settings (demo)</div>
+        </DarkCard>
+      </div>
     </div>
   );
 
@@ -871,41 +691,23 @@ export default function Page() {
     role === "member"
       ? tabAnimated === "home"
         ? MemberHome
-        : tabAnimated === "schedule"
-        ? MemberSchedule
         : tabAnimated === "chat"
         ? MemberChat
-        : tabAnimated === "announcements"
-        ? MemberAnnouncements
+        : tabAnimated === "schedule"
+        ? MemberSchedule
         : tabAnimated === "payments"
         ? MemberPayments
         : MemberProfile
       : role === "staff"
-      ? tabAnimated === "home"
-        ? StaffHome
-        : tabAnimated === "attendance"
-        ? StaffAttendance
-        : tabAnimated === "clients"
-        ? StaffClients
-        : tabAnimated === "sessions"
-        ? StaffSessions
-        : StaffSales
-      : tabAnimated === "home"
-      ? AdminHome
-      : tabAnimated === "overview"
-      ? AdminOverview
-      : tabAnimated === "clients"
-      ? AdminClients
-      : tabAnimated === "sales"
-      ? AdminSales
-      : AdminSettings;
+      ? StaffHome
+      : AdminHome;
 
   const memberNav: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "home", label: "Overview", icon: <HomeIcon /> },
-    { key: "chat", label: "Workout", icon: <DumbbellIcon />, badge: unreadChat },
-    { key: "announcements", label: "Goals", icon: <TargetIcon />, badge: unreadAnnouncements },
+    { key: "home", label: "Home", icon: <HomeIcon /> },
+    { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat },
     { key: "schedule", label: "Schedule", icon: <CalendarIcon /> },
-    { key: "profile", label: "More", icon: <UserIcon /> },
+    { key: "payments", label: "Payment", icon: <WalletIcon /> },
+    { key: "profile", label: "Profile", icon: <UserIcon /> },
   ];
 
   const staffNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
@@ -918,7 +720,7 @@ export default function Page() {
 
   const adminNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "home", label: "Home", icon: <HomeIcon /> },
-    { key: "overview", label: "Overview", icon: <TargetIcon /> },
+    { key: "overview", label: "Overview", icon: <CalendarIcon /> },
     { key: "clients", label: "Clients", icon: <UserIcon /> },
     { key: "sales", label: "Sales", icon: <WalletIcon /> },
     { key: "settings", label: "Settings", icon: <ChatIcon /> },
@@ -927,33 +729,8 @@ export default function Page() {
   const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
 
   return (
-    <div className="min-h-screen bg-[#F4F6FB] text-black">
-      {/* Typography baseline */}
-      <style jsx global>{`
-        :root {
-          -webkit-tap-highlight-color: transparent;
-          text-rendering: optimizeLegibility;
-        }
-        html,
-        body {
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
-            "Segoe UI Emoji";
-        }
-        /* smoother horizontal scroll on iOS */
-        .momentum-scroll {
-          -webkit-overflow-scrolling: touch;
-        }
-      `}</style>
-
-      {/* Dev role switch (kept but subtle) */}
-      <div className="mx-auto max-w-[430px] px-4 pt-3">
-        <div className="flex justify-center">
-          <RoleSwitch role={role} onChange={onSwitchRole} />
-        </div>
-      </div>
-
-      {/* phone-width canvas */}
-      <div className="mx-auto max-w-[430px] px-4 pt-3 pb-28">
+    <div className="min-h-screen bg-[#070b12]">
+      <div className="mx-auto max-w-[430px] pt-2 pb-28">
         <div
           key={animKey}
           className={[
@@ -967,7 +744,6 @@ export default function Page() {
 
       <BottomNav items={nav} active={tab} onChange={(k) => switchTab(k)} />
 
-      {/* keyframes */}
       <style jsx global>{`
         @keyframes slideInRight {
           from {
