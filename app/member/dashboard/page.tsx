@@ -411,7 +411,11 @@ function MemberHomeScreen({
             </div>
           </div>
         </div>
-      </DarkCard>
+      {/* Total transactions footer */}
+        <div className="mt-4 flex items-center justify-between px-2">
+          <span className="text-xs text-white/50">Total transactions</span>
+          <span className="text-sm font-semibold text-white/70">506</span>
+        </div>
 
       {/* Upcoming carousel (peek) */}
       <div className="relative">
