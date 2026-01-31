@@ -472,7 +472,12 @@ function MemberHomeScreen({
           <div>Transactions</div>
           <div>Details</div>
           <div>Time/Date</div>
-          < reopening<div className="text-right">Balance</div>
+          {/* Table header */}
+        <div className="mt-3 grid grid-cols-[1.25fr_1fr_1fr_0.8fr] gap-2 px-2 text-[11px] text-[#F37120]/80">
+          <div>Transactions</div>
+          <div>Details</div>
+          <div>Time/Date</div>
+          <div className="text-right">Balance</div>
         </div>
 
         {/* Rows */}
