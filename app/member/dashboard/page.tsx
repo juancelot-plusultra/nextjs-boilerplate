@@ -1,7 +1,7 @@
 // PART 1/8
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
@@ -30,7 +30,7 @@ function formatDate(d: Date) {
 }
 function startOfWeekMonday(d: Date) {
   const copy = new Date(d);
-  const day = copy.getDay(); // Sun=0
+  const day = copy.getDay();
   const diffToMonday = (day === 0 ? -6 : 1) - day;
   copy.setDate(copy.getDate() + diffToMonday);
   copy.setHours(0, 0, 0, 0);
@@ -136,13 +136,7 @@ function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => voi
   );
 }
 
-function DarkCard({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function DarkCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
       className={[
@@ -155,35 +149,12 @@ function DarkCard({
   );
 }
 
-function SectionHeaderDark({
-  title,
-  right,
-}: {
-  title: string;
-  right?: React.ReactNode;
-}) {
+function SectionHeaderDark({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="text-[14px] font-semibold text-white/85">{title}</div>
       {right}
     </div>
-  );
-}
-
-function SoftPillButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1 text-[#F59A3E] text-[12px] font-semibold hover:opacity-90"
-    >
-      {children} <ChevronRightIcon />
-    </button>
   );
 }
 
@@ -245,6 +216,7 @@ function TopBar({
   );
 }
 
+/** ✅ (1) Upcoming carousel improvement: snap paging + more side peek */
 function UpcomingCard({
   title,
   branch,
@@ -252,7 +224,6 @@ function UpcomingCard({
   coach,
   countdown,
   tone = "orange",
-  peek = false,
 }: {
   title: string;
   branch: string;
@@ -260,7 +231,6 @@ function UpcomingCard({
   coach?: string;
   countdown: string;
   tone?: "orange" | "purple";
-  peek?: boolean;
 }) {
   const grad =
     tone === "orange"
@@ -268,43 +238,40 @@ function UpcomingCard({
       : "from-[#2D1C5B] via-[#5C3AD6]/55 to-[#2B1346]";
 
   return (
-    <div
-      className={[
-        "relative rounded-[26px] overflow-hidden ring-1 ring-white/10 shadow-[0_22px_70px_rgba(0,0,0,0.55)]",
-        peek ? "min-w-[280px]" : "w-full",
-      ].join(" ")}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
-      <div className="absolute inset-0 opacity-25">
-        <img
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=60"
-          alt="Gym"
-          className="h-full w-full object-cover"
-        />
-      </div>
-      <div className="absolute inset-0 bg-black/30" />
-
-      <div className="relative p-5">
-        <div className="inline-flex items-center rounded-full bg-white/15 ring-1 ring-white/15 px-3 py-1 text-[11px] font-semibold text-white/90">
-          Upcoming
+    <div className="snap-center shrink-0 w-[86%] sm:w-[78%]">
+      <div className="relative rounded-[26px] overflow-hidden ring-1 ring-white/10 shadow-[0_22px_70px_rgba(0,0,0,0.55)]">
+        <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
+        <div className="absolute inset-0 opacity-25">
+          <img
+            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=60"
+            alt="Gym"
+            className="h-full w-full object-cover"
+          />
         </div>
+        <div className="absolute inset-0 bg-black/30" />
 
-        <div className="mt-3 text-[24px] leading-tight font-bold text-white">{title}</div>
+        <div className="relative p-5">
+          <div className="inline-flex items-center rounded-full bg-white/15 ring-1 ring-white/15 px-3 py-1 text-[11px] font-semibold text-white/90">
+            Upcoming
+          </div>
 
-        <div className="mt-2 text-[12px] text-white/70 font-medium">
-          {branch} • {time}
-        </div>
-        {coach && <div className="text-[12px] text-white/60 mt-0.5">{coach}</div>}
+          <div className="mt-3 text-[24px] leading-tight font-bold text-white">{title}</div>
 
-        <div className="mt-6">
-          <div className="text-[34px] font-bold tracking-wider text-white">{countdown}</div>
-          <div className="text-[10px] text-white/55 mt-1">Hours &nbsp;&nbsp; Minutes &nbsp;&nbsp; Seconds</div>
-        </div>
+          <div className="mt-2 text-[12px] text-white/70 font-medium">
+            {branch} • {time}
+          </div>
+          {coach && <div className="text-[12px] text-white/60 mt-0.5">{coach}</div>}
 
-        <div className="mt-4 flex justify-end">
-          <button className="rounded-full bg-white/90 text-black px-4 py-2 text-[12px] font-semibold">
-            View Details
-          </button>
+          <div className="mt-6">
+            <div className="text-[34px] font-bold tracking-wider text-white">{countdown}</div>
+            <div className="text-[10px] text-white/55 mt-1">Hours &nbsp;&nbsp; Minutes &nbsp;&nbsp; Seconds</div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button className="rounded-full bg-white/90 text-black px-4 py-2 text-[12px] font-semibold">
+              View Details
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -315,16 +282,10 @@ function MiniRow({
   icon,
   title,
   details,
-  time,
-  balance,
-  accent = "text-[#F59A3E]",
 }: {
   icon: React.ReactNode;
   title: string;
   details: string;
-  time: string;
-  balance: React.ReactNode;
-  accent?: string;
 }) {
   return (
     <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 px-4 py-3 flex items-center gap-3">
@@ -336,14 +297,11 @@ function MiniRow({
         <div className="text-[12px] font-semibold text-white/85 truncate">{title}</div>
         <div className="text-[11px] text-white/50 truncate">{details}</div>
       </div>
-
-      <div className="hidden sm:block text-[11px] text-white/45 w-[86px] text-right">{time}</div>
-
-      <div className={["text-[12px] font-semibold", accent].join(" ")}>{balance}</div>
     </div>
   );
 }
 // PART 4/8
+/** ✅ (2) Profile spacing tightened + more like your 2nd mock */
 function ProfileHeaderCard({
   userName,
   branch,
@@ -368,11 +326,12 @@ function ProfileHeaderCard({
   return (
     <DarkCard className="p-4">
       <div className="flex items-start gap-4">
-        {/* avatar + left block (smaller, floating vibe) */}
-        <div className="w-[92px] shrink-0 text-center">
-          <div className="mx-auto h-[78px] w-[78px] rounded-[22px] overflow-hidden ring-2 ring-[#F59A3E]/40 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        {/* left block: smaller + clean like mock */}
+        <div className="w-[96px] shrink-0 text-center">
+          <div className="mx-auto h-[72px] w-[72px] rounded-full overflow-hidden ring-2 ring-[#F59A3E]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
             <img src={avatarUrl} alt="Member" className="h-full w-full object-cover" />
           </div>
+
           <div className="mt-3 text-[18px] font-bold text-white leading-none">M00-1</div>
           <div className="mt-1 text-[11px] text-white/55">{branch}</div>
 
@@ -384,7 +343,7 @@ function ProfileHeaderCard({
           </div>
         </div>
 
-        {/* right side */}
+        {/* right block: compact header + progress + merit tiles */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -394,7 +353,7 @@ function ProfileHeaderCard({
 
             <button
               onClick={onViewProfile}
-              className="text-[#F59A3E] text-[12px] font-semibold inline-flex items-center gap-1"
+              className="text-[#F59A3E] text-[12px] font-semibold inline-flex items-center gap-1 shrink-0"
             >
               View Profile <ChevronRightIcon />
             </button>
@@ -411,7 +370,7 @@ function ProfileHeaderCard({
             {sessionsUsed} of {sessionsTotal} sessions
           </div>
 
-          {/* 3 merit cards row */}
+          {/* Merit tiles: narrow + tall like mock */}
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-[18px] bg-white/5 ring-1 ring-[#F6C75A]/25 p-3">
               <div className="text-[10px] text-white/60 font-semibold">Workout Streak</div>
@@ -431,11 +390,11 @@ function ProfileHeaderCard({
 
             <div className="rounded-[18px] bg-white/5 ring-1 ring-[#F37120]/35 p-3">
               <div className="inline-flex items-center rounded-[10px] bg-red-600/90 px-2 py-1 text-[10px] font-bold text-white">
-                Prestige Member
+                Prestige
               </div>
               <div className="mt-2 text-[22px] font-bold text-white leading-none">Season</div>
               <div className="text-[18px] font-bold text-white/90">2</div>
-              <div className="mt-2 text-[10px] text-white/55">Member since 2023</div>
+              <div className="mt-2 text-[10px] text-white/55">Since 2023</div>
             </div>
           </div>
         </div>
@@ -475,11 +434,7 @@ function SegmentedTabs({
   );
 }
 
-function ActivityPaymentsCard({
-  defaultTab = "Activity Log",
-}: {
-  defaultTab?: string;
-}) {
+function ActivityPaymentsCard({ defaultTab = "Activity Log" }: { defaultTab?: string }) {
   const [active, setActive] = useState(defaultTab);
 
   const rows = [
@@ -541,7 +496,7 @@ function ActivityPaymentsCard({
 
       <div className="mt-3 h-px bg-white/10" />
 
-      {/* Table header (clean, no broken JSX) */}
+      {/* table header (safe JSX) */}
       <div className="mt-3 grid grid-cols-[1.25fr_0.9fr_0.9fr_0.75fr] gap-2 px-2 text-[10px] text-[#F59A3E]/85 font-semibold">
         <div>Transactions</div>
         <div>Details</div>
@@ -558,14 +513,7 @@ function ActivityPaymentsCard({
           rows.map((r, idx) => (
             <div key={idx} className="grid grid-cols-[1.25fr_0.9fr_0.9fr_0.75fr] gap-2 items-center">
               <div>
-                <MiniRow
-                  icon={<span className="text-[14px]">{r.icon}</span>}
-                  title={r.type}
-                  details="1 Session Used"
-                  time=""
-                  balance={<span />}
-                  accent="text-white/0"
-                />
+                <MiniRow icon={<span className="text-[14px]">{r.icon}</span>} title={r.type} details="1 Session Used" />
               </div>
 
               <div className="px-2 text-[11px] text-white/60 truncate">{r.details}</div>
@@ -595,8 +543,8 @@ function OrangeBanner() {
       </div>
     </div>
   );
-}
-// PART 6/8
+}// PART 6/8
+/** ✅ (3) Bottom nav active icon larger + more native feel */
 function BottomNav({
   items,
   active,
@@ -613,19 +561,40 @@ function BottomNav({
           <div className="grid grid-cols-5 gap-1">
             {items.map((it) => {
               const isActive = it.key === active;
+
               return (
                 <button
                   key={String(it.key)}
                   onClick={() => onChange(it.key)}
-                  className="relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1"
+                  className={[
+                    "relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition",
+                    isActive ? "bg-black/0" : "bg-transparent",
+                  ].join(" ")}
                 >
-                  <div className={["relative", isActive ? "text-[#F37120]" : "text-black"].join(" ")}>
+                  <div
+                    className={[
+                      "relative transition-transform duration-200 will-change-transform",
+                      isActive
+                        ? "text-[#F37120] scale-[1.18] -translate-y-[2px]"
+                        : "text-black scale-100 translate-y-0",
+                    ].join(" ")}
+                  >
                     {it.icon}
                     {it.badge ? <Badge value={it.badge} /> : null}
                   </div>
-                  <div className={["text-[11px] font-semibold", isActive ? "text-[#F37120]" : "text-black"].join(" ")}>
+
+                  <div
+                    className={[
+                      "text-[11px] transition duration-200",
+                      isActive ? "font-bold text-[#F37120]" : "font-semibold text-black",
+                    ].join(" ")}
+                  >
                     {it.label}
                   </div>
+
+                  {isActive && (
+                    <span className="absolute -bottom-[2px] left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-[#F37120]" />
+                  )}
                 </button>
               );
             })}
@@ -683,8 +652,7 @@ export default function Page() {
     "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
 
   const unreadChat = 2;
-
-  // Existing pages kept (lightly re-skinned dark)
+  // PART 7/8
   const MemberSchedule = (
     <div className="space-y-4">
       <DarkCard className="p-4">
@@ -762,13 +730,11 @@ export default function Page() {
       </DarkCard>
     </div>
   );
-  // PART 7/8
+
   const MemberHome = (
     <div className="space-y-4">
-      {/* Top bar with BearFit + role switch (like mock) */}
       <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} />
 
-      {/* Welcome row */}
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-2 text-white/75">
           <span className="text-white/40">👤</span>
@@ -781,7 +747,6 @@ export default function Page() {
         </button>
       </div>
 
-      {/* Profile header card */}
       <ProfileHeaderCard
         userName={userName}
         branch="Malingap Branch"
@@ -793,37 +758,36 @@ export default function Page() {
         onViewProfile={() => switchTab("profile")}
       />
 
-      {/* Upcoming carousel with side peek */}
-      <div className="flex gap-4 overflow-x-auto pb-1 pr-6 -mx-1 px-1">
-        <UpcomingCard
-          title="Weights Sessions"
-          branch="Malingap Branch"
-          time="6:00 - 7:00pm"
-          coach="Coach Joaquin"
-          countdown="09 : 25 : 26"
-          tone="orange"
-          peek
-        />
-        <UpcomingCard
-          title="Cardio"
-          branch="Malingap Branch"
-          time="5:00 - 6:00pm"
-          coach="Coach Amiel"
-          countdown="09 : 12 : 40"
-          tone="purple"
-          peek
-        />
+      {/* ✅ snap carousel + more side peek */}
+      <div className="relative -mx-4 px-4">
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-10 no-scrollbar">
+          <UpcomingCard
+            title="Weights Sessions"
+            branch="Malingap Branch"
+            time="6:00 - 7:00pm"
+            coach="Coach Joaquin"
+            countdown="09 : 25 : 26"
+            tone="orange"
+          />
+          <UpcomingCard
+            title="Cardio"
+            branch="Malingap Branch"
+            time="5:00 - 6:00pm"
+            coach="Coach Amiel"
+            countdown="09 : 12 : 40"
+            tone="purple"
+          />
+        </div>
+
+        {/* subtle hint gradient for “side peek” */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#060A12] to-transparent" />
       </div>
 
-      {/* Activity/Points/Payments table card */}
       <ActivityPaymentsCard />
-
-      {/* Bottom orange banner */}
       <OrangeBanner />
     </div>
   );
-
-  // Staff/Admin kept minimal (still works)
+  // PART 8/8
   const StaffHome = (
     <DarkCard className="p-4">
       <SectionHeaderDark title="Staff Home" right={<span className="text-[11px] text-white/50">Demo</span>} />
@@ -942,10 +906,9 @@ export default function Page() {
   ];
 
   const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
-  // PART 8/8
+
   return (
     <div className={[poppins.variable, "min-h-screen bg-[#060A12] font-sans"].join(" ")}>
-      {/* phone canvas */}
       <div className="mx-auto max-w-[420px] px-4 pb-28">
         <div
           key={animKey}
@@ -987,8 +950,15 @@ export default function Page() {
             opacity: 1;
           }
         }
+        /* hide scrollbar for carousel */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
     </div>
   );
 }
-  
