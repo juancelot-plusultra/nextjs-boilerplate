@@ -1,7 +1,7 @@
 // PART 1/8
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
@@ -12,29 +12,13 @@ const poppins = Poppins({
 
 type Role = "member" | "staff" | "admin";
 
-type MemberTab = "home" | "schedule" | "chat" | "announcements" | "payments" | "profile";
+type MemberTab = "home" | "chat" | "schedule" | "payments" | "profile";
 type StaffTab = "home" | "attendance" | "clients" | "sessions" | "sales";
 type AdminTab = "home" | "overview" | "clients" | "sales" | "settings";
 type TabKey = MemberTab | StaffTab | AdminTab;
 
 function iconBase(cls = "") {
   return `h-6 w-6 ${cls}`;
-}
-
-function dayLabel(i: number) {
-  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
-}
-function formatDate(d: Date) {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
-}
-function startOfWeekMonday(d: Date) {
-  const copy = new Date(d);
-  const day = copy.getDay();
-  const diffToMonday = (day === 0 ? -6 : 1) - day;
-  copy.setDate(copy.getDate() + diffToMonday);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
 }
 
 /* -------------------- Icons -------------------- */
@@ -112,6 +96,19 @@ function Badge({ value }: { value: number }) {
   );
 }
 
+function DarkCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={[
+        "rounded-[26px] bg-[#0B111D]/92 ring-1 ring-white/10 shadow-[0_18px_70px_rgba(0,0,0,0.6)] backdrop-blur",
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </div>
+  );
+}
+
 function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
   const btn = (r: Role, label: string) => (
     <button
@@ -136,69 +133,74 @@ function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => voi
   );
 }
 
-function DarkCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={[
-        "rounded-[26px] bg-[#0B111D]/90 ring-1 ring-white/10 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur",
-        className,
-      ].join(" ")}
-    >
-      {children}
-    </div>
-  );
-}
-
 function SectionHeaderDark({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="text-[14px] font-semibold text-white/85">{title}</div>
+      <div className="text-[13px] md:text-[14px] font-semibold text-white/85">{title}</div>
       {right}
     </div>
   );
 }
 
-function StatTile({
-  label,
-  value,
-  sub,
-  accent = "from-[#F6C75A] to-[#F37120]",
+function DesktopTabBar({
+  items,
+  active,
+  onChange,
 }: {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: string;
+  items: { key: TabKey; label: string }[];
+  active: TabKey;
+  onChange: (k: TabKey) => void;
 }) {
   return (
-    <div className="relative rounded-[18px] bg-white/5 ring-1 ring-white/10 p-3 overflow-hidden">
-      <div className={`absolute -left-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br ${accent} opacity-20`} />
-      <div className="relative">
-        <div className="text-[11px] text-white/55 font-medium">{label}</div>
-        <div className="mt-2 text-[22px] leading-none font-bold text-white">{value}</div>
-        {sub && <div className="mt-2 text-[11px] text-white/50">{sub}</div>}
-      </div>
+    <div className="hidden md:flex items-center gap-2 rounded-full bg-white/5 ring-1 ring-white/10 p-1">
+      {items.map((it) => {
+        const on = it.key === active;
+        return (
+          <button
+            key={String(it.key)}
+            onClick={() => onChange(it.key)}
+            className={[
+              "px-4 py-2 rounded-full text-[12px] font-semibold transition",
+              on ? "bg-white text-black shadow" : "text-white/65 hover:text-white",
+            ].join(" ")}
+          >
+            {it.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
-// PART 3/8
+
 function TopBar({
   role,
   onRoleChange,
   onSearch,
+  desktopTabs,
+  tab,
+  onTab,
 }: {
   role: Role;
   onRoleChange: (r: Role) => void;
   onSearch?: () => void;
+  desktopTabs: { key: TabKey; label: string }[];
+  tab: TabKey;
+  onTab: (k: TabKey) => void;
 }) {
   return (
     <div className="flex items-center justify-between pt-6">
-      <div className="flex items-center gap-2">
-        <div className="h-9 w-9 rounded-xl bg-[#F37120]/15 ring-1 ring-[#F37120]/25 flex items-center justify-center">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-[#F37120]/15 ring-1 ring-[#F37120]/25 flex items-center justify-center">
           <span className="text-[#F37120] text-lg">🐻</span>
         </div>
         <div className="leading-tight">
           <div className="text-[13px] font-semibold text-[#F59A3E]">BEARFIT</div>
           <div className="text-[11px] text-white/50 -mt-0.5">Member Fitness</div>
+        </div>
+
+        {/* desktop nav */}
+        <div className="ml-3">
+          <DesktopTabBar items={desktopTabs} active={tab} onChange={onTab} />
         </div>
       </div>
 
@@ -215,95 +217,8 @@ function TopBar({
     </div>
   );
 }
-
-/** ✅ (1) Upcoming carousel improvement: snap paging + more side peek */
-function UpcomingCard({
-  title,
-  branch,
-  time,
-  coach,
-  countdown,
-  tone = "orange",
-}: {
-  title: string;
-  branch: string;
-  time: string;
-  coach?: string;
-  countdown: string;
-  tone?: "orange" | "purple";
-}) {
-  const grad =
-    tone === "orange"
-      ? "from-[#7A2B12] via-[#F37120]/60 to-[#6E2A2A]"
-      : "from-[#2D1C5B] via-[#5C3AD6]/55 to-[#2B1346]";
-
-  return (
-    <div className="snap-center shrink-0 w-[86%] sm:w-[78%]">
-      <div className="relative rounded-[26px] overflow-hidden ring-1 ring-white/10 shadow-[0_22px_70px_rgba(0,0,0,0.55)]">
-        <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
-        <div className="absolute inset-0 opacity-25">
-          <img
-            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=60"
-            alt="Gym"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="absolute inset-0 bg-black/30" />
-
-        <div className="relative p-5">
-          <div className="inline-flex items-center rounded-full bg-white/15 ring-1 ring-white/15 px-3 py-1 text-[11px] font-semibold text-white/90">
-            Upcoming
-          </div>
-
-          <div className="mt-3 text-[24px] leading-tight font-bold text-white">{title}</div>
-
-          <div className="mt-2 text-[12px] text-white/70 font-medium">
-            {branch} • {time}
-          </div>
-          {coach && <div className="text-[12px] text-white/60 mt-0.5">{coach}</div>}
-
-          <div className="mt-6">
-            <div className="text-[34px] font-bold tracking-wider text-white">{countdown}</div>
-            <div className="text-[10px] text-white/55 mt-1">Hours &nbsp;&nbsp; Minutes &nbsp;&nbsp; Seconds</div>
-          </div>
-
-          <div className="mt-4 flex justify-end">
-            <button className="rounded-full bg-white/90 text-black px-4 py-2 text-[12px] font-semibold">
-              View Details
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MiniRow({
-  icon,
-  title,
-  details,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  details: string;
-}) {
-  return (
-    <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 px-4 py-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-white/5 ring-1 ring-white/10 flex items-center justify-center text-white/70">
-        {icon}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="text-[12px] font-semibold text-white/85 truncate">{title}</div>
-        <div className="text-[11px] text-white/50 truncate">{details}</div>
-      </div>
-    </div>
-  );
-}
-// PART 4/8
-/** ✅ (2) Profile spacing tightened + more like your 2nd mock */
+// PART 3/8
 function ProfileHeaderCard({
-  userName,
   branch,
   avatarUrl,
   packageName,
@@ -312,7 +227,6 @@ function ProfileHeaderCard({
   statusText,
   onViewProfile,
 }: {
-  userName: string;
   branch: string;
   avatarUrl: string;
   packageName: string;
@@ -324,11 +238,11 @@ function ProfileHeaderCard({
   const pct = Math.max(0, Math.min(100, (sessionsUsed / Math.max(1, sessionsTotal)) * 100));
 
   return (
-    <DarkCard className="p-4">
+    <DarkCard className="p-4 md:p-5">
       <div className="flex items-start gap-4">
-        {/* left block: smaller + clean like mock */}
-        <div className="w-[96px] shrink-0 text-center">
-          <div className="mx-auto h-[72px] w-[72px] rounded-full overflow-hidden ring-2 ring-[#F59A3E]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        {/* left */}
+        <div className="w-[102px] shrink-0 text-center">
+          <div className="mx-auto h-[76px] w-[76px] rounded-full overflow-hidden ring-2 ring-[#F59A3E]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
             <img src={avatarUrl} alt="Member" className="h-full w-full object-cover" />
           </div>
 
@@ -343,7 +257,7 @@ function ProfileHeaderCard({
           </div>
         </div>
 
-        {/* right block: compact header + progress + merit tiles */}
+        {/* right */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -370,7 +284,7 @@ function ProfileHeaderCard({
             {sessionsUsed} of {sessionsTotal} sessions
           </div>
 
-          {/* Merit tiles: narrow + tall like mock */}
+          {/* merit tiles (closer look: taller, tighter) */}
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-[18px] bg-white/5 ring-1 ring-[#F6C75A]/25 p-3">
               <div className="text-[10px] text-white/60 font-semibold">Workout Streak</div>
@@ -390,11 +304,11 @@ function ProfileHeaderCard({
 
             <div className="rounded-[18px] bg-white/5 ring-1 ring-[#F37120]/35 p-3">
               <div className="inline-flex items-center rounded-[10px] bg-red-600/90 px-2 py-1 text-[10px] font-bold text-white">
-                Prestige
+                Prestige Member
               </div>
-              <div className="mt-2 text-[22px] font-bold text-white leading-none">Season</div>
-              <div className="text-[18px] font-bold text-white/90">2</div>
-              <div className="mt-2 text-[10px] text-white/55">Since 2023</div>
+              <div className="mt-2 text-[14px] font-bold text-white/90 leading-none">Season</div>
+              <div className="mt-1 text-[22px] font-bold text-white leading-none">2</div>
+              <div className="mt-2 text-[10px] text-white/55">Member since 2023</div>
             </div>
           </div>
         </div>
@@ -402,7 +316,68 @@ function ProfileHeaderCard({
     </DarkCard>
   );
 }
-// PART 5/8
+
+function UpcomingCard({
+  title,
+  branch,
+  time,
+  coach,
+  countdown,
+  tone = "orange",
+}: {
+  title: string;
+  branch: string;
+  time: string;
+  coach?: string;
+  countdown: string;
+  tone?: "orange" | "purple";
+}) {
+  const grad =
+    tone === "orange"
+      ? "from-[#7A2B12] via-[#F37120]/60 to-[#6E2A2A]"
+      : "from-[#2D1C5B] via-[#5C3AD6]/55 to-[#2B1346]";
+
+  return (
+    <div className="snap-center shrink-0 w-[86%] sm:w-[78%] md:w-full">
+      <div className="relative rounded-[26px] overflow-hidden ring-1 ring-white/10 shadow-[0_22px_70px_rgba(0,0,0,0.55)]">
+        <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
+        <div className="absolute inset-0 opacity-25">
+          <img
+            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=60"
+            alt="Gym"
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-black/30" />
+
+        <div className="relative p-5">
+          <div className="inline-flex items-center rounded-full bg-white/15 ring-1 ring-white/15 px-3 py-1 text-[11px] font-semibold text-white/90">
+            Upcoming
+          </div>
+
+          <div className="mt-3 text-[24px] md:text-[28px] leading-tight font-bold text-white">{title}</div>
+
+          <div className="mt-2 text-[12px] text-white/70 font-medium">
+            {branch} • {time}
+          </div>
+          {coach && <div className="text-[12px] text-white/60 mt-0.5">{coach}</div>}
+
+          <div className="mt-6">
+            <div className="text-[34px] md:text-[38px] font-bold tracking-wider text-white">{countdown}</div>
+            <div className="text-[10px] text-white/55 mt-1">Hours &nbsp;&nbsp; Minutes &nbsp;&nbsp; Seconds</div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button className="rounded-full bg-white/90 text-black px-4 py-2 text-[12px] font-semibold">
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 4/8
 function SegmentedTabs({
   tabs,
   active,
@@ -413,7 +388,7 @@ function SegmentedTabs({
   onChange: (t: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-5 text-[12px] font-semibold">
+    <div className="flex items-center gap-6 text-[12px] font-semibold">
       {tabs.map((t) => {
         const on = t === active;
         return (
@@ -430,6 +405,29 @@ function SegmentedTabs({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MiniRow({
+  icon,
+  title,
+  details,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  details: string;
+}) {
+  return (
+    <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 px-4 py-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-full bg-white/5 ring-1 ring-white/10 flex items-center justify-center text-white/70">
+        {icon}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="text-[12px] font-semibold text-white/85 truncate">{title}</div>
+        <div className="text-[11px] text-white/50 truncate">{details}</div>
+      </div>
     </div>
   );
 }
@@ -485,18 +483,14 @@ function ActivityPaymentsCard({ defaultTab = "Activity Log" }: { defaultTab?: st
   ];
 
   return (
-    <DarkCard className="p-4">
+    <DarkCard className="p-4 md:p-5">
       <div className="flex items-center justify-between gap-3">
-        <SegmentedTabs
-          tabs={["Activity Log", "Points", "Payments", "Placeholder"]}
-          active={active}
-          onChange={setActive}
-        />
+        <SegmentedTabs tabs={["Activity Log", "Points", "Payments", "Placeholder"]} active={active} onChange={setActive} />
       </div>
 
       <div className="mt-3 h-px bg-white/10" />
 
-      {/* table header (safe JSX) */}
+      {/* header */}
       <div className="mt-3 grid grid-cols-[1.25fr_0.9fr_0.9fr_0.75fr] gap-2 px-2 text-[10px] text-[#F59A3E]/85 font-semibold">
         <div>Transactions</div>
         <div>Details</div>
@@ -515,7 +509,6 @@ function ActivityPaymentsCard({ defaultTab = "Activity Log" }: { defaultTab?: st
               <div>
                 <MiniRow icon={<span className="text-[14px]">{r.icon}</span>} title={r.type} details="1 Session Used" />
               </div>
-
               <div className="px-2 text-[11px] text-white/60 truncate">{r.details}</div>
               <div className="px-2 text-[11px] text-white/50 truncate">{r.time}</div>
               <div className="px-2 text-right">{r.balance}</div>
@@ -535,16 +528,16 @@ function ActivityPaymentsCard({ defaultTab = "Activity Log" }: { defaultTab?: st
 function OrangeBanner() {
   return (
     <div className="rounded-[22px] overflow-hidden ring-1 ring-[#F37120]/30 bg-gradient-to-r from-[#F37120] to-[#F6C75A] shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-      <div className="relative p-5">
-        <div className="text-[16px] font-bold text-white">Track Your Daily Activities</div>
-        <div className="mt-2 text-[12px] text-white/85">
+      <div className="relative p-5 md:p-6">
+        <div className="text-[16px] md:text-[18px] font-bold text-white">Track Your Daily Activities</div>
+        <div className="mt-2 text-[12px] md:text-[13px] text-white/85 max-w-[52ch]">
           Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
         </div>
       </div>
     </div>
   );
-}// PART 6/8
-/** ✅ (3) Bottom nav active icon larger + more native feel */
+}
+// PART 5/8
 function BottomNav({
   items,
   active,
@@ -555,7 +548,7 @@ function BottomNav({
   onChange: (k: TabKey) => void;
 }) {
   return (
-    <div className="fixed bottom-5 left-0 right-0 z-50 pointer-events-none">
+    <div className="fixed bottom-5 left-0 right-0 z-50 pointer-events-none md:hidden">
       <div className="mx-auto max-w-[420px] px-4 pointer-events-auto">
         <div className="rounded-[22px] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] ring-1 ring-black/5 px-3 py-2">
           <div className="grid grid-cols-5 gap-1">
@@ -566,35 +559,23 @@ function BottomNav({
                 <button
                   key={String(it.key)}
                   onClick={() => onChange(it.key)}
-                  className={[
-                    "relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition",
-                    isActive ? "bg-black/0" : "bg-transparent",
-                  ].join(" ")}
+                  className="relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1 transition"
                 >
                   <div
                     className={[
                       "relative transition-transform duration-200 will-change-transform",
-                      isActive
-                        ? "text-[#F37120] scale-[1.18] -translate-y-[2px]"
-                        : "text-black scale-100 translate-y-0",
+                      isActive ? "text-[#F37120] scale-[1.18] -translate-y-[2px]" : "text-black",
                     ].join(" ")}
                   >
                     {it.icon}
                     {it.badge ? <Badge value={it.badge} /> : null}
                   </div>
 
-                  <div
-                    className={[
-                      "text-[11px] transition duration-200",
-                      isActive ? "font-bold text-[#F37120]" : "font-semibold text-black",
-                    ].join(" ")}
-                  >
+                  <div className={["text-[11px] transition duration-200", isActive ? "font-bold text-[#F37120]" : "font-semibold text-black"].join(" ")}>
                     {it.label}
                   </div>
 
-                  {isActive && (
-                    <span className="absolute -bottom-[2px] left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-[#F37120]" />
-                  )}
+                  {isActive && <span className="absolute -bottom-[2px] left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-[#F37120]" />}
                 </button>
               );
             })}
@@ -605,6 +586,45 @@ function BottomNav({
   );
 }
 
+/** Desktop “floating rail” (matches app feel, no bottom nav on desktop) */
+function DesktopDock({
+  items,
+  active,
+  onChange,
+}: {
+  items: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[];
+  active: TabKey;
+  onChange: (k: TabKey) => void;
+}) {
+  return (
+    <div className="hidden md:block fixed right-6 bottom-6 z-50">
+      <div className="rounded-[22px] bg-white/10 backdrop-blur ring-1 ring-white/15 shadow-[0_18px_60px_rgba(0,0,0,0.5)] p-2">
+        <div className="flex items-center gap-2">
+          {items.map((it) => {
+            const on = it.key === active;
+            return (
+              <button
+                key={String(it.key)}
+                onClick={() => onChange(it.key)}
+                className={[
+                  "relative rounded-2xl px-3 py-2 flex items-center gap-2 transition",
+                  on ? "bg-white text-black shadow" : "text-white/70 hover:text-white",
+                ].join(" ")}
+              >
+                <span className="relative">
+                  <span className={on ? "text-[#F37120]" : ""}>{it.icon}</span>
+                  {it.badge ? <Badge value={it.badge} /> : null}
+                </span>
+                <span className="text-[12px] font-semibold">{it.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 6/8
 export default function Page() {
   const [role, setRole] = useState<Role>("member");
 
@@ -648,42 +668,135 @@ export default function Page() {
   };
 
   const userName = "Alex";
-  const avatarUrl =
-    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=60";
+  const avatarMain =
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=60";
 
   const unreadChat = 2;
+
+  const memberNav = useMemo(
+    () =>
+      [
+        { key: "home" as TabKey, label: "Home", icon: <HomeIcon /> },
+        { key: "chat" as TabKey, label: "Chat", icon: <ChatIcon />, badge: unreadChat },
+        { key: "schedule" as TabKey, label: "Schedule", icon: <CalendarIcon /> },
+        { key: "payments" as TabKey, label: "Payment", icon: <WalletIcon /> },
+        { key: "profile" as TabKey, label: "Profile", icon: <UserIcon /> },
+      ] as { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[],
+    [unreadChat]
+  );
+
+  const staffNav = [
+    { key: "home" as TabKey, label: "Home", icon: <HomeIcon /> },
+    { key: "attendance" as TabKey, label: "Attendance", icon: <CalendarIcon /> },
+    { key: "clients" as TabKey, label: "Clients", icon: <UserIcon /> },
+    { key: "sessions" as TabKey, label: "Sessions", icon: <ChatIcon /> },
+    { key: "sales" as TabKey, label: "Sales", icon: <WalletIcon /> },
+  ];
+
+  const adminNav = [
+    { key: "home" as TabKey, label: "Home", icon: <HomeIcon /> },
+    { key: "overview" as TabKey, label: "Overview", icon: <CalendarIcon /> },
+    { key: "clients" as TabKey, label: "Clients", icon: <UserIcon /> },
+    { key: "sales" as TabKey, label: "Sales", icon: <WalletIcon /> },
+    { key: "settings" as TabKey, label: "Settings", icon: <ChatIcon /> },
+  ];
+
+  const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
+
+  const desktopTabs = nav.map((n) => ({ key: n.key, label: n.label }));
   // PART 7/8
-  const MemberSchedule = (
-    <div className="space-y-4">
-      <DarkCard className="p-4">
-        <SectionHeaderDark title="My Schedule" right={<span className="text-[11px] text-white/50">{formatDate(now)}</span>} />
-        <div className="mt-4">
-          {(() => {
-            const start = startOfWeekMonday(now);
-            const days = Array.from({ length: 7 }, (_, i) => {
-              const d = new Date(start);
-              d.setDate(start.getDate() + i);
-              return d;
-            });
-            return (
-              <div className="grid grid-cols-7 gap-2">
-                {days.map((d, i) => (
-                  <div key={i} className="rounded-[16px] bg-white/5 ring-1 ring-white/10 px-2 py-3 text-center">
-                    <div className="text-[10px] text-white/45">{dayLabel(i)}</div>
-                    <div className="mt-1 text-[12px] font-bold text-white/80">{d.getDate()}</div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+  /* --------- Member Screens (desktop + mobile optimized) --------- */
+  const MemberHome = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+
+      {/* welcome line */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-white/75">
+          <span className="text-white/40">👤</span>
+          <div className="text-[14px] font-semibold">
+            Welcome, <span className="text-white">{userName}</span>
+          </div>
         </div>
+        <button className="h-10 w-10 rounded-[14px] bg-white/5 ring-1 ring-white/10 text-white/70 flex items-center justify-center">
+          💬
+        </button>
+      </div>
+
+      {/* Desktop layout: left column = profile card; right column = upcoming + logs + banner */}
+      <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-5 md:gap-6 items-start">
+        {/* LEFT */}
+        <div className="space-y-5 md:sticky md:top-6">
+          <ProfileHeaderCard
+            branch="Malingap Branch"
+            avatarUrl={avatarMain}
+            packageName="Full 48 Package+"
+            sessionsUsed={40}
+            sessionsTotal={48}
+            statusText="Active Member"
+            onViewProfile={() => switchTab("profile")}
+          />
+
+          {/* On desktop, keep the orange banner under profile like mock (clean stack) */}
+          <div className="hidden md:block">
+            <OrangeBanner />
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className="space-y-5">
+          {/* Mobile: carousel side peek. Desktop: show just one full width card (more “desktop app”) */}
+          <div className="relative -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-10 no-scrollbar md:block md:overflow-visible md:pr-0">
+              <UpcomingCard
+                title="Weights Sessions"
+                branch="Malingap Branch"
+                time="6:00 - 7:00pm"
+                coach="Coach Joaquin"
+                countdown="09 : 25 : 26"
+                tone="orange"
+              />
+              <div className="md:hidden">
+                <UpcomingCard
+                  title="Cardio"
+                  branch="Malingap Branch"
+                  time="5:00 - 6:00pm"
+                  coach="Coach Amiel"
+                  countdown="09 : 12 : 40"
+                  tone="purple"
+                />
+              </div>
+            </div>
+
+            {/* mobile “peek” fade */}
+            <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#060A12] to-transparent" />
+          </div>
+
+          <ActivityPaymentsCard />
+
+          {/* Mobile: banner at bottom (like your mock). Desktop: already shown on left. */}
+          <div className="md:hidden">
+            <OrangeBanner />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const MemberSchedule = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
+        <SectionHeaderDark title="Schedule" right={<span className="text-[11px] text-white/50">{now.toLocaleString()}</span>} />
+        <div className="mt-4 text-[12px] text-white/55">Schedule screen (placeholder)</div>
       </DarkCard>
     </div>
   );
 
   const MemberChat = (
-    <div className="space-y-4">
-      <DarkCard className="p-4">
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
         <SectionHeaderDark title="Chat" right={<span className="text-[11px] text-white/50">Inbox</span>} />
         <div className="mt-4 space-y-2">
           <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 p-4">
@@ -700,42 +813,32 @@ export default function Page() {
   );
 
   const MemberPayments = (
-    <div className="space-y-4">
-      <DarkCard className="p-4">
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
         <SectionHeaderDark title="Payments" right={<span className="text-[11px] text-white/50">Billing</span>} />
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <StatTile label="Amount Due" value="₱8,000" sub="Due: Jan 25" />
-          <StatTile label="Last Payment" value="₱5,800" sub="Via GCash" accent="from-[#7C5CFF] to-[#3D2CCB]" />
-        </div>
-        <div className="mt-3 rounded-[18px] bg-white/5 ring-1 ring-white/10 p-4">
-          <div className="text-[12px] font-semibold text-white/85">History</div>
-          <div className="mt-2 text-[11px] text-white/55">• Jan 21 — ₱48,000 (BPI) • Full Paid</div>
-          <div className="mt-1 text-[11px] text-white/55">• Jan 25 — ₱8,000 (GCash) • Pending</div>
-        </div>
+        <div className="mt-4 text-[12px] text-white/55">Payments screen (placeholder)</div>
       </DarkCard>
     </div>
   );
 
   const MemberProfile = (
-    <div className="space-y-4">
-      <DarkCard className="p-4">
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
         <SectionHeaderDark title="Profile" right={<span className="text-[11px] text-white/50">Member</span>} />
-        <div className="mt-4 flex items-center gap-3">
-          <img src={avatarUrl} alt="profile" className="h-12 w-12 rounded-[16px] object-cover ring-1 ring-white/10" />
-          <div>
-            <div className="text-[14px] font-bold text-white">{userName}</div>
-            <div className="text-[11px] text-white/55">Malingap Branch • Active</div>
-          </div>
-        </div>
+        <div className="mt-4 text-[12px] text-white/55">Profile screen (placeholder)</div>
       </DarkCard>
     </div>
   );
-
+  // PART 7/8
+  /* --------- Member Screens (desktop + mobile optimized) --------- */
   const MemberHome = (
-    <div className="space-y-4">
-      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} />
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
 
-      <div className="flex items-center justify-between mt-2">
+      {/* welcome line */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-white/75">
           <span className="text-white/40">👤</span>
           <div className="text-[14px] font-semibold">
@@ -747,218 +850,111 @@ export default function Page() {
         </button>
       </div>
 
-      <ProfileHeaderCard
-        userName={userName}
-        branch="Malingap Branch"
-        avatarUrl="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=60"
-        packageName="Full 48 Package+"
-        sessionsUsed={40}
-        sessionsTotal={48}
-        statusText="Active Member"
-        onViewProfile={() => switchTab("profile")}
-      />
+      {/* Desktop layout: left column = profile card; right column = upcoming + logs + banner */}
+      <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-5 md:gap-6 items-start">
+        {/* LEFT */}
+        <div className="space-y-5 md:sticky md:top-6">
+          <ProfileHeaderCard
+            branch="Malingap Branch"
+            avatarUrl={avatarMain}
+            packageName="Full 48 Package+"
+            sessionsUsed={40}
+            sessionsTotal={48}
+            statusText="Active Member"
+            onViewProfile={() => switchTab("profile")}
+          />
 
-      {/* ✅ snap carousel + more side peek */}
-      <div className="relative -mx-4 px-4">
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-10 no-scrollbar">
-          <UpcomingCard
-            title="Weights Sessions"
-            branch="Malingap Branch"
-            time="6:00 - 7:00pm"
-            coach="Coach Joaquin"
-            countdown="09 : 25 : 26"
-            tone="orange"
-          />
-          <UpcomingCard
-            title="Cardio"
-            branch="Malingap Branch"
-            time="5:00 - 6:00pm"
-            coach="Coach Amiel"
-            countdown="09 : 12 : 40"
-            tone="purple"
-          />
+          {/* On desktop, keep the orange banner under profile like mock (clean stack) */}
+          <div className="hidden md:block">
+            <OrangeBanner />
+          </div>
         </div>
 
-        {/* subtle hint gradient for “side peek” */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#060A12] to-transparent" />
-      </div>
+        {/* RIGHT */}
+        <div className="space-y-5">
+          {/* Mobile: carousel side peek. Desktop: show just one full width card (more “desktop app”) */}
+          <div className="relative -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-10 no-scrollbar md:block md:overflow-visible md:pr-0">
+              <UpcomingCard
+                title="Weights Sessions"
+                branch="Malingap Branch"
+                time="6:00 - 7:00pm"
+                coach="Coach Joaquin"
+                countdown="09 : 25 : 26"
+                tone="orange"
+              />
+              <div className="md:hidden">
+                <UpcomingCard
+                  title="Cardio"
+                  branch="Malingap Branch"
+                  time="5:00 - 6:00pm"
+                  coach="Coach Amiel"
+                  countdown="09 : 12 : 40"
+                  tone="purple"
+                />
+              </div>
+            </div>
 
-      <ActivityPaymentsCard />
-      <OrangeBanner />
-    </div>
-  );
-  // PART 8/8
-  const StaffHome = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Staff Home" right={<span className="text-[11px] text-white/50">Demo</span>} />
-      <div className="mt-3 text-[12px] text-white/55">Attendance, clients, sessions, sales.</div>
-    </DarkCard>
-  );
-  const StaffAttendance = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Attendance" />
-      <div className="mt-3 text-[12px] text-white/55">Attendance list (demo)</div>
-    </DarkCard>
-  );
-  const StaffClients = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Clients" />
-      <div className="mt-3 text-[12px] text-white/55">Clients list (demo)</div>
-    </DarkCard>
-  );
-  const StaffSessions = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Sessions" />
-      <div className="mt-3 text-[12px] text-white/55">Sessions list (demo)</div>
-    </DarkCard>
-  );
-  const StaffSales = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Sales" />
-      <div className="mt-3 text-[12px] text-white/55">Sales pipeline (demo)</div>
-    </DarkCard>
-  );
+            {/* mobile “peek” fade */}
+            <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#060A12] to-transparent" />
+          </div>
 
-  const AdminHome = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Admin Home" />
-      <div className="mt-3 text-[12px] text-white/55">Overview, clients, sales, settings.</div>
-    </DarkCard>
-  );
-  const AdminOverview = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Overview" />
-      <div className="mt-3 text-[12px] text-white/55">Overview (demo)</div>
-    </DarkCard>
-  );
-  const AdminClients = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Clients" />
-      <div className="mt-3 text-[12px] text-white/55">Clients (demo)</div>
-    </DarkCard>
-  );
-  const AdminSales = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Sales" />
-      <div className="mt-3 text-[12px] text-white/55">Sales (demo)</div>
-    </DarkCard>
-  );
-  const AdminSettings = (
-    <DarkCard className="p-4">
-      <SectionHeaderDark title="Settings" />
-      <div className="mt-3 text-[12px] text-white/55">Settings (demo)</div>
-    </DarkCard>
-  );
+          <ActivityPaymentsCard />
 
-  const content =
-    role === "member"
-      ? tabAnimated === "home"
-        ? MemberHome
-        : tabAnimated === "schedule"
-        ? MemberSchedule
-        : tabAnimated === "chat"
-        ? MemberChat
-        : tabAnimated === "payments"
-        ? MemberPayments
-        : MemberProfile
-      : role === "staff"
-      ? tabAnimated === "home"
-        ? StaffHome
-        : tabAnimated === "attendance"
-        ? StaffAttendance
-        : tabAnimated === "clients"
-        ? StaffClients
-        : tabAnimated === "sessions"
-        ? StaffSessions
-        : StaffSales
-      : tabAnimated === "home"
-      ? AdminHome
-      : tabAnimated === "overview"
-      ? AdminOverview
-      : tabAnimated === "clients"
-      ? AdminClients
-      : tabAnimated === "sales"
-      ? AdminSales
-      : AdminSettings;
-
-  const memberNav: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "home", label: "Home", icon: <HomeIcon /> },
-    { key: "chat", label: "Chat", icon: <ChatIcon />, badge: unreadChat },
-    { key: "schedule", label: "Schedule", icon: <CalendarIcon /> },
-    { key: "payments", label: "Payment", icon: <WalletIcon /> },
-    { key: "profile", label: "Profile", icon: <UserIcon /> },
-  ];
-
-  const staffNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: "home", label: "Home", icon: <HomeIcon /> },
-    { key: "attendance", label: "Attendance", icon: <CalendarIcon /> },
-    { key: "clients", label: "Clients", icon: <UserIcon /> },
-    { key: "sessions", label: "Sessions", icon: <ChatIcon /> },
-    { key: "sales", label: "Sales", icon: <WalletIcon /> },
-  ];
-
-  const adminNav: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: "home", label: "Home", icon: <HomeIcon /> },
-    { key: "overview", label: "Overview", icon: <CalendarIcon /> },
-    { key: "clients", label: "Clients", icon: <UserIcon /> },
-    { key: "sales", label: "Sales", icon: <WalletIcon /> },
-    { key: "settings", label: "Settings", icon: <ChatIcon /> },
-  ];
-
-  const nav = role === "member" ? memberNav : role === "staff" ? staffNav : adminNav;
-
-  return (
-    <div className={[poppins.variable, "min-h-screen bg-[#060A12] font-sans"].join(" ")}>
-      <div className="mx-auto max-w-[420px] px-4 pb-28">
-        <div
-          key={animKey}
-          className={[
-            "pt-2 transition-all duration-300",
-            animDir === "right" ? "animate-[slideInRight_.22s_ease-out]" : "animate-[slideInLeft_.22s_ease-out]",
-          ].join(" ")}
-        >
-          {content}
+          {/* Mobile: banner at bottom (like your mock). Desktop: already shown on left. */}
+          <div className="md:hidden">
+            <OrangeBanner />
+          </div>
         </div>
       </div>
-
-      <BottomNav items={nav} active={tab} onChange={(k) => switchTab(k)} />
-
-      <style jsx global>{`
-        :root {
-          --font-poppins: ${poppins.style.fontFamily};
-        }
-        body {
-          font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-        }
-        @keyframes slideInRight {
-          from {
-            transform: translateX(14px);
-            opacity: 0.65;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        @keyframes slideInLeft {
-          from {
-            transform: translateX(-14px);
-            opacity: 0.65;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        /* hide scrollbar for carousel */
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
-}
+
+  const MemberSchedule = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
+        <SectionHeaderDark title="Schedule" right={<span className="text-[11px] text-white/50">{now.toLocaleString()}</span>} />
+        <div className="mt-4 text-[12px] text-white/55">Schedule screen (placeholder)</div>
+      </DarkCard>
+    </div>
+  );
+
+  const MemberChat = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
+        <SectionHeaderDark title="Chat" right={<span className="text-[11px] text-white/50">Inbox</span>} />
+        <div className="mt-4 space-y-2">
+          <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 p-4">
+            <div className="text-[12px] font-semibold text-white/85">Coach JP</div>
+            <div className="mt-1 text-[11px] text-white/55">Send me your availability for this week.</div>
+          </div>
+          <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 p-4">
+            <div className="text-[12px] font-semibold text-white/85">BearFit Support</div>
+            <div className="mt-1 text-[11px] text-white/55">Your assessment is confirmed. See you!</div>
+          </div>
+        </div>
+      </DarkCard>
+    </div>
+  );
+
+  const MemberPayments = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
+        <SectionHeaderDark title="Payments" right={<span className="text-[11px] text-white/50">Billing</span>} />
+        <div className="mt-4 text-[12px] text-white/55">Payments screen (placeholder)</div>
+      </DarkCard>
+    </div>
+  );
+
+  const MemberProfile = (
+    <div className="space-y-5">
+      <TopBar role={role} onRoleChange={onSwitchRole} onSearch={() => {}} desktopTabs={desktopTabs} tab={tab} onTab={switchTab} />
+      <DarkCard className="p-4 md:p-6">
+        <SectionHeaderDark title="Profile" right={<span className="text-[11px] text-white/50">Member</span>} />
+        <div className="mt-4 text-[12px] text-white/55">Profile screen (placeholder)</div>
+      </DarkCard>
+    </div>
+  );
