@@ -1,7 +1,7 @@
 // PART 1/8
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
@@ -11,24 +11,26 @@ const poppins = Poppins({
 });
 
 type Role = "member" | "staff" | "admin";
-type TabKey =
-  | "home"
-  | "chat"
-  | "schedule"
-  | "payments"
-  | "profile"
-  | "attendance"
-  | "clients"
-  | "sessions"
-  | "sales"
-  | "overview"
-  | "settings";
+type MainTab = "home" | "chat" | "schedule" | "payment" | "profile";
+type FeedTab = "activity" | "points" | "payments" | "placeholder";
 
 function cx(...a: Array<string | false | undefined | null>) {
   return a.filter(Boolean).join(" ");
 }
 
-/* ---------- Icons (simple + reliable) ---------- */
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
+}
+
+function formatTime(n: number) {
+  const s = Math.max(0, Math.floor(n));
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return { hh, mm, ss };
+}
+
+/* ----------------- Simple Icons ----------------- */
 const IconWrap = ({ children }: { children: React.ReactNode }) => (
   <span className="inline-flex h-6 w-6 items-center justify-center">{children}</span>
 );
@@ -63,19 +65,19 @@ function CalendarIcon() {
       <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M7 2h2v2h6V2h2v2h3a2 2 0 0 1 2 2v15a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2h3V2Zm14 8H3v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V10ZM20 6H4v2h16V6Z"
+          d="M7 2h2v2h6V2h2v2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3V2Zm15 8H4v10h18V10ZM4 8h18V6H4v2Z"
         />
       </svg>
     </IconWrap>
   );
 }
-function WalletIcon() {
+function CardIcon() {
   return (
     <IconWrap>
       <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M3 7a3 3 0 0 1 3-3h12a2 2 0 0 1 2 2v2h-9a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3h9v2a2 2 0 0 1-2 2H6a3 3 0 0 1-3-3V7Zm18 4h-9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h9v-4Zm-3 1.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Z"
+          d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm18 3H3v3h18V9Zm-12 9H5v-2h4v2Z"
         />
       </svg>
     </IconWrap>
@@ -87,61 +89,87 @@ function UserIcon() {
       <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.4 0-8 2.1-8 4.7V21h16v-2.3c0-2.6-3.6-4.7-8-4.7Z"
+          d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5V21h18v-1.5C21 16.5 17 14 12 14Z"
         />
       </svg>
     </IconWrap>
   );
 }
-function ChevronRightIcon() {
+function BellIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-      <path fill="currentColor" d="M9 6l6 6-6 6-1.4-1.4L12.2 12 7.6 7.4 9 6Z" />
-    </svg>
+    <IconWrap>
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M12 22a2.4 2.4 0 0 0 2.3-2H9.7A2.4 2.4 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5L3 18v1h18v-1l-2-2Z"
+        />
+      </svg>
+    </IconWrap>
+  );
+}
+function MessageIcon() {
+  return (
+    <IconWrap>
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M2 3h20v14H6l-4 4V3Zm5 6h10v2H7V9Zm0 4h7v2H7v-2Z"
+        />
+      </svg>
+    </IconWrap>
   );
 }
 // PART 2/8
-function Badge({ value }: { value: number }) {
-  if (!value) return null;
-  return (
-    <span className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
-      {value}
-    </span>
-  );
-}
-
-function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
-  const Btn = ({ r, label }: { r: Role; label: string }) => {
-    const on = role === r;
-    return (
-      <button
-        onClick={() => onChange(r)}
-        className={cx(
-          "px-3 py-2 rounded-full text-[12px] font-semibold transition",
-          on
-            ? "bg-white text-black shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-            : "text-white/70 hover:text-white"
-        )}
-      >
-        {label}
-      </button>
-    );
-  };
+/* ----------------- Reusable UI ----------------- */
+function RoleSwitch({
+  role,
+  onChange,
+}: {
+  role: Role;
+  onChange: (r: Role) => void;
+}) {
+  const items: Array<{ k: Role; label: string }> = [
+    { k: "member", label: "Member" },
+    { k: "staff", label: "Staff" },
+    { k: "admin", label: "Admin" },
+  ];
 
   return (
-    <div className="inline-flex rounded-full bg-white/10 p-1 ring-1 ring-white/10 backdrop-blur">
-      <Btn r="member" label="Member" />
-      <Btn r="staff" label="Staff" />
-      <Btn r="admin" label="Admin" />
+    <div className="rounded-full bg-white/10 p-1 ring-1 ring-white/10 backdrop-blur">
+      <div className="flex items-center gap-1">
+        {items.map((it) => {
+          const active = role === it.k;
+          return (
+            <button
+              key={it.k}
+              onClick={() => onChange(it.k)}
+              className={cx(
+                "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                active
+                  ? "bg-white text-black shadow"
+                  : "text-white/70 hover:text-white"
+              )}
+            >
+              {it.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function DarkCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function GlassCard({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div
       className={cx(
-        "rounded-[26px] bg-[#0B111D]/90 ring-1 ring-white/10 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur",
+        "rounded-[22px] bg-white/[0.06] ring-1 ring-white/10 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur",
         className
       )}
     >
@@ -150,650 +178,661 @@ function DarkCard({ children, className = "" }: { children: React.ReactNode; cla
   );
 }
 
-function SectionTabs({
-  tabs,
-  active,
-  onChange,
+function SectionHeader({
+  title,
+  right,
+  className,
 }: {
-  tabs: string[];
-  active: string;
-  onChange: (t: string) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-2">
-      {tabs.map((t) => {
-        const on = t === active;
-        return (
-          <button
-            key={t}
-            onClick={() => onChange(t)}
-            className={cx(
-              "relative pb-2 text-[12px] font-semibold transition",
-              on ? "text-white" : "text-white/55 hover:text-white/75"
-            )}
-          >
-            {t}
-            {on && <span className="absolute left-0 -bottom-[1px] h-[2px] w-full rounded-full bg-[#F59A3E]" />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function GradientOutlineCard({
-  children,
-  tone = "gold",
-  className = "",
-}: {
-  children: React.ReactNode;
-  tone?: "gold" | "orange" | "red";
+  title: string;
+  right?: React.ReactNode;
   className?: string;
 }) {
-  const ring =
-    tone === "gold"
-      ? "from-[#F6C75A] via-[#F59A3E] to-[#F37120]"
-      : tone === "red"
-      ? "from-[#FF5B5B] via-[#F37120] to-[#F6C75A]"
-      : "from-[#F37120] via-[#F59A3E] to-[#F6C75A]";
-
   return (
-    <div className={cx("relative rounded-[20px] p-[1px]", className)}>
-      <div className={cx("absolute inset-0 rounded-[20px] bg-gradient-to-br", ring, "opacity-80")} />
-      <div className="relative rounded-[19px] bg-[#0B111D] ring-1 ring-white/10 p-3">{children}</div>
+    <div className={cx("flex items-center justify-between", className)}>
+      <div className="text-sm font-semibold text-white/90">{title}</div>
+      {right}
     </div>
   );
 }
 
-/* hex avatar using clip-path (very close to mock) */
-function HexAvatar({ src }: { src: string }) {
+function Pill({
+  children,
+  tone = "orange",
+}: {
+  children: React.ReactNode;
+  tone?: "orange" | "green" | "gray";
+}) {
+  const cls =
+    tone === "orange"
+      ? "bg-[#F37A12]/15 text-[#F7A247] ring-[#F37A12]/25"
+      : tone === "green"
+      ? "bg-emerald-400/10 text-emerald-300 ring-emerald-300/20"
+      : "bg-white/10 text-white/70 ring-white/10";
+
   return (
-    <div className="relative h-[92px] w-[92px]">
-      <div className="absolute inset-0 rounded-[18px] bg-gradient-to-br from-[#F6C75A] to-[#F37120] opacity-60 blur-[10px]" />
-      <div className="relative h-full w-full p-[2px]" style={{ clipPath: "polygon(25% 6%, 75% 6%, 96% 50%, 75% 94%, 25% 94%, 4% 50%)" }}>
-        <div
-          className="h-full w-full overflow-hidden bg-black"
-          style={{ clipPath: "polygon(25% 6%, 75% 6%, 96% 50%, 75% 94%, 25% 94%, 4% 50%)" }}
-        >
-          <img src={src} alt="avatar" className="h-full w-full object-cover" />
-        </div>
-      </div>
-    </div>
+    <span className={cx("rounded-full px-2.5 py-1 text-[11px] ring-1", cls)}>
+      {children}
+    </span>
+  );
+}
+
+function TabButton({
+  active,
+  label,
+  icon,
+  badge,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  icon: React.ReactNode;
+  badge?: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        "relative flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left text-sm transition",
+        active
+          ? "bg-white/10 text-white ring-1 ring-white/15"
+          : "text-white/65 hover:bg-white/5 hover:text-white"
+      )}
+    >
+      <span
+        className={cx(
+          "inline-flex h-9 w-9 items-center justify-center rounded-xl ring-1",
+          active ? "bg-white/10 ring-white/15" : "bg-white/5 ring-white/10"
+        )}
+      >
+        {icon}
+      </span>
+      <span className="font-semibold">{label}</span>
+
+      {typeof badge === "number" && badge > 0 && (
+        <span className="absolute right-2 top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F37A12] px-1.5 text-[11px] font-bold text-white shadow">
+          {badge}
+        </span>
+      )}
+    </button>
   );
 }
 // PART 3/8
-function TopHeader({
+/* ----------------- Mock Data ----------------- */
+type ActivityRow = {
+  id: string;
+  title: string;
+  subtitle: string;
+  time: string;
+  delta: string;
+  icon: "weights" | "cardio" | "renew" | "bonus";
+};
+
+type PaymentRow = {
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: string;
+  note: string;
+  icon: "gcash" | "bpi" | "cash";
+};
+
+type UpcomingCard = {
+  id: string;
+  tag: string;
+  title: string;
+  subtitle: string;
+  coach: string;
+  secondsLeft: number;
+};
+
+type MeritCard = {
+  id: string;
+  title: string;
+  value: string;
+  sub: string;
+  accent: "gold" | "orange" | "red";
+  ribbon?: string;
+};
+
+function SmallGlyph({ kind }: { kind: ActivityRow["icon"] | PaymentRow["icon"] }) {
+  const common = "h-10 w-10 rounded-2xl ring-1 ring-white/10 bg-white/5 grid place-items-center";
+  if (kind === "weights") {
+    return (
+      <div className={common}>
+        <span className="text-lg">🏋️</span>
+      </div>
+    );
+  }
+  if (kind === "cardio") {
+    return (
+      <div className={common}>
+        <span className="text-lg">🏃</span>
+      </div>
+    );
+  }
+  if (kind === "renew") {
+    return (
+      <div className={common}>
+        <span className="text-lg">🎁</span>
+      </div>
+    );
+  }
+  if (kind === "bonus") {
+    return (
+      <div className={common}>
+        <span className="text-lg">⚡</span>
+      </div>
+    );
+  }
+  if (kind === "gcash") {
+    return (
+      <div className={common}>
+        <span className="text-lg">💳</span>
+      </div>
+    );
+  }
+  if (kind === "bpi") {
+    return (
+      <div className={common}>
+        <span className="text-lg">🏦</span>
+      </div>
+    );
+  }
+  return (
+    <div className={common}>
+      <span className="text-lg">💵</span>
+    </div>
+  );
+}
+
+function useCountdown(initialSeconds: number) {
+  const [sec, setSec] = useState(initialSeconds);
+  const raf = useRef<number | null>(null);
+  const last = useRef<number | null>(null);
+
+  useEffect(() => {
+    function tick(t: number) {
+      if (last.current == null) last.current = t;
+      const dt = (t - last.current) / 1000;
+      if (dt >= 1) {
+        const drop = Math.floor(dt);
+        last.current = t;
+        setSec((s) => Math.max(0, s - drop));
+      }
+      raf.current = requestAnimationFrame(tick);
+    }
+    raf.current = requestAnimationFrame(tick);
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current);
+      raf.current = null;
+      last.current = null;
+    };
+  }, []);
+
+  return sec;
+}
+
+function DesktopShell({
   role,
-  onRoleChange,
+  setRole,
+  tab,
+  setTab,
+  children,
+  chatBadge = 2,
 }: {
   role: Role;
-  onRoleChange: (r: Role) => void;
+  setRole: (r: Role) => void;
+  tab: MainTab;
+  setTab: (t: MainTab) => void;
+  children: React.ReactNode;
+  chatBadge?: number;
 }) {
-  return (
-    <div className="flex items-center justify-between pt-5">
-      <div className="flex items-center gap-2">
-        <div className="h-9 w-9 rounded-xl bg-[#F37120]/15 ring-1 ring-[#F37120]/25 flex items-center justify-center">
-          <span className="text-[#F59A3E] text-lg">🐻</span>
-        </div>
-        <div className="leading-tight">
-          <div className="text-[13px] font-bold text-[#F59A3E] tracking-wide">BEARFIT</div>
-          <div className="text-[11px] text-white/45 -mt-0.5">Member Fitness</div>
-        </div>
-      </div>
-
-      <RoleSwitch role={role} onChange={onRoleChange} />
-    </div>
+  const nav = useMemo(
+    () => [
+      { k: "home" as const, label: "Home", icon: <HomeIcon /> },
+      { k: "chat" as const, label: "Chat", icon: <ChatIcon />, badge: chatBadge },
+      { k: "schedule" as const, label: "Schedule", icon: <CalendarIcon /> },
+      { k: "payment" as const, label: "Payment", icon: <CardIcon /> },
+      { k: "profile" as const, label: "Profile", icon: <UserIcon /> },
+    ],
+    [chatBadge]
   );
-}
-
-function WelcomeRow({
-  name,
-  onChat,
-}: {
-  name: string;
-  onChat?: () => void;
-}) {
-  return (
-    <div className="mt-3 flex items-center justify-between">
-      <div className="flex items-center gap-2 text-white/70">
-        <span className="text-white/35">👤</span>
-        <div className="text-[14px] font-semibold">
-          Welcome, <span className="text-white">{name}</span>
-        </div>
-      </div>
-
-      <button
-        onClick={onChat}
-        className="h-10 w-10 rounded-[14px] bg-white/5 ring-1 ring-white/10 text-white/70 flex items-center justify-center"
-        aria-label="Open chat"
-      >
-        💬
-      </button>
-    </div>
-  );
-}
-
-function MemberProfileCard({
-  avatar,
-  code,
-  branch,
-  packageName,
-  status,
-  used,
-  total,
-  onViewProfile,
-}: {
-  avatar: string;
-  code: string;
-  branch: string;
-  packageName: string;
-  status: string;
-  used: number;
-  total: number;
-  onViewProfile?: () => void;
-}) {
-  const pct = Math.max(0, Math.min(100, (used / Math.max(1, total)) * 100));
 
   return (
-    <DarkCard className="mt-3 p-4">
-      <div className="flex items-start gap-4">
-        {/* left column (close to mock proportions) */}
-        <div className="w-[120px] shrink-0 text-center">
-          <HexAvatar src={avatar} />
+    <div className={cx(poppins.variable, "min-h-screen font-sans")}>
+      {/* Background */}
+      <div className="fixed inset-0 -z-10 bg-[#070A0F]" />
+      <div className="fixed inset-0 -z-10 opacity-80 bg-[radial-gradient(circle_at_15%_12%,rgba(247,122,18,0.20),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(112,196,255,0.14),transparent_45%),radial-gradient(circle_at_60%_80%,rgba(190,120,255,0.14),transparent_45%)]" />
 
-          <div className="mt-3 text-[22px] font-bold text-white tracking-wide">{code}</div>
-          <div className="text-[12px] text-white/55">{branch}</div>
-
-          <div className="mt-2 flex justify-center gap-1">
-            <span className="h-5 w-5 rounded-full bg-white/10 ring-1 ring-white/10" />
-            <span className="h-5 w-5 rounded-full bg-white/10 ring-1 ring-white/10" />
-            <span className="h-5 w-5 rounded-full bg-white/10 ring-1 ring-white/10" />
-            <span className="h-5 w-5 rounded-full bg-white/10 ring-1 ring-white/10" />
-          </div>
-        </div>
-
-        {/* right column */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-white/80 truncate">{packageName}</div>
-              <div className="mt-0.5 text-[12px] font-semibold text-[#62D48E]">{status}</div>
+      {/* Top Bar */}
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-black/30 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
+              <span className="text-lg">🐻</span>
             </div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold tracking-wide text-white">BEARFIT</div>
+              <div className="text-[11px] text-white/60">Member Fitness</div>
+            </div>
+          </div>
 
-            <button
-              onClick={onViewProfile}
-              className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#F59A3E]"
-            >
-              View Profile <ChevronRightIcon />
+          <div className="flex items-center gap-3">
+            <RoleSwitch role={role} onChange={setRole} />
+            <button className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/80 ring-1 ring-white/10 hover:bg-white/10">
+              <BellIcon />
+            </button>
+            <button className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/80 ring-1 ring-white/10 hover:bg-white/10">
+              <MessageIcon />
             </button>
           </div>
-
-          <div className="mt-3 h-[10px] rounded-full bg-white/10 ring-1 ring-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#F6C75A] to-[#F37120]"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-
-          <div className="mt-2 text-[12px] text-white/70 font-medium">
-            {used} of {total} sessions
-          </div>
-
-          {/* merit tiles (taller, outlined like mock) */}
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <GradientOutlineCard tone="orange">
-              <div className="text-[10px] text-white/60 font-semibold leading-tight">Workout Streak</div>
-              <div className="mt-2 text-[26px] font-bold text-white leading-none">17</div>
-              <div className="text-[14px] font-bold text-white/90">Days</div>
-              <div className="mt-2 inline-flex rounded-full bg-[#F37120] px-2 py-1 text-[10px] font-semibold text-white">
-                Personal Best
-              </div>
-            </GradientOutlineCard>
-
-            <GradientOutlineCard tone="gold">
-              <div className="text-[10px] text-white/60 font-semibold leading-tight">Bearforce Points</div>
-              <div className="mt-2 text-[26px] font-bold text-white leading-none">1540</div>
-              <div className="text-[14px] font-bold text-white/90">MP</div>
-              <div className="mt-2 text-[10px] text-white/55">+120 this month</div>
-            </GradientOutlineCard>
-
-            <GradientOutlineCard tone="red">
-              <div className="inline-flex rounded-[10px] bg-red-600/90 px-2 py-1 text-[10px] font-bold text-white">
-                Prestige Member
-              </div>
-              <div className="mt-2 text-[22px] font-bold text-white leading-none">Season</div>
-              <div className="text-[20px] font-bold text-white/90">2</div>
-              <div className="mt-2 text-[10px] text-white/55">Member since 2023</div>
-            </GradientOutlineCard>
-          </div>
         </div>
       </div>
-    </DarkCard>
+
+      {/* Desktop layout */}
+      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 md:grid-cols-[280px_1fr]">
+        {/* Sidebar (desktop) */}
+        <aside className="hidden md:block">
+          <GlassCard className="p-3">
+            <div className="mb-2 px-2 pt-1">
+              <div className="text-xs text-white/60">Navigation</div>
+            </div>
+            <div className="space-y-2">
+              {nav.map((n) => (
+                <TabButton
+                  key={n.k}
+                  active={tab === n.k}
+                  label={n.label}
+                  icon={n.icon}
+                  badge={(n as any).badge}
+                  onClick={() => setTab(n.k)}
+                />
+              ))}
+            </div>
+          </GlassCard>
+
+          <div className="mt-4 hidden md:block">
+            <GlassCard className="p-4">
+              <div className="text-xs text-white/60">Tip</div>
+              <div className="mt-2 text-sm text-white/85">
+                Desktop-first layout with mobile optimization built-in.
+              </div>
+              <div className="mt-3 text-xs text-white/55">
+                On mobile, navigation switches to a bottom bar automatically.
+              </div>
+            </GlassCard>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="pb-24 md:pb-6">{children}</main>
+      </div>
+
+      {/* Bottom nav (mobile) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/40 bg-white/95 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-2 py-2">
+          {nav.map((n) => {
+            const active = tab === n.k;
+            return (
+              <button
+                key={n.k}
+                onClick={() => setTab(n.k)}
+                className={cx(
+                  "relative flex w-full flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-semibold",
+                  active ? "text-[#F37A12]" : "text-black/65"
+                )}
+              >
+                <span className={cx("grid h-9 w-9 place-items-center rounded-2xl", active ? "bg-black/5" : "")}>
+                  <span className={active ? "text-[#F37A12]" : "text-black"}>{n.icon}</span>
+                </span>
+                <span>{n.label}</span>
+
+                {typeof (n as any).badge === "number" && (n as any).badge > 0 && (
+                  <span className="absolute right-3 top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F37A12] px-1.5 text-[11px] font-bold text-white">
+                    {(n as any).badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 // PART 4/8
-function UpcomingCard({
-  title,
-  branch,
-  time,
-  coach,
-  countdown,
-  tone = "orange",
-}: {
-  title: string;
-  branch: string;
-  time: string;
-  coach: string;
-  countdown: string;
-  tone?: "orange" | "purple";
-}) {
-  const grad =
-    tone === "orange"
-      ? "from-[#7A2B12] via-[#F37120]/55 to-[#4C0F18]"
-      : "from-[#2D1C5B] via-[#5C3AD6]/50 to-[#140B2B]";
+/* ----------------- Member Screen (desktop-first + mobile optimized) ----------------- */
+function MemberHomeScreen() {
+  const [feedTab, setFeedTab] = useState<FeedTab>("activity");
 
-  return (
-    <div className="snap-center shrink-0 w-[88%] sm:w-[78%]">
-      <div className="relative overflow-hidden rounded-[28px] ring-1 ring-white/10 shadow-[0_22px_70px_rgba(0,0,0,0.55)]">
-        <div className={cx("absolute inset-0 bg-gradient-to-br", grad)} />
-        <div className="absolute inset-0 opacity-25">
-          <img
-            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=60"
-            alt="gym"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="absolute inset-0 bg-black/30" />
-
-        <div className="relative p-5">
-          <div className="inline-flex items-center rounded-full bg-white/15 ring-1 ring-white/15 px-3 py-1 text-[11px] font-semibold text-white/95">
-            Upcoming
-          </div>
-
-          <div className="mt-3 text-[26px] font-bold text-white leading-tight">{title}</div>
-          <div className="mt-2 text-[12px] text-white/75 font-semibold">
-            {branch} • {time}
-          </div>
-          <div className="text-[12px] text-white/60">{coach}</div>
-
-          <div className="mt-6">
-            <div className="text-[36px] font-bold tracking-wider text-white">{countdown}</div>
-            <div className="mt-1 text-[10px] text-white/55">Hours &nbsp; Minutes &nbsp; Seconds</div>
-          </div>
-
-          <div className="mt-4 flex justify-end">
-            <button className="rounded-full bg-white/90 px-4 py-2 text-[12px] font-bold text-black">
-              View Details
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function UpcomingCarousel() {
-  return (
-    <div className="mt-4 relative -mx-4 px-4">
-      <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-12 no-scrollbar">
-        <UpcomingCard
-          title="Weights Sessions"
-          branch="Malingap Branch"
-          time="6:00 - 7:00pm"
-          coach="Coach Joaquin"
-          countdown="09 : 25 : 26"
-          tone="orange"
-        />
-        <UpcomingCard
-          title="Cardio Session"
-          branch="Malingap Branch"
-          time="5:00 - 6:00pm"
-          coach="Coach E.Rod"
-          countdown="09 : 11 : 02"
-          tone="purple"
-        />
-      </div>
-
-      {/* right-side “peek” fade like app */}
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-[#050812] to-transparent" />
-    </div>
-  );
-}
-
-function ActivityRow({
-  icon,
-  title,
-  subtitle,
-  detail,
-  time,
-  balanceLeft,
-  balanceRight,
-  mode = "minus",
-}: {
-  icon: string;
-  title: string;
-  subtitle: string;
-  detail: string;
-  time: string;
-  balanceLeft: string;
-  balanceRight: string;
-  mode?: "minus" | "plus";
-}) {
-  return (
-    <div className="grid grid-cols-[1.45fr_0.9fr_0.9fr_0.7fr] gap-2 items-center rounded-[18px] bg-white/5 ring-1 ring-white/10 px-3 py-3">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="h-9 w-9 rounded-[14px] bg-white/5 ring-1 ring-white/10 flex items-center justify-center text-[14px]">
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <div className="text-[12px] font-semibold text-white/85 truncate">{title}</div>
-          <div className="text-[11px] text-[#F59A3E]/90 font-semibold">{subtitle}</div>
-        </div>
-      </div>
-
-      <div className="text-[11px] text-white/60 truncate">{detail}</div>
-      <div className="text-[11px] text-white/55 truncate">{time}</div>
-
-      <div className="text-right text-[14px] font-bold text-[#F59A3E]">
-        {balanceLeft} <span className="text-white/35 font-semibold">{mode === "plus" ? "+" : "→"}</span> {balanceRight}
-      </div>
-    </div>
-  );
-}
-// PART 5/8
-function ActivityPanel() {
-  const [active, setActive] = useState("Activity Log");
-
-  const rows = useMemo(
+  const upcoming: UpcomingCard[] = useMemo(
     () => [
       {
-        icon: "🏋️",
-        title: "Weights Session",
-        subtitle: "1 Session Used",
-        detail: "Malingap",
-        time: "6:00 - 7:00pm",
-        left: "20",
-        right: "19",
-        mode: "minus" as const,
+        id: "u1",
+        tag: "Upcoming",
+        title: "Weights Sessions",
+        subtitle: "Malingap Branch • 6:00 - 7:00pm",
+        coach: "Coach Joaquin",
+        secondsLeft: 9 * 3600 + 25 * 60 + 26,
       },
       {
-        icon: "🔥",
+        id: "u2",
+        tag: "Upcoming",
         title: "Cardio Session",
-        subtitle: "1 Session Used",
-        detail: "E.Rod",
-        time: "1:00 - 3:00pm",
-        left: "48",
-        right: "47",
-        mode: "minus" as const,
+        subtitle: "Malingap Branch • 7:00 - 8:00pm",
+        coach: "Coach Joaquin",
+        secondsLeft: 10 * 3600 + 2 * 60 + 4,
       },
       {
-        icon: "🎁",
-        title: "Package Renewal",
-        subtitle: "+3 Session Added",
-        detail: "Via Gcash",
-        time: "₱48,600",
-        left: "0",
-        right: "48",
-        mode: "plus" as const,
-      },
-      {
-        icon: "⚡",
-        title: "Cardio Session",
-        subtitle: "1 Free Session Used",
-        detail: "E.Rod",
-        time: "1:00 - 3:00pm",
-        left: "48",
-        right: "47",
-        mode: "minus" as const,
+        id: "u3",
+        tag: "Upcoming",
+        title: "Muay Thai / Boxing",
+        subtitle: "Malingap Branch • 8:00 - 9:00pm",
+        coach: "Coach Amiel",
+        secondsLeft: 12 * 3600 + 15 * 60 + 1,
       },
     ],
     []
   );
 
-  return (
-    <DarkCard className="mt-4 p-4">
-      <SectionTabs
-        tabs={["Activity Log", "Points", "Payments", "Placeholder"]}
-        active={active}
-        onChange={setActive}
-      />
-
-      <div className="mt-3 h-px bg-white/10" />
-
-      {/* header row like mock */}
-      <div className="mt-3 grid grid-cols-[1.45fr_0.9fr_0.9fr_0.7fr] gap-2 px-2 text-[10px] font-semibold text-[#F59A3E]/80">
-        <div>Transactions</div>
-        <div>Details</div>
-        <div>Time/Date</div>
-        <div className="text-right">Balance</div>
-      </div>
-
-      <div className="mt-3 space-y-2">
-        {active !== "Activity Log" ? (
-          <div className="rounded-[18px] bg-white/5 ring-1 ring-white/10 p-4 text-[12px] text-white/60">
-            {active} content (placeholder)
-          </div>
-        ) : (
-          rows.map((r, i) => (
-            <ActivityRow
-              key={i}
-              icon={r.icon}
-              title={r.title}
-              subtitle={r.subtitle}
-              detail={r.detail}
-              time={r.time}
-              balanceLeft={r.left}
-              balanceRight={r.right}
-              mode={r.mode}
-            />
-          ))
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between text-[11px] text-white/45">
-        <span>Total transactions</span>
-        <span className="font-semibold text-white/70">506</span>
-      </div>
-    </DarkCard>
+  const activity: ActivityRow[] = useMemo(
+    () => [
+      {
+        id: "a1",
+        title: "Weights Session",
+        subtitle: "Malingap",
+        time: "6:00 - 7:00pm",
+        delta: "20 → 19",
+        icon: "weights",
+      },
+      {
+        id: "a2",
+        title: "Cardio Session",
+        subtitle: "E.Rod",
+        time: "1:00 - 3:00pm",
+        delta: "48 → 47",
+        icon: "cardio",
+      },
+      {
+        id: "a3",
+        title: "Package Renewal",
+        subtitle: "Via GCash",
+        time: "₱48,600",
+        delta: "0 + 48",
+        icon: "renew",
+      },
+      {
+        id: "a4",
+        title: "Cardio Session",
+        subtitle: "E.Rod",
+        time: "1:00 - 3:00pm",
+        delta: "48 → 47",
+        icon: "bonus",
+      },
+    ],
+    []
   );
-}
 
-function OrangeBanner() {
-  return (
-    <div className="mt-4 overflow-hidden rounded-[22px] bg-gradient-to-r from-[#F37120] to-[#F6C75A] ring-1 ring-[#F37120]/30 shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-      <div className="relative p-5">
-        <div className="absolute inset-0 opacity-20">
-          <img
-            src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=60"
-            alt="banner"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="absolute inset-0 bg-black/20" />
-
-        <div className="relative">
-          <div className="text-[16px] font-bold text-white">Track Your Daily Activities</div>
-          <div className="mt-2 text-[12px] text-white/85">
-            Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
-          </div>
-        </div>
-      </div>
-    </div>
+  const payments: PaymentRow[] = useMemo(
+    () => [
+      {
+        id: "p1",
+        title: "Via GCash",
+        subtitle: "1st–6th • NEW",
+        amount: "₱8000",
+        note: "Last: ₱5800",
+        icon: "gcash",
+      },
+      {
+        id: "p2",
+        title: "Via BPI",
+        subtitle: "Full Paid",
+        amount: "₱48000",
+        note: "Last: ₱48000",
+        icon: "bpi",
+      },
+    ],
+    []
   );
-}
-// PART 6/8
-function BottomNav({
-  items,
-  active,
-  onChange,
-}: {
-  items: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[];
-  active: TabKey;
-  onChange: (k: TabKey) => void;
-}) {
+
+  const merit: MeritCard[] = useMemo(
+    () => [
+      { id: "m1", title: "Workout Streak", value: "17", sub: "Days", accent: "gold", ribbon: "Personal Best" },
+      { id: "m2", title: "Bearforce Points", value: "1540", sub: "MP • +120 this month", accent: "orange" },
+      { id: "m3", title: "Bear Prestige", value: "Season", sub: "2 • Member since 2023", accent: "red" },
+    ],
+    []
+  );
+
+  const sessionTotal = 48;
+  const sessionRemaining = 40;
+  const pct = clamp((sessionRemaining / sessionTotal) * 100, 0, 100);
+
   return (
-    <div className="fixed bottom-5 left-0 right-0 z-50 pointer-events-none">
-      {/* desktop: still centered, matches phone width; mobile: full width within padding */}
-      <div className="mx-auto max-w-[980px] px-4 pointer-events-auto">
-        <div className="mx-auto w-full max-w-[430px]">
-          <div className="rounded-[22px] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] ring-1 ring-black/5 px-3 py-2">
-            <div className="grid grid-cols-5 gap-1">
-              {items.map((it) => {
-                const on = it.key === active;
-                return (
-                  <button
-                    key={String(it.key)}
-                    onClick={() => onChange(it.key)}
-                    className="relative rounded-2xl px-2 py-2 flex flex-col items-center justify-center gap-1"
-                  >
-                    <div
-                      className={cx(
-                        "relative transition-transform duration-200",
-                        on ? "text-[#F37120] scale-[1.18] -translate-y-[2px]" : "text-black"
-                      )}
-                    >
-                      {it.icon}
-                      {it.badge ? <Badge value={it.badge} /> : null}
-                    </div>
+    <div className="space-y-4">
+      {/* Profile Header Card */}
+      <GlassCard className="overflow-hidden">
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
+                <span className="text-white/80">👤</span>
+              </div>
+              <div>
+                <div className="text-xs text-white/60">Welcome,</div>
+                <div className="text-base font-bold text-white">Alex</div>
+              </div>
+            </div>
 
-                    <div className={cx("text-[11px] transition", on ? "font-bold text-[#F37120]" : "font-semibold text-black")}>
-                      {it.label}
-                    </div>
+            <button className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/75 ring-1 ring-white/10 hover:bg-white/10">
+              <MessageIcon />
+            </button>
+          </div>
 
-                    {on && (
-                      <span className="absolute -bottom-[2px] left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-[#F37120]" />
-                    )}
-                  </button>
-                );
-              })}
+          <div className="mt-4 grid gap-4 md:grid-cols-[240px_1fr]">
+            {/* Left block (photo + meta) */}
+            <div className="flex gap-4">
+              <div className="relative">
+                <div className="grid h-24 w-24 place-items-center rounded-[28px] bg-white/5 ring-1 ring-[#F37A12]/30 shadow-[0_0_0_6px_rgba(243,122,18,0.08)]">
+                  <div className="h-20 w-20 rounded-[22px] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.14),transparent_55%),linear-gradient(135deg,rgba(243,122,18,0.25),rgba(255,255,255,0.06))]" />
+                </div>
+                <div className="absolute -right-2 top-8 h-10 w-10 rounded-full bg-[#F37A12] opacity-20 blur-[10px]" />
+              </div>
+
+              <div className="pt-1">
+                <div className="text-lg font-extrabold tracking-wide text-white">M00-1</div>
+                <div className="text-sm text-white/70">Malingap Branch</div>
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-white/55">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+                    🏅
+                  </span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+                    ✅
+                  </span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+                    🧊
+                  </span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+                    🔥
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right block (package + bar + merits) */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-sm font-semibold text-white/90">
+                  Full 48 Package+ <span className="text-white/50">•</span>{" "}
+                  <span className="text-emerald-300">Active Member</span>
+                </div>
+                <button className="text-sm font-semibold text-[#F7A247] hover:text-[#ffb56e]">
+                  View Profile →
+                </button>
+              </div>
+
+              <div className="relative h-3 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                <div
+                  className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-[#F37A12] via-[#ff8a2a] to-[#ffb86c]"
+                  style={{ width: `${pct}%` }}
+                />
+                <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.25),transparent_35%)]" />
+              </div>
+
+              <div className="text-sm text-white/70">
+                <span className="font-semibold text-white">40</span> of{" "}
+                <span className="font-semibold text-white">48</span> sessions
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {merit.map((m) => (
+                  <MeritTile key={m.id} data={m} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
+      </GlassCard>
 
-/* Desktop shell: looks like a “desktop app view” while staying mobile-optimized */
-function PhoneShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mx-auto w-full max-w-[980px] px-4 pb-28">
-      <div className="relative mx-auto w-full max-w-[430px]">
-        {/* desktop ambient glow */}
-        <div className="hidden md:block absolute -inset-10 rounded-[42px] bg-gradient-to-b from-[#6B3CE6]/10 via-[#F37120]/10 to-transparent blur-2xl" />
-        <div className="relative rounded-[36px] bg-[#050812] ring-1 ring-white/10 shadow-[0_30px_120px_rgba(0,0,0,0.75)] overflow-hidden">
-          <div className="px-4 pb-6">{children}</div>
+      {/* Upcoming horizontal rail */}
+      <div className="space-y-2">
+        <SectionHeader
+          title="Schedule for this week"
+          right={<Pill tone="gray">Swipe</Pill>}
+        />
+        <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
+          {upcoming.map((u) => (
+            <UpcomingTile key={u.id} data={u} />
+          ))}
         </div>
       </div>
-    </div>
-  );
-}
-// PART 7/8
-export default function Page() {
-  const [role, setRole] = useState<Role>("member");
-  const [tab, setTab] = useState<TabKey>("home");
 
-  const userName = "Alex";
-  const unreadChat = 2;
-
-  const nav =
-    role === "member"
-      ? [
-          { key: "home" as const, label: "Home", icon: <HomeIcon /> },
-          { key: "chat" as const, label: "Chat", icon: <ChatIcon />, badge: unreadChat },
-          { key: "schedule" as const, label: "Schedule", icon: <CalendarIcon /> },
-          { key: "payments" as const, label: "Payment", icon: <WalletIcon /> },
-          { key: "profile" as const, label: "Profile", icon: <UserIcon /> },
-        ]
-      : role === "staff"
-      ? [
-          { key: "home" as const, label: "Home", icon: <HomeIcon /> },
-          { key: "attendance" as const, label: "Attend", icon: <CalendarIcon /> },
-          { key: "clients" as const, label: "Clients", icon: <UserIcon /> },
-          { key: "sessions" as const, label: "Sessions", icon: <ChatIcon /> },
-          { key: "sales" as const, label: "Sales", icon: <WalletIcon /> },
-        ]
-      : [
-          { key: "home" as const, label: "Home", icon: <HomeIcon /> },
-          { key: "overview" as const, label: "Overview", icon: <CalendarIcon /> },
-          { key: "clients" as const, label: "Clients", icon: <UserIcon /> },
-          { key: "sales" as const, label: "Sales", icon: <WalletIcon /> },
-          { key: "settings" as const, label: "Settings", icon: <ChatIcon /> },
-        ];
-
-  const MemberHome = (
-    <>
-      <TopHeader role={role} onRoleChange={(r) => { setRole(r); setTab("home"); }} />
-      <WelcomeRow name={userName} onChat={() => setTab("chat")} />
-
-      <MemberProfileCard
-        avatar="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=60"
-        code="M00-1"
-        branch="Malingap Branch"
-        packageName="Full 48 Package+"
-        status="Active Member"
-        used={40}
-        total={48}
-        onViewProfile={() => setTab("profile")}
-      />
-
-      <UpcomingCarousel />
-      <ActivityPanel />
-      <OrangeBanner />
-    </>
-  );
-
-  const Placeholder = (title: string) => (
-    <>
-      <TopHeader role={role} onRoleChange={(r) => { setRole(r); setTab("home"); }} />
-      <WelcomeRow name={userName} />
-      <DarkCard className="mt-4 p-4">
-        <div className="text-[14px] font-semibold text-white/85">{title}</div>
-        <div className="mt-2 text-[12px] text-white/55">Placeholder screen.</div>
-      </DarkCard>
-    </>
-  );
-
-  const content =
-    role === "member"
-      ? tab === "home"
-        ? MemberHome
-        : tab === "chat"
-        ? Placeholder("Chat")
-        : tab === "schedule"
-        ? Placeholder("Schedule")
-        : tab === "payments"
-        ? Placeholder("Payments")
-        : Placeholder("Profile")
-      : role === "staff"
-      ? tab === "home"
-        ? Placeholder("Staff Home")
-        : Placeholder("Staff")
-      : tab === "home"
-      ? Placeholder("Admin Home")
-      : Placeholder("Admin");// PART 8/8
-  return (
-    <div className={cx(poppins.variable, "min-h-screen font-sans")}>
-      {/* Desktop background + mobile-friendly base */}
-      <div className="min-h-screen bg-[#050812]">
-        <div className="relative">
-          <div className="hidden md:block absolute inset-0">
-            <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[880px] rounded-full bg-[#6B3CE6]/20 blur-3xl" />
-            <div className="absolute top-20 left-1/3 h-[360px] w-[520px] rounded-full bg-[#F37120]/15 blur-3xl" />
+      {/* Feed panel */}
+      <GlassCard className="overflow-hidden">
+        <div className="border-b border-white/10 px-5 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setFeedTab("activity")}
+              className={cx(
+                "text-sm font-semibold",
+                feedTab === "activity" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
+              )}
+            >
+              Activity Log
+            </button>
+            <button
+              onClick={() => setFeedTab("points")}
+              className={cx(
+                "text-sm font-semibold",
+                feedTab === "points" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
+              )}
+            >
+              Points
+            </button>
+            <button
+              onClick={() => setFeedTab("payments")}
+              className={cx(
+                "text-sm font-semibold",
+                feedTab === "payments" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
+              )}
+            >
+              Payments
+            </button>
+            <button
+              onClick={() => setFeedTab("placeholder")}
+              className={cx(
+                "text-sm font-semibold",
+                feedTab === "placeholder" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
+              )}
+            >
+              Placeholder
+            </button>
           </div>
-
-          <PhoneShell>{content}</PhoneShell>
         </div>
 
-        <BottomNav items={nav} active={tab} onChange={setTab} />
-      </div>
+        <div className="p-5">
+          {feedTab === "activity" && (
+            <div className="space-y-3">
+              {/* Header row */}
+              <div className="grid grid-cols-[1.3fr_1fr_1fr_0.9fr] gap-2 px-2 text-[11px] font-semibold text-[#F7A247]/80">
+                <div>Transactions</div>
+                <div>Details</div>
+                <div>Time/Date</div>
+                <div className="text-right">Balance</div>
+              </div>
+
+              {/* Rows */}
+              <div className="space-y-3">
+                {activity.map((r) => (
+                  <ActivityRowItem key={r.id} row={r} />
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-2 text-xs text-white/55">
+                <span>Total transactions</span>
+                <span className="font-semibold text-white/75">506</span>
+              </div>
+            </div>
+          )}
+
+          {feedTab === "points" && (
+            <div className="space-y-3">
+              <div className="text-sm font-semibold text-white/85">Bearforce / Prestige</div>
+              <div className="text-sm text-white/65">
+                Tie your points to check-ins, completed sessions, and consistency streaks.
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {merit.map((m) => (
+                  <MeritTile key={m.id} data={m} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {feedTab === "payments" && (
+            <div className="space-y-3">
+              <div className="grid gap-3">
+                {payments.map((p) => (
+                  <PaymentRowItem key={p.id} row={p} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {feedTab === "placeholder" && (
+            <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="text-sm font-semibold text-white/85">Placeholder</div>
+              <div className="mt-1 text-sm text-white/60">
+                Add announcements, referrals, leaderboards, or challenges here.
+              </div>
+            </div>
+          )}
+        </div>
+      </GlassCard>
+
+      {/* Bottom banner */}
+      <GlassCard className="overflow-hidden">
+        <div className="relative p-5">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F37A12] via-[#ff8a2a] to-[#ffb86c] opacity-95" />
+          <div className="absolute inset-0 opacity-25 [background:radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.35),transparent_55%)]" />
+          <div className="relative">
+            <div className="text-base font-bold text-white">Track Your Daily Activities</div>
+            <div className="mt-2 max-w-xl text-sm text-white/90">
+              Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt ut labore et dolore aliqua.
+            </div>
+          </div>
+        </div>
+      </GlassCard>
 
       <style jsx global>{`
         :root {
           --font-poppins: ${poppins.style.fontFamily};
         }
+        html,
         body {
-          font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+          font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+            Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -806,3 +845,250 @@ export default function Page() {
     </div>
   );
 }
+// PART 5/8
+function MeritTile({ data }: { data: MeritCard }) {
+  const ring =
+    data.accent === "gold"
+      ? "ring-[#ffcf6d]/40"
+      : data.accent === "orange"
+      ? "ring-[#F37A12]/35"
+      : "ring-rose-400/30";
+
+  const edge =
+    data.accent === "gold"
+      ? "from-[#ffcf6d] via-[#ff9f3c] to-[#ffcf6d]"
+      : data.accent === "orange"
+      ? "from-[#F37A12] via-[#ff9a3a] to-[#F37A12]"
+      : "from-[#ff3b3b] via-[#ff8b5a] to-[#ff3b3b]";
+
+  return (
+    <div className={cx("relative overflow-hidden rounded-[22px] bg-black/20 p-[1px] ring-1", ring)}>
+      <div className={cx("absolute inset-0 bg-gradient-to-b opacity-30", edge)} />
+      <div className="relative rounded-[21px] bg-[#0B0F17]/70 p-4">
+        <div className="text-[12px] font-semibold text-white/70">{data.title}</div>
+        <div className="mt-3 text-center">
+          <div className="text-3xl font-extrabold tracking-tight text-white">{data.value}</div>
+          <div className="text-sm font-bold text-white/90">{data.sub}</div>
+        </div>
+
+        {data.ribbon && (
+          <div className="mt-3">
+            <span className="inline-flex items-center rounded-[12px] bg-[#F37A12] px-3 py-1 text-[11px] font-bold text-white shadow">
+              {data.ribbon}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UpcomingTile({ data }: { data: UpcomingCard }) {
+  const sec = useCountdown(data.secondsLeft);
+  const t = formatTime(sec);
+
+  return (
+    <div className="min-w-[280px] max-w-[320px] flex-1">
+      <GlassCard className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.12),transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#3a2bff]/20 via-[#F37A12]/20 to-[#00d2ff]/15" />
+        <div className="relative p-5">
+          <div className="flex items-center justify-between">
+            <Pill tone="orange">{data.tag}</Pill>
+            <button className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-white/85 ring-1 ring-white/15 hover:bg-white/15">
+              View Details
+            </button>
+          </div>
+
+          <div className="mt-4 text-2xl font-extrabold tracking-tight text-white">{data.title}</div>
+          <div className="mt-1 text-sm text-white/70">{data.subtitle}</div>
+          <div className="mt-1 text-sm text-white/65">{data.coach}</div>
+
+          <div className="mt-6">
+            <div className="text-[44px] font-extrabold tracking-[0.08em] text-white">
+              {t.hh} : {t.mm} : {t.ss}
+            </div>
+            <div className="mt-1 flex gap-6 text-[11px] font-semibold text-white/60">
+              <span>Hours</span>
+              <span>Minutes</span>
+              <span>Seconds</span>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+function ActivityRowItem({ row }: { row: ActivityRow }) {
+  return (
+    <div className="rounded-[18px] bg-white/5 p-4 ring-1 ring-white/10">
+      <div className="grid grid-cols-[1.3fr_1fr_1fr_0.9fr] items-center gap-2">
+        <div className="flex items-center gap-3">
+          <SmallGlyph kind={row.icon} />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-white/90">{row.title}</div>
+            <div className="truncate text-xs text-[#F7A247]/80">1 Session Used</div>
+          </div>
+        </div>
+
+        <div className="text-sm text-white/70">{row.subtitle}</div>
+        <div className="text-sm text-white/70">{row.time}</div>
+
+        <div className="text-right text-lg font-extrabold tracking-tight text-[#F7A247]">
+          {row.delta}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentRowItem({ row }: { row: PaymentRow }) {
+  return (
+    <div className="rounded-[18px] bg-white/5 p-4 ring-1 ring-white/10">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <SmallGlyph kind={row.icon} />
+          <div>
+            <div className="text-sm font-semibold text-white/90">{row.title}</div>
+            <div className="text-xs text-white/60">{row.subtitle}</div>
+            <div className="mt-1 text-xs text-white/50">{row.note}</div>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <div className="text-xl font-extrabold tracking-tight text-white">{row.amount}</div>
+          <div className="text-xs font-semibold text-white/55">Due: January 25</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 6/8
+/* ----------------- Staff + Admin placeholders (kept simple, retain structure) ----------------- */
+function StaffScreen() {
+  return (
+    <div className="space-y-4">
+      <GlassCard className="p-5">
+        <div className="text-lg font-extrabold text-white">Staff</div>
+        <div className="mt-2 text-sm text-white/65">
+          Keep your existing staff modules here (check-ins, schedules, client list).
+        </div>
+      </GlassCard>
+
+      <GlassCard className="p-5">
+        <SectionHeader title="Quick Actions" />
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="text-sm font-semibold text-white/85">Scan QR</div>
+            <div className="mt-1 text-sm text-white/60">Fast check-in</div>
+          </div>
+          <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="text-sm font-semibold text-white/85">Create Session</div>
+            <div className="mt-1 text-sm text-white/60">Add schedule slot</div>
+          </div>
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+function AdminScreen() {
+  return (
+    <div className="space-y-4">
+      <GlassCard className="p-5">
+        <div className="text-lg font-extrabold text-white">Admin</div>
+        <div className="mt-2 text-sm text-white/65">
+          Keep your admin tools here (packages, payments, staff management).
+        </div>
+      </GlassCard>
+
+      <GlassCard className="p-5">
+        <SectionHeader title="Overview" right={<Pill tone="green">All systems OK</Pill>} />
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="text-xs text-white/60">Active Members</div>
+            <div className="mt-2 text-2xl font-extrabold text-white">128</div>
+          </div>
+          <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="text-xs text-white/60">Payments Today</div>
+            <div className="mt-2 text-2xl font-extrabold text-white">₱26k</div>
+          </div>
+          <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="text-xs text-white/60">Upcoming Sessions</div>
+            <div className="mt-2 text-2xl font-extrabold text-white">14</div>
+          </div>
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+// PART 7/8
+/* ----------------- Page Root + Tab Content ----------------- */
+function PlaceholderPage({ title }: { title: string }) {
+  return (
+    <div className="space-y-4">
+      <GlassCard className="p-6">
+        <div className="text-lg font-extrabold text-white">{title}</div>
+        <div className="mt-2 text-sm text-white/65">
+          This is a placeholder screen. Keep your existing logic/components and swap this later.
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+function ContentRouter({ role, tab }: { role: Role; tab: MainTab }) {
+  // You can wire each tab to your real pages/components.
+  if (role === "member") {
+    if (tab === "home") return <MemberHomeScreen />;
+    if (tab === "chat") return <PlaceholderPage title="Chat" />;
+    if (tab === "schedule") return <PlaceholderPage title="Schedule" />;
+    if (tab === "payment") return <PlaceholderPage title="Payment" />;
+    return <PlaceholderPage title="Profile" />;
+  }
+
+  if (role === "staff") {
+    if (tab === "home") return <StaffScreen />;
+    if (tab === "chat") return <PlaceholderPage title="Chat" />;
+    if (tab === "schedule") return <PlaceholderPage title="Schedule" />;
+    if (tab === "payment") return <PlaceholderPage title="Payment" />;
+    return <PlaceholderPage title="Profile" />;
+  }
+
+  // admin
+  if (tab === "home") return <AdminScreen />;
+  if (tab === "chat") return <PlaceholderPage title="Chat" />;
+  if (tab === "schedule") return <PlaceholderPage title="Schedule" />;
+  if (tab === "payment") return <PlaceholderPage title="Payment" />;
+  return <PlaceholderPage title="Profile" />;
+}
+
+export default function Page() {
+  const [role, setRole] = useState<Role>("member");
+  const [tab, setTab] = useState<MainTab>("home");
+
+  // Example: show chat badge on member only
+  const chatBadge = role === "member" ? 2 : 0;
+
+  return (
+    <DesktopShell role={role} setRole={setRole} tab={tab} setTab={setTab} chatBadge={chatBadge}>
+      <ContentRouter role={role} tab={tab} />
+    </DesktopShell>
+  );
+}
+// PART 8/8
+/* ----------------- Notes (kept in-code only) -----------------
+Desktop-first:
+- md+ shows sidebar navigation and roomy spacing
+Mobile optimization:
+- Bottom nav appears automatically on md- screens
+- Content uses responsive grids (md columns) + horizontal swipe rails
+Font system:
+- Poppins via next/font and applied globally
+
+If you want it EVEN closer to your 2nd image next:
+- tighten the profile card width and center it (max-w + mx-auto)
+- increase the “side peek” of Upcoming cards by adjusting min widths
+- nudge typography sizes (title 24/28) and spacing (paddings) slightly
+--------------------------------------------------------------- */
