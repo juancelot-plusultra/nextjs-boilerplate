@@ -121,13 +121,7 @@ function MessageIcon() {
 }
 // PART 2/8
 /* ----------------- Reusable UI ----------------- */
-function RoleSwitch({
-  role,
-  onChange,
-}: {
-  role: Role;
-  onChange: (r: Role) => void;
-}) {
+function RoleSwitch({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
   const items: Array<{ k: Role; label: string }> = [
     { k: "member", label: "Member" },
     { k: "staff", label: "Staff" },
@@ -145,9 +139,7 @@ function RoleSwitch({
               onClick={() => onChange(it.k)}
               className={cx(
                 "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                active
-                  ? "bg-white text-black shadow"
-                  : "text-white/70 hover:text-white"
+                active ? "bg-white text-black shadow" : "text-white/70 hover:text-white"
               )}
             >
               {it.label}
@@ -159,13 +151,7 @@ function RoleSwitch({
   );
 }
 
-function GlassCard({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function GlassCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div
       className={cx(
@@ -195,13 +181,7 @@ function SectionHeader({
   );
 }
 
-function Pill({
-  children,
-  tone = "orange",
-}: {
-  children: React.ReactNode;
-  tone?: "orange" | "green" | "gray";
-}) {
+function Pill({ children, tone = "orange" }: { children: React.ReactNode; tone?: "orange" | "green" | "gray" }) {
   const cls =
     tone === "orange"
       ? "bg-[#F37A12]/15 text-[#F7A247] ring-[#F37A12]/25"
@@ -209,11 +189,7 @@ function Pill({
       ? "bg-emerald-400/10 text-emerald-300 ring-emerald-300/20"
       : "bg-white/10 text-white/70 ring-white/10";
 
-  return (
-    <span className={cx("rounded-full px-2.5 py-1 text-[11px] ring-1", cls)}>
-      {children}
-    </span>
-  );
+  return <span className={cx("rounded-full px-2.5 py-1 text-[11px] ring-1", cls)}>{children}</span>;
 }
 
 function TabButton({
@@ -234,9 +210,7 @@ function TabButton({
       onClick={onClick}
       className={cx(
         "relative flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left text-sm transition",
-        active
-          ? "bg-white/10 text-white ring-1 ring-white/15"
-          : "text-white/65 hover:bg-white/5 hover:text-white"
+        active ? "bg-white/10 text-white ring-1 ring-white/15" : "text-white/65 hover:bg-white/5 hover:text-white"
       )}
     >
       <span
@@ -258,7 +232,7 @@ function TabButton({
   );
 }
 // PART 3/8
-/* ----------------- Mock Data ----------------- */
+/* ----------------- Mock Data + helpers ----------------- */
 type ActivityRow = {
   id: string;
   title: string;
@@ -296,54 +270,15 @@ type MeritCard = {
 };
 
 function SmallGlyph({ kind }: { kind: ActivityRow["icon"] | PaymentRow["icon"] }) {
-  const common = "h-10 w-10 rounded-2xl ring-1 ring-white/10 bg-white/5 grid place-items-center";
-  if (kind === "weights") {
-    return (
-      <div className={common}>
-        <span className="text-lg">🏋️</span>
-      </div>
-    );
-  }
-  if (kind === "cardio") {
-    return (
-      <div className={common}>
-        <span className="text-lg">🏃</span>
-      </div>
-    );
-  }
-  if (kind === "renew") {
-    return (
-      <div className={common}>
-        <span className="text-lg">🎁</span>
-      </div>
-    );
-  }
-  if (kind === "bonus") {
-    return (
-      <div className={common}>
-        <span className="text-lg">⚡</span>
-      </div>
-    );
-  }
-  if (kind === "gcash") {
-    return (
-      <div className={common}>
-        <span className="text-lg">💳</span>
-      </div>
-    );
-  }
-  if (kind === "bpi") {
-    return (
-      <div className={common}>
-        <span className="text-lg">🏦</span>
-      </div>
-    );
-  }
-  return (
-    <div className={common}>
-      <span className="text-lg">💵</span>
-    </div>
-  );
+  const common =
+    "h-10 w-10 rounded-2xl ring-1 ring-white/10 bg-white/5 grid place-items-center shrink-0";
+  if (kind === "weights") return <div className={common}><span className="text-lg">🏋️</span></div>;
+  if (kind === "cardio") return <div className={common}><span className="text-lg">🏃</span></div>;
+  if (kind === "renew") return <div className={common}><span className="text-lg">🎁</span></div>;
+  if (kind === "bonus") return <div className={common}><span className="text-lg">⚡</span></div>;
+  if (kind === "gcash") return <div className={common}><span className="text-lg">💳</span></div>;
+  if (kind === "bpi") return <div className={common}><span className="text-lg">🏦</span></div>;
+  return <div className={common}><span className="text-lg">💵</span></div>;
 }
 
 function useCountdown(initialSeconds: number) {
@@ -373,6 +308,13 @@ function useCountdown(initialSeconds: number) {
   return sec;
 }
 
+/* Responsive rail card width:
+   - smaller phones: ~260
+   - typical phones: ~300
+   - tablets/desktop: ~340
+*/
+const UPCOMING_CARD_MIN = "min-w-[260px] sm:min-w-[300px] lg:min-w-[340px]";// PART 4/8
+/* ----------------- Desktop Shell (more responsive across devices) ----------------- */
 function DesktopShell({
   role,
   setRole,
@@ -407,7 +349,7 @@ function DesktopShell({
 
       {/* Top Bar */}
       <div className="sticky top-0 z-30 border-b border-white/10 bg-black/30 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
               <span className="text-lg">🐻</span>
@@ -418,9 +360,9 @@ function DesktopShell({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <RoleSwitch role={role} onChange={setRole} />
-            <button className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/80 ring-1 ring-white/10 hover:bg-white/10">
+            <button className="hidden sm:grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/80 ring-1 ring-white/10 hover:bg-white/10">
               <BellIcon />
             </button>
             <button className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 text-white/80 ring-1 ring-white/10 hover:bg-white/10">
@@ -430,10 +372,10 @@ function DesktopShell({
         </div>
       </div>
 
-      {/* Desktop layout */}
-      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 md:grid-cols-[280px_1fr]">
-        {/* Sidebar (desktop) */}
-        <aside className="hidden md:block">
+      {/* Layout: adapts from mobile -> tablet -> desktop */}
+      <div className="mx-auto grid w-full max-w-[1280px] gap-3 px-3 py-4 sm:gap-4 sm:px-4 sm:py-6 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr]">
+        {/* Sidebar (desktop/tablet) */}
+        <aside className="hidden lg:block">
           <GlassCard className="p-3">
             <div className="mb-2 px-2 pt-1">
               <div className="text-xs text-white/60">Navigation</div>
@@ -452,26 +394,30 @@ function DesktopShell({
             </div>
           </GlassCard>
 
-          <div className="mt-4 hidden md:block">
+          <div className="mt-4">
             <GlassCard className="p-4">
-              <div className="text-xs text-white/60">Tip</div>
+              <div className="text-xs text-white/60">Responsive</div>
               <div className="mt-2 text-sm text-white/85">
-                Desktop-first layout with mobile optimization built-in.
+                Scales from phones → tablets → desktop.
               </div>
               <div className="mt-3 text-xs text-white/55">
-                On mobile, navigation switches to a bottom bar automatically.
+                Bottom nav on small screens, sidebar on large screens.
               </div>
             </GlassCard>
           </div>
         </aside>
 
-        {/* Main content */}
-        <main className="pb-24 md:pb-6">{children}</main>
+        {/* Main content with fluid max-width for readability */}
+        <main className="pb-[calc(var(--bottom-nav-h,72px)+env(safe-area-inset-bottom))] lg:pb-6">
+          <div className="mx-auto w-full max-w-[760px] lg:max-w-none">
+            {children}
+          </div>
+        </main>
       </div>
 
-      {/* Bottom nav (mobile) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/40 bg-white/95 backdrop-blur md:hidden">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-2 py-2">
+      {/* Bottom nav (mobile/tablet) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/40 bg-white/95 backdrop-blur lg:hidden">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-1 py-2 [padding-bottom:calc(0.5rem+env(safe-area-inset-bottom))]">
           {nav.map((n) => {
             const active = tab === n.k;
             return (
@@ -479,14 +425,14 @@ function DesktopShell({
                 key={n.k}
                 onClick={() => setTab(n.k)}
                 className={cx(
-                  "relative flex w-full flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-semibold",
+                  "relative flex w-full flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[11px] font-semibold",
                   active ? "text-[#F37A12]" : "text-black/65"
                 )}
               >
                 <span className={cx("grid h-9 w-9 place-items-center rounded-2xl", active ? "bg-black/5" : "")}>
                   <span className={active ? "text-[#F37A12]" : "text-black"}>{n.icon}</span>
                 </span>
-                <span>{n.label}</span>
+                <span className="leading-none">{n.label}</span>
 
                 {typeof (n as any).badge === "number" && (n as any).badge > 0 && (
                   <span className="absolute right-3 top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F37A12] px-1.5 text-[11px] font-bold text-white">
@@ -498,11 +444,36 @@ function DesktopShell({
           })}
         </div>
       </div>
+
+      {/* Global responsive tuning */}
+      <style jsx global>{`
+        :root {
+          --font-poppins: ${poppins.style.fontFamily};
+          --bottom-nav-h: 72px;
+        }
+        html,
+        body {
+          font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+            Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+        /* fluid typography baseline */
+        body {
+          font-size: clamp(14px, 1.2vw, 16px);
+          line-height: 1.35;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
-// PART 4/8
-/* ----------------- Member Screen (desktop-first + mobile optimized) ----------------- */
+// PART 5/8
+/* ----------------- Member Screen (more responsive) ----------------- */
 function MemberHomeScreen() {
   const [feedTab, setFeedTab] = useState<FeedTab>("activity");
 
@@ -538,60 +509,18 @@ function MemberHomeScreen() {
 
   const activity: ActivityRow[] = useMemo(
     () => [
-      {
-        id: "a1",
-        title: "Weights Session",
-        subtitle: "Malingap",
-        time: "6:00 - 7:00pm",
-        delta: "20 → 19",
-        icon: "weights",
-      },
-      {
-        id: "a2",
-        title: "Cardio Session",
-        subtitle: "E.Rod",
-        time: "1:00 - 3:00pm",
-        delta: "48 → 47",
-        icon: "cardio",
-      },
-      {
-        id: "a3",
-        title: "Package Renewal",
-        subtitle: "Via GCash",
-        time: "₱48,600",
-        delta: "0 + 48",
-        icon: "renew",
-      },
-      {
-        id: "a4",
-        title: "Cardio Session",
-        subtitle: "E.Rod",
-        time: "1:00 - 3:00pm",
-        delta: "48 → 47",
-        icon: "bonus",
-      },
+      { id: "a1", title: "Weights Session", subtitle: "Malingap", time: "6:00 - 7:00pm", delta: "20 → 19", icon: "weights" },
+      { id: "a2", title: "Cardio Session", subtitle: "E.Rod", time: "1:00 - 3:00pm", delta: "48 → 47", icon: "cardio" },
+      { id: "a3", title: "Package Renewal", subtitle: "Via GCash", time: "₱48,600", delta: "0 + 48", icon: "renew" },
+      { id: "a4", title: "Cardio Session", subtitle: "E.Rod", time: "1:00 - 3:00pm", delta: "48 → 47", icon: "bonus" },
     ],
     []
   );
 
   const payments: PaymentRow[] = useMemo(
     () => [
-      {
-        id: "p1",
-        title: "Via GCash",
-        subtitle: "1st–6th • NEW",
-        amount: "₱8000",
-        note: "Last: ₱5800",
-        icon: "gcash",
-      },
-      {
-        id: "p2",
-        title: "Via BPI",
-        subtitle: "Full Paid",
-        amount: "₱48000",
-        note: "Last: ₱48000",
-        icon: "bpi",
-      },
+      { id: "p1", title: "Via GCash", subtitle: "1st–6th • NEW", amount: "₱8000", note: "Last: ₱5800", icon: "gcash" },
+      { id: "p2", title: "Via BPI", subtitle: "Full Paid", amount: "₱48000", note: "Last: ₱48000", icon: "bpi" },
     ],
     []
   );
@@ -610,11 +539,11 @@ function MemberHomeScreen() {
   const pct = clamp((sessionRemaining / sessionTotal) * 100, 0, 100);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Profile Header Card */}
       <GlassCard className="overflow-hidden">
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-4">
+        <div className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3">
               <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
                 <span className="text-white/80">👤</span>
@@ -630,8 +559,12 @@ function MemberHomeScreen() {
             </button>
           </div>
 
+          {/* Responsive profile body:
+             - phones: stacked
+             - tablets+: split columns
+          */}
           <div className="mt-4 grid gap-4 md:grid-cols-[240px_1fr]">
-            {/* Left block (photo + meta) */}
+            {/* Left block */}
             <div className="flex gap-4">
               <div className="relative">
                 <div className="grid h-24 w-24 place-items-center rounded-[28px] bg-white/5 ring-1 ring-[#F37A12]/30 shadow-[0_0_0_6px_rgba(243,122,18,0.08)]">
@@ -640,27 +573,23 @@ function MemberHomeScreen() {
                 <div className="absolute -right-2 top-8 h-10 w-10 rounded-full bg-[#F37A12] opacity-20 blur-[10px]" />
               </div>
 
-              <div className="pt-1">
+              <div className="pt-1 min-w-0">
                 <div className="text-lg font-extrabold tracking-wide text-white">M00-1</div>
                 <div className="text-sm text-white/70">Malingap Branch</div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-white/55">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
-                    🏅
-                  </span>
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
-                    ✅
-                  </span>
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
-                    🧊
-                  </span>
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
-                    🔥
-                  </span>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-white/55">
+                  {["🏅", "✅", "🧊", "🔥"].map((x) => (
+                    <span
+                      key={x}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10"
+                    >
+                      {x}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Right block (package + bar + merits) */}
+            {/* Right block */}
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="text-sm font-semibold text-white/90">
@@ -681,11 +610,16 @@ function MemberHomeScreen() {
               </div>
 
               <div className="text-sm text-white/70">
-                <span className="font-semibold text-white">40</span> of{" "}
-                <span className="font-semibold text-white">48</span> sessions
+                <span className="font-semibold text-white">{sessionRemaining}</span> of{" "}
+                <span className="font-semibold text-white">{sessionTotal}</span> sessions
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              {/* Merit tiles:
+                 - phones: 1 column
+                 - small: 2 columns
+                 - medium+: 3 columns
+              */}
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {merit.map((m) => (
                   <MeritTile key={m.id} data={m} />
                 ))}
@@ -695,13 +629,10 @@ function MemberHomeScreen() {
         </div>
       </GlassCard>
 
-      {/* Upcoming horizontal rail */}
+      {/* Upcoming rail */}
       <div className="space-y-2">
-        <SectionHeader
-          title="Schedule for this week"
-          right={<Pill tone="gray">Swipe</Pill>}
-        />
-        <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
+        <SectionHeader title="Schedule for this week" right={<Pill tone="gray">Swipe</Pill>} />
+        <div className="no-scrollbar flex gap-3 sm:gap-4 overflow-x-auto pb-1 [scroll-snap-type:x_mandatory]">
           {upcoming.map((u) => (
             <UpcomingTile key={u.id} data={u} />
           ))}
@@ -710,59 +641,39 @@ function MemberHomeScreen() {
 
       {/* Feed panel */}
       <GlassCard className="overflow-hidden">
-        <div className="border-b border-white/10 px-5 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setFeedTab("activity")}
-              className={cx(
-                "text-sm font-semibold",
-                feedTab === "activity" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
-              )}
-            >
-              Activity Log
-            </button>
-            <button
-              onClick={() => setFeedTab("points")}
-              className={cx(
-                "text-sm font-semibold",
-                feedTab === "points" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
-              )}
-            >
-              Points
-            </button>
-            <button
-              onClick={() => setFeedTab("payments")}
-              className={cx(
-                "text-sm font-semibold",
-                feedTab === "payments" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
-              )}
-            >
-              Payments
-            </button>
-            <button
-              onClick={() => setFeedTab("placeholder")}
-              className={cx(
-                "text-sm font-semibold",
-                feedTab === "placeholder" ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
-              )}
-            >
-              Placeholder
-            </button>
+        <div className="border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {[
+              ["activity", "Activity Log"],
+              ["points", "Points"],
+              ["payments", "Payments"],
+              ["placeholder", "Placeholder"],
+            ].map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setFeedTab(k as FeedTab)}
+                className={cx(
+                  "text-sm font-semibold",
+                  feedTab === (k as FeedTab) ? "text-[#F7A247]" : "text-white/60 hover:text-white/80"
+                )}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           {feedTab === "activity" && (
             <div className="space-y-3">
-              {/* Header row */}
-              <div className="grid grid-cols-[1.3fr_1fr_1fr_0.9fr] gap-2 px-2 text-[11px] font-semibold text-[#F7A247]/80">
+              {/* Header row (collapses on small screens) */}
+              <div className="hidden sm:grid grid-cols-[1.3fr_1fr_1fr_0.9fr] gap-2 px-2 text-[11px] font-semibold text-[#F7A247]/80">
                 <div>Transactions</div>
                 <div>Details</div>
                 <div>Time/Date</div>
                 <div className="text-right">Balance</div>
               </div>
 
-              {/* Rows */}
               <div className="space-y-3">
                 {activity.map((r) => (
                   <ActivityRowItem key={r.id} row={r} />
@@ -782,7 +693,7 @@ function MemberHomeScreen() {
               <div className="text-sm text-white/65">
                 Tie your points to check-ins, completed sessions, and consistency streaks.
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {merit.map((m) => (
                   <MeritTile key={m.id} data={m} />
                 ))}
@@ -813,7 +724,7 @@ function MemberHomeScreen() {
 
       {/* Bottom banner */}
       <GlassCard className="overflow-hidden">
-        <div className="relative p-5">
+        <div className="relative p-4 sm:p-5">
           <div className="absolute inset-0 bg-gradient-to-r from-[#F37A12] via-[#ff8a2a] to-[#ffb86c] opacity-95" />
           <div className="absolute inset-0 opacity-25 [background:radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.35),transparent_55%)]" />
           <div className="relative">
@@ -824,28 +735,11 @@ function MemberHomeScreen() {
           </div>
         </div>
       </GlassCard>
-
-      <style jsx global>{`
-        :root {
-          --font-poppins: ${poppins.style.fontFamily};
-        }
-        html,
-        body {
-          font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-            Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-        }
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
-// PART 5/8
+// PART 6/8
+/* ----------------- Tiles + rows (more responsive behaviors) ----------------- */
 function MeritTile({ data }: { data: MeritCard }) {
   const ring =
     data.accent === "gold"
@@ -866,6 +760,7 @@ function MeritTile({ data }: { data: MeritCard }) {
       <div className={cx("absolute inset-0 bg-gradient-to-b opacity-30", edge)} />
       <div className="relative rounded-[21px] bg-[#0B0F17]/70 p-4">
         <div className="text-[12px] font-semibold text-white/70">{data.title}</div>
+
         <div className="mt-3 text-center">
           <div className="text-3xl font-extrabold tracking-tight text-white">{data.value}</div>
           <div className="text-sm font-bold text-white/90">{data.sub}</div>
@@ -888,24 +783,26 @@ function UpcomingTile({ data }: { data: UpcomingCard }) {
   const t = formatTime(sec);
 
   return (
-    <div className="min-w-[280px] max-w-[320px] flex-1">
+    <div className={cx(UPCOMING_CARD_MIN, "max-w-[380px] flex-1 [scroll-snap-align:start]")}>
       <GlassCard className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.12),transparent_45%)]" />
         <div className="absolute inset-0 bg-gradient-to-br from-[#3a2bff]/20 via-[#F37A12]/20 to-[#00d2ff]/15" />
-        <div className="relative p-5">
-          <div className="flex items-center justify-between">
+        <div className="relative p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
             <Pill tone="orange">{data.tag}</Pill>
             <button className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-white/85 ring-1 ring-white/15 hover:bg-white/15">
               View Details
             </button>
           </div>
 
-          <div className="mt-4 text-2xl font-extrabold tracking-tight text-white">{data.title}</div>
+          <div className="mt-4 text-[22px] sm:text-2xl font-extrabold tracking-tight text-white">
+            {data.title}
+          </div>
           <div className="mt-1 text-sm text-white/70">{data.subtitle}</div>
           <div className="mt-1 text-sm text-white/65">{data.coach}</div>
 
           <div className="mt-6">
-            <div className="text-[44px] font-extrabold tracking-[0.08em] text-white">
+            <div className="text-[38px] sm:text-[44px] font-extrabold tracking-[0.08em] text-white">
               {t.hh} : {t.mm} : {t.ss}
             </div>
             <div className="mt-1 flex gap-6 text-[11px] font-semibold text-white/60">
@@ -923,8 +820,23 @@ function UpcomingTile({ data }: { data: UpcomingCard }) {
 function ActivityRowItem({ row }: { row: ActivityRow }) {
   return (
     <div className="rounded-[18px] bg-white/5 p-4 ring-1 ring-white/10">
-      <div className="grid grid-cols-[1.3fr_1fr_1fr_0.9fr] items-center gap-2">
+      {/* Mobile: stacked.  sm+: 4-col grid */}
+      <div className="sm:hidden space-y-2">
         <div className="flex items-center gap-3">
+          <SmallGlyph kind={row.icon} />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-white/90">{row.title}</div>
+            <div className="text-xs text-white/60">{row.subtitle} • {row.time}</div>
+          </div>
+          <div className="ml-auto text-right text-lg font-extrabold tracking-tight text-[#F7A247]">
+            {row.delta}
+          </div>
+        </div>
+        <div className="text-xs text-[#F7A247]/80">1 Session Used</div>
+      </div>
+
+      <div className="hidden sm:grid grid-cols-[1.3fr_1fr_1fr_0.9fr] items-center gap-2">
+        <div className="flex items-center gap-3 min-w-0">
           <SmallGlyph kind={row.icon} />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-white/90">{row.title}</div>
@@ -946,7 +858,7 @@ function ActivityRowItem({ row }: { row: ActivityRow }) {
 function PaymentRowItem({ row }: { row: PaymentRow }) {
   return (
     <div className="rounded-[18px] bg-white/5 p-4 ring-1 ring-white/10">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <SmallGlyph kind={row.icon} />
           <div>
@@ -956,7 +868,7 @@ function PaymentRowItem({ row }: { row: PaymentRow }) {
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <div className="text-xl font-extrabold tracking-tight text-white">{row.amount}</div>
           <div className="text-xs font-semibold text-white/55">Due: January 25</div>
         </div>
@@ -964,8 +876,8 @@ function PaymentRowItem({ row }: { row: PaymentRow }) {
     </div>
   );
 }
-// PART 6/8
-/* ----------------- Staff + Admin placeholders (kept simple, retain structure) ----------------- */
+// PART 7/8
+/* ----------------- Staff + Admin placeholders (kept) ----------------- */
 function StaffScreen() {
   return (
     <div className="space-y-4">
@@ -1023,8 +935,8 @@ function AdminScreen() {
     </div>
   );
 }
-// PART 7/8
-/* ----------------- Page Root + Tab Content ----------------- */
+// PART 8/8
+/* ----------------- Page Root + Router ----------------- */
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="space-y-4">
@@ -1039,7 +951,6 @@ function PlaceholderPage({ title }: { title: string }) {
 }
 
 function ContentRouter({ role, tab }: { role: Role; tab: MainTab }) {
-  // You can wire each tab to your real pages/components.
   if (role === "member") {
     if (tab === "home") return <MemberHomeScreen />;
     if (tab === "chat") return <PlaceholderPage title="Chat" />;
@@ -1056,7 +967,6 @@ function ContentRouter({ role, tab }: { role: Role; tab: MainTab }) {
     return <PlaceholderPage title="Profile" />;
   }
 
-  // admin
   if (tab === "home") return <AdminScreen />;
   if (tab === "chat") return <PlaceholderPage title="Chat" />;
   if (tab === "schedule") return <PlaceholderPage title="Schedule" />;
@@ -1067,8 +977,6 @@ function ContentRouter({ role, tab }: { role: Role; tab: MainTab }) {
 export default function Page() {
   const [role, setRole] = useState<Role>("member");
   const [tab, setTab] = useState<MainTab>("home");
-
-  // Example: show chat badge on member only
   const chatBadge = role === "member" ? 2 : 0;
 
   return (
@@ -1077,18 +985,3 @@ export default function Page() {
     </DesktopShell>
   );
 }
-// PART 8/8
-/* ----------------- Notes (kept in-code only) -----------------
-Desktop-first:
-- md+ shows sidebar navigation and roomy spacing
-Mobile optimization:
-- Bottom nav appears automatically on md- screens
-- Content uses responsive grids (md columns) + horizontal swipe rails
-Font system:
-- Poppins via next/font and applied globally
-
-If you want it EVEN closer to your 2nd image next:
-- tighten the profile card width and center it (max-w + mx-auto)
-- increase the “side peek” of Upcoming cards by adjusting min widths
-- nudge typography sizes (title 24/28) and spacing (paddings) slightly
---------------------------------------------------------------- */
