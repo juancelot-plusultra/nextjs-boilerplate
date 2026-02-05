@@ -3561,7 +3561,7 @@ export default function BearfitApp() {
       </div>
 
       {/* Draggable Chat Button */}
-      <DraggableChatButton onClick={() => setShowChat(true)} messageCount={2} />
+      <DraggableChatButton onClick={() => setShowChat(true)} />
 
       {/* All Modals remain the same - Chat, Notifications, Scan QR, Create Session, Client Detail, etc. */}
       {/* Chat Modal */}
