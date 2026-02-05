@@ -1,16 +1,24 @@
 "use client"
 
-import React from "react"
-
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { MessageCircle } from "lucide-react"
 
 interface DraggableChatButtonProps {
   onClick: () => void
+  /** Backward-compatible: old prop name */
   unreadCount?: number
+  /** New prop name used in app/page.tsx */
+  messageCount?: number
 }
 
-export function DraggableChatButton({ onClick, unreadCount = 2 }: DraggableChatButtonProps) {
+export function DraggableChatButton({
+  onClick,
+  unreadCount,
+  messageCount,
+}: DraggableChatButtonProps) {
+  // Prefer messageCount if provided; fallback to unreadCount; default 0
+  const count = messageCount ?? unreadCount ?? 0
+
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [hasMoved, setHasMoved] = useState(false)
@@ -23,7 +31,7 @@ export function DraggableChatButton({ onClick, unreadCount = 2 }: DraggableChatB
     if (typeof window !== "undefined") {
       setPosition({
         x: window.innerWidth - 60,
-        y: window.innerHeight - 140
+        y: window.innerHeight - 140,
       })
     }
   }, [])
@@ -46,21 +54,15 @@ export function DraggableChatButton({ onClick, unreadCount = 2 }: DraggableChatB
       setHasMoved(true)
     }
 
-    const newX = Math.min(
-      Math.max(10, initialPosRef.current.x + deltaX),
-      window.innerWidth - 56
-    )
-    const newY = Math.min(
-      Math.max(80, initialPosRef.current.y + deltaY),
-      window.innerHeight - 140
-    )
+    const newX = Math.min(Math.max(10, initialPosRef.current.x + deltaX), window.innerWidth - 56)
+    const newY = Math.min(Math.max(80, initialPosRef.current.y + deltaY), window.innerHeight - 140)
 
     setPosition({ x: newX, y: newY })
   }
 
   const handleEnd = () => {
     setIsDragging(false)
-    
+
     // If we didn't move much, trigger click
     if (!hasMoved) {
       onClick()
@@ -91,7 +93,7 @@ export function DraggableChatButton({ onClick, unreadCount = 2 }: DraggableChatB
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [isDragging, hasMoved])
+  }, [isDragging, hasMoved]) // position refs are used, ok
 
   // Touch events
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -128,9 +130,9 @@ export function DraggableChatButton({ onClick, unreadCount = 2 }: DraggableChatB
       }`}
     >
       <MessageCircle className="w-5 h-5 text-primary-foreground" />
-      {unreadCount > 0 && (
+      {count > 0 && (
         <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-          {unreadCount}
+          {count}
         </span>
       )}
     </button>
