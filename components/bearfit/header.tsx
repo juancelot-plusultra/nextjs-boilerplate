@@ -85,7 +85,7 @@ function RightIcons({
 }
 
 export function Header({
-  logoSrc = "/Bearfit-Logo.png",
+  logoSrc = "/brand/Bearfit-Logo.png",
   logoAlt = "Bearfit Logo",
   onOpenChat,
   onOpenNotifications,
@@ -111,7 +111,7 @@ export function Header({
 }
 
 export function DesktopHeader({
-  logoSrc = "/Bearfit-Logo.png",
+  logoSrc = "/brand/Bearfit-Logo.png",
   logoAlt = "Bearfit Logo",
   onOpenChat,
   onOpenNotifications,
