@@ -1,7 +1,7 @@
 "use client"
 
-import React from "react"
-import { Bell, MessageCircle, User } from "lucide-react"
+import Image from "next/image"
+import { Bell, MessageCircle } from "lucide-react"
 
 interface HeaderProps {
   onOpenChat?: () => void
@@ -108,17 +108,27 @@ export function DesktopHeader({
 
   return (
     <header className="flex items-center justify-between px-6 py-4 sticky top-0 bg-background/95 backdrop-blur-md z-40 border-b border-border/30">
-      {/* Logo */}
-      <div className="flex items-center gap-2 touch-active shrink-0">
-        <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary">
-  <Image
-    src="/Bearfit-Logo.png"
-    alt="Logo"
-    width={40}
-    height={40}
-    className="w-10 h-10 object-contain"
-    priority
-  />
+     {/* Logo */}
+<div className="flex items-center gap-2 shrink-0">
+  <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
+    <Image
+      src="/Bearfit-Logo.png"
+      alt="Bearfit Logo"
+      width={32}
+      height={32}
+      className="object-contain"
+      priority
+    />
+  </div>
+
+  <div className="flex flex-col leading-none">
+    <span className="text-primary font-bold text-sm tracking-tight">
+      BEAR<span className="text-foreground">FIT</span>
+    </span>
+    <span className="text-[8px] text-primary/70">
+      Better fitness.
+    </span>
+  </div>
 </div>
         <div className="flex flex-col leading-none">
           <span className="text-primary font-bold text-base tracking-tight">
