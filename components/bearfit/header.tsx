@@ -27,19 +27,26 @@ export function Header({
   return (
     <header className="flex items-center justify-between px-3 py-3 sticky top-0 bg-background/95 backdrop-blur-md z-40">
       {/* Logo */}
-      <div className="flex items-center gap-1 touch-active shrink-0">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <svg viewBox="0 0 24 24" className="w-4 h-4 text-primary-foreground" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-          </svg>
-        </div>
-        <div className="flex flex-col leading-none">
-          <span className="text-primary font-bold text-sm tracking-tight">
-            BEAR<span className="text-foreground">FIT</span>
-          </span>
-          <span className="text-[8px] text-primary/70">Better fitness.</span>
-        </div>
-      </div>
+      {/* Logo */}
+<div className="flex items-center gap-2 shrink-0">
+  <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary">
+    <Image
+      src="/Bearfit-Logo.png"
+      alt="Logo"
+      width={32}
+      height={32}
+      className="w-8 h-8 object-contain"
+      priority
+    />
+  </div>
+
+  <div className="flex flex-col leading-none">
+    <span className="text-primary font-bold text-sm tracking-tight">
+      BEAR<span className="text-foreground">FIT</span>
+    </span>
+    <span className="text-[8px] text-primary/70">Better fitness.</span>
+  </div>
+</div>
 
       {/* Tabs */}
       <div className="flex items-center bg-secondary rounded-full p-0.5 mx-1">
@@ -103,11 +110,16 @@ export function DesktopHeader({
     <header className="flex items-center justify-between px-6 py-4 sticky top-0 bg-background/95 backdrop-blur-md z-40 border-b border-border/30">
       {/* Logo */}
       <div className="flex items-center gap-2 touch-active shrink-0">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-          <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-foreground" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-          </svg>
-        </div>
+        <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary">
+  <Image
+    src="/Bearfit-Logo.png"
+    alt="Logo"
+    width={40}
+    height={40}
+    className="w-10 h-10 object-contain"
+    priority
+  />
+</div>
         <div className="flex flex-col leading-none">
           <span className="text-primary font-bold text-base tracking-tight">
             BEAR<span className="text-foreground">FIT</span>
