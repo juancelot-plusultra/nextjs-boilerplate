@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
@@ -634,21 +635,19 @@ export default function BearfitApp() {
         {/* Desktop Sidebar */}
         <aside className="w-64 h-screen sticky top-0 bg-[#0d0d0d] border-r border-border/30 flex flex-col">
           {/* Logo */}
-          <div className="p-5 border-b border-border/30">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-foreground" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-primary font-bold text-lg tracking-tight">
-                  BEAR<span className="text-foreground">FIT</span>
-                </span>
-                <span className="text-[10px] text-primary/70">Better fitness.</span>
-              </div>
-            </div>
-          </div>
+<div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
+  <div className="flex items-center gap-2 shrink-0">
+    <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
+      <Image src="/brand/Bearfit-Logo.png" alt="BearFitPH Logo" width={40} height={40} priority />
+    </div>
+
+    {/* OPTIONAL: remove this text block if you want logo only */}
+    <div className="flex flex-col leading-none">
+      <span className="text-foreground font-semibold tracking-tight">BEARFIT</span>
+      <span className="text-[9px] text-primary/70">Better fitness.</span>
+    </div>
+  </div>
+</div>
 
           {/* Role Tabs */}
           <div className="p-4">
