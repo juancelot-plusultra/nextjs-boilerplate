@@ -6,10 +6,10 @@ import { Bell, MessageCircle } from "lucide-react"
 export type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 export type HeaderProps = {
-  // set this if you want to override per-page
   logoSrc?: string
   logoAlt?: string
 
+  // used by dashboard page.tsx
   onOpenChat?: () => void
   onOpenNotifications?: () => void
   activeRole?: Role
@@ -84,41 +84,34 @@ function RightIcons({
   )
 }
 
-const DEFAULT_LOGO = "/brand/bearfit-logo-v2.png"
-
 export function Header({
-  logoSrc = DEFAULT_LOGO,
-  logoAlt = "Bearfit Logo",
+  logoSrc = "/brand/Bearfit-Logo.png",
+  logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo ONLY (no text) */}
       <div className="flex items-center gap-3">
-        <div className="h-9 w-auto flex items-center">
-          {/* cache-bust to prevent old logo showing */}
-          <Image
-            src={`${logoSrc}?v=2`}
-            alt={logoAlt}
-            width={140}
-            height={36}
-            priority
-            unoptimized
-            className="h-9 w-auto object-contain"
-          />
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
+          <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
+        </div>
+
+        {/* OPTIONAL: remove this text block if you want logo only */}
+        <div className="leading-tight">
+          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
+          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
         </div>
       </div>
 
-      {/* RIGHT: Icons */}
       <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
     </header>
   )
 }
 
 export function DesktopHeader({
-  logoSrc = DEFAULT_LOGO,
-  logoAlt = "Bearfit Logo",
+  logoSrc = "/brand/Bearfit-Logo.png",
+  logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
   activeRole = "Member",
@@ -126,25 +119,20 @@ export function DesktopHeader({
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo ONLY (no text) */}
       <div className="flex items-center gap-3">
-        <div className="h-9 w-auto flex items-center">
-          <Image
-            src={`${logoSrc}?v=2`}
-            alt={logoAlt}
-            width={140}
-            height={36}
-            priority
-            unoptimized
-            className="h-9 w-auto object-contain"
-          />
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
+          <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
+        </div>
+
+        {/* OPTIONAL: remove this text block if you want logo only */}
+        <div className="leading-tight">
+          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
+          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
         </div>
       </div>
 
-      {/* CENTER: Tabs */}
       <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
 
-      {/* RIGHT: Icons */}
       <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
     </header>
   )
