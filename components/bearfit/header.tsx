@@ -9,7 +9,7 @@ export type HeaderProps = {
   logoSrc?: string
   logoAlt?: string
 
-  // These are used by your dashboard page.tsx
+  // used by dashboard pages
   onOpenChat?: () => void
   onOpenNotifications?: () => void
   activeRole?: Role
@@ -85,22 +85,24 @@ function RightIcons({
 }
 
 export function Header({
-  logoSrc = "/brand/Bearfit-Logo-v2.png",
-  logoAlt = "Bearfit Logo",
+  logoSrc = "/brand/Bearfit-Logo.png",
+  logoAlt = "Logo",
   onOpenChat,
   onOpenNotifications,
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo */}
+      {/* LEFT: Logo only (no BEARFIT text) */}
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
-          <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
-        </div>
-
-        <div className="leading-tight">
-          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
-          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
+        <div className="h-9 w-auto flex items-center">
+          <Image
+            src={logoSrc}
+            alt={logoAlt}
+            width={160}
+            height={36}
+            priority
+            className="h-9 w-auto object-contain"
+          />
         </div>
       </div>
 
@@ -111,8 +113,8 @@ export function Header({
 }
 
 export function DesktopHeader({
-  logoSrc = "/brand/Bearfit-Logo-v2.png",
-  logoAlt = "Bearfit Logo",
+  logoSrc = "/brand/Bearfit-Logo.png",
+  logoAlt = "Logo",
   onOpenChat,
   onOpenNotifications,
   activeRole = "Member",
@@ -120,15 +122,17 @@ export function DesktopHeader({
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo */}
+      {/* LEFT: Logo only (no BEARFIT text) */}
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
-          <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
-        </div>
-
-        <div className="leading-tight">
-          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
-          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
+        <div className="h-9 w-auto flex items-center">
+          <Image
+            src={logoSrc}
+            alt={logoAlt}
+            width={160}
+            height={36}
+            priority
+            className="h-9 w-auto object-contain"
+          />
         </div>
       </div>
 
