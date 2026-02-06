@@ -6,10 +6,10 @@ import { Bell, MessageCircle } from "lucide-react"
 export type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 export type HeaderProps = {
+  // set this if you want to override per-page
   logoSrc?: string
   logoAlt?: string
 
-  // used by dashboard pages
   onOpenChat?: () => void
   onOpenNotifications?: () => void
   activeRole?: Role
@@ -84,23 +84,27 @@ function RightIcons({
   )
 }
 
+const DEFAULT_LOGO = "/brand/bearfit-logo-v2.png"
+
 export function Header({
-  logoSrc = "/brand/Bearfit-Logo.png",
-  logoAlt = "Logo",
+  logoSrc = DEFAULT_LOGO,
+  logoAlt = "Bearfit Logo",
   onOpenChat,
   onOpenNotifications,
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo only (no BEARFIT text) */}
+      {/* LEFT: Logo ONLY (no text) */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-auto flex items-center">
+          {/* cache-bust to prevent old logo showing */}
           <Image
-            src={logoSrc}
+            src={`${logoSrc}?v=2`}
             alt={logoAlt}
-            width={160}
+            width={140}
             height={36}
             priority
+            unoptimized
             className="h-9 w-auto object-contain"
           />
         </div>
@@ -113,8 +117,8 @@ export function Header({
 }
 
 export function DesktopHeader({
-  logoSrc = "/brand/Bearfit-Logo.png",
-  logoAlt = "Logo",
+  logoSrc = DEFAULT_LOGO,
+  logoAlt = "Bearfit Logo",
   onOpenChat,
   onOpenNotifications,
   activeRole = "Member",
@@ -122,15 +126,16 @@ export function DesktopHeader({
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo only (no BEARFIT text) */}
+      {/* LEFT: Logo ONLY (no text) */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-auto flex items-center">
           <Image
-            src={logoSrc}
+            src={`${logoSrc}?v=2`}
             alt={logoAlt}
-            width={160}
+            width={140}
             height={36}
             priority
+            unoptimized
             className="h-9 w-auto object-contain"
           />
         </div>
