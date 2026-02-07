@@ -630,26 +630,45 @@ export default function BearfitApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Layout - Sidebar Navigation */}
-      <div className="hidden lg:flex">
-        {/* Desktop Sidebar */}
-        <aside className="w-64 h-screen sticky top-0 bg-[#0d0d0d] border-r border-border/30 flex flex-col">
-          {/* Logo */}
-<div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
-  <div className="flex items-center gap-2 shrink-0">
-  <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-    <Image
-  src="/brand/Bearfit-Logo.png"
-  alt="BearFitPH Logo"
-  width={40}
-  height={40}
-  priority
-  unoptimized
-  className="object-contain"
-  onError={(e) => {
-    console.log("LOGO FAILED", e)
-  }}
-/>
+      {/* Desktop Layout */}
+<div className="hidden lg:flex w-full min-h-screen">
+  {/* Desktop Sidebar */}
+  <aside className="w-[320px] shrink-0 border-r border-border bg-background">
+    <div className="p-5">
+      {/* Sidebar Logo */}
+      <div className="flex items-center gap-2 shrink-0 mb-6">
+        <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
+          <Image
+            src="/brand/Bearfit-Logo.png"
+            alt="Bearfit Logo"
+            width={40}
+            height={40}
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Sidebar Content */}
+      <nav className="space-y-2">
+        {/* keep your existing buttons / links here */}
+      </nav>
+    </div>
+  </aside>
+
+  {/* Desktop Main Content */}
+  <main className="flex-1 min-h-screen">
+    <DesktopHeader
+      onOpenChat={() => setShowChat(true)}
+      onOpenNotifications={() => setShowNotifications(true)}
+      activeRole={activeRole}
+      onRoleChange={handleRoleChange}
+    />
+
+    <div className="p-6">
+      {/* keep your existing main page content here */}
+    </div>
+  </main>
+</div>
           {/* Role Tabs */}
           <div className="p-4">
             <div className="flex items-center bg-secondary rounded-xl p-1">
