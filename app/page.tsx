@@ -639,12 +639,12 @@ export default function BearfitApp() {
   <div className="flex items-center gap-2 shrink-0">
   <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
     <Image
-      src="/brand/Bearfit-Logo.png"
-      alt="BearFitPH Logo"
-      width={40}
-      height={40}
-      priority
-    />
+  src="/brand/Bearfit-Logo.png"
+  alt="BearFitPH Logo"
+  width={40}
+  height={40}
+  priority
+/>
   </div>
 </div>
 
