@@ -9,7 +9,6 @@ export type HeaderProps = {
   logoSrc?: string
   logoAlt?: string
 
-  // used by dashboard page.tsx
   onOpenChat?: () => void
   onOpenNotifications?: () => void
   activeRole?: Role
@@ -85,6 +84,7 @@ function RightIcons({
 }
 
 export function Header({
+  // ✅ SWITCHED to your v2 logo filename (matches your repo)
   logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
@@ -96,11 +96,6 @@ export function Header({
         <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
           <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
         </div>
-
-        <div className="leading-tight">
-          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
-          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
-        </div>
       </div>
 
       <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
@@ -109,6 +104,7 @@ export function Header({
 }
 
 export function DesktopHeader({
+  // ✅ SWITCHED to your v2 logo filename (matches your repo)
   logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
@@ -121,11 +117,6 @@ export function DesktopHeader({
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
           <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
-        </div>
-
-        <div className="leading-tight">
-          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
-          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
         </div>
       </div>
 
