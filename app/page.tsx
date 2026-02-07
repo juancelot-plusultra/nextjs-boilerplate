@@ -654,7 +654,6 @@ export default function BearfitApp() {
       <span className="text-[9px] text-primary/70">Better fitness.</span>
     </div>
   </div>
-</div>
 
           {/* Role Tabs */}
           <div className="p-4">
