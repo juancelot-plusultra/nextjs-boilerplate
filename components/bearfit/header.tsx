@@ -85,7 +85,7 @@ function RightIcons({
 }
 
 export function Header({
-  logoSrc = "/brand/Bearfit-Logo.png",
+  logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
@@ -97,7 +97,6 @@ export function Header({
           <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
         </div>
 
-        {/* OPTIONAL: remove this text block if you want logo only */}
         <div className="leading-tight">
           <span className="font-semibold text-sm text-foreground">BEARFIT</span>
           <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
@@ -110,7 +109,7 @@ export function Header({
 }
 
 export function DesktopHeader({
-  logoSrc = "/brand/Bearfit-Logo.png",
+  logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
@@ -124,7 +123,6 @@ export function DesktopHeader({
           <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
         </div>
 
-        {/* OPTIONAL: remove this text block if you want logo only */}
         <div className="leading-tight">
           <span className="font-semibold text-sm text-foreground">BEARFIT</span>
           <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
