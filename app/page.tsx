@@ -644,17 +644,12 @@ export default function BearfitApp() {
   width={40}
   height={40}
   priority
+  unoptimized
+  className="object-contain"
+  onError={(e) => {
+    console.log("LOGO FAILED", e)
+  }}
 />
-  </div>
-</div>
-
-    {/* OPTIONAL: remove this text block if you want logo only */}
-    <div className="flex flex-col leading-none">
-      <span className="text-foreground font-semibold tracking-tight">BEARFIT</span>
-      <span className="text-[9px] text-primary/70">Better fitness.</span>
-    </div>
-  </div>
-
           {/* Role Tabs */}
           <div className="p-4">
             <div className="flex items-center bg-secondary rounded-xl p-1">
