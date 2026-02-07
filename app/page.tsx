@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
@@ -637,7 +638,7 @@ export default function BearfitApp() {
 <div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
   <div className="flex items-center gap-2 shrink-0">
     <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-  <NextImage
+  <Image
     src="/brand/Bearfit-Logo.png"
     alt="BearFitPH Logo"
     width={40}
