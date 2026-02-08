@@ -56,6 +56,7 @@ function RightIcons({
 }) {
   return (
     <div className="flex items-center gap-3">
+      {/* Notifications */}
       <button
         type="button"
         onClick={onOpenNotifications}
@@ -68,6 +69,7 @@ function RightIcons({
         </span>
       </button>
 
+      {/* Messages */}
       <button
         type="button"
         onClick={onOpenChat}
@@ -79,13 +81,24 @@ function RightIcons({
           2
         </span>
       </button>
+
+      {/* Profile Picture */}
+      <div className="w-9 h-9 rounded-full overflow-hidden border border-border">
+        <Image
+          src="/avatars/default.jpg"
+          alt="Profile picture"
+          width={36}
+          height={36}
+          className="object-cover"
+          priority
+        />
+      </div>
     </div>
   )
 }
-
 export function Header({
   // ✅ SWITCHED to your v2 logo filename (matches your repo)
-  logoSrc = "/brand/bearfit-logo-v2.png",
+  logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
@@ -105,7 +118,7 @@ export function Header({
 
 export function DesktopHeader({
   // ✅ SWITCHED to your v2 logo filename (matches your repo)
-  logoSrc = "/brand/bearfit-logo-v2.png",
+  logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
