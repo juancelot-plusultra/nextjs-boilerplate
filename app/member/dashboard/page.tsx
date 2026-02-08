@@ -638,7 +638,7 @@ export default function BearfitApp() {
 <div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
   <div className="flex items-center gap-2 shrink-0">
     <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-      <Image src="/brand/Bearfit-Logo.png" alt="BearFitPH Logo" width={40} height={40} priority />
+      <Image src="/brand/bearfit-logo-v2.png" alt="BearFitPH Logo" width={40} height={40} priority />
     </div>
 
     {/* OPTIONAL: remove this text block if you want logo only */}
