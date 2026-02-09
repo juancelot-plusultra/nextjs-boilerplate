@@ -633,7 +633,7 @@ export default function BearfitApp() {
       {/* Desktop Layout - Sidebar Navigation */}
       <div className="hidden lg:flex">
         {/* Desktop Sidebar */}
-        <aside className="w-64 h-screen sticky top-0 bg-[#0d0d0d] border-r border-border/30 flex flex-col">
+        <aside className="w-64 h-screen sticky top-0 bg-background border-r border-border/30 flex flex-col">
           {/* Logo */}
           <div className="p-5 border-b border-border/30">
             <div className="flex items-center gap-2">
