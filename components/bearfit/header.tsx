@@ -28,10 +28,13 @@ function RoleTabs({
 
   return (
     <div
-      className={
-        "flex flex-wrap items-center gap-1 bg-secondary rounded-xl p-1 text-xs " +
-        className
-      }
+      className={[
+        // ✅ show on ALL screen sizes (no hidden md:flex)
+        "flex items-center gap-1 bg-secondary/80 rounded-full p-1 text-xs",
+        // ✅ keeps it nice on small screens too
+        "w-full max-w-[520px] overflow-hidden",
+        className,
+      ].join(" ")}
     >
       {roles.map((role) => {
         const isActive = role === activeRole
@@ -40,13 +43,14 @@ function RoleTabs({
             key={role}
             type="button"
             onClick={() => onRoleChange?.(role)}
-            className={
+            className={[
+              "flex-1 min-w-0 px-3 py-1.5 rounded-full transition",
               isActive
-                ? "px-3 py-1.5 rounded-lg bg-primary text-primary-foreground"
-                : "px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground"
-            }
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            ].join(" ")}
           >
-            {role}
+            <span className="truncate">{role}</span>
           </button>
         )
       })}
@@ -62,11 +66,11 @@ function RightIcons({
   onOpenNotifications?: () => void
 }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 shrink-0">
       <button
         type="button"
         onClick={onOpenNotifications}
-        className="relative w-9 h-9 rounded-full bg-secondary flex items-center justify-center"
+        className="relative w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
         aria-label="Notifications"
       >
         <Bell className="w-4 h-4" />
@@ -78,7 +82,7 @@ function RightIcons({
       <button
         type="button"
         onClick={onOpenChat}
-        className="relative w-9 h-9 rounded-full bg-secondary flex items-center justify-center"
+        className="relative w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
         aria-label="Messages"
       >
         <MessageCircle className="w-4 h-4" />
@@ -90,7 +94,41 @@ function RightIcons({
   )
 }
 
+function LogoBlock({
+  logoSrc,
+  logoAlt,
+  showText = true,
+}: {
+  logoSrc: string
+  logoAlt: string
+  showText?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-3 shrink-0">
+      {/* ✅ fixed size logo on ALL screens */}
+      <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-secondary flex items-center justify-center">
+        <Image
+          src={logoSrc}
+          alt={logoAlt}
+          fill
+          priority
+          sizes="56px"
+          className="object-contain"
+        />
+      </div>
+
+      {showText && (
+        <div className="leading-tight">
+          <span className="font-semibold text-sm text-foreground">BEARFIT</span>
+          <span className="block text-[10px] text-muted-foreground">Better fitness.</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Header({
+  // ✅ MUST match your GitHub file EXACTLY (case-sensitive)
   logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
@@ -99,28 +137,15 @@ export function Header({
   onRoleChange,
 }: HeaderProps) {
   return (
-    <header className="w-full bg-background/80 backdrop-blur-md border-b border-border">
-      {/* top row */}
-      <div className="flex items-center justify-between px-4 py-3">
-        {/* LEFT: Logo */}
-        <div className="flex items-center gap-3">
-          <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-secondary">
-  <Image
-    src={logoSrc}
-    alt={logoAlt ?? "BearFit Logo"}
-    fill
-    priority
-    sizes="56px"
-    className="object-contain"
-  />
-</div>
-
-        {/* RIGHT: Icons */}
+    <header className="w-full px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border">
+      {/* Mobile layout: logo + icons, tabs under */}
+      <div className="flex items-center justify-between gap-3">
+        <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} showText={false} />
         <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
       </div>
 
-      {/* mobile role tabs (shows on ALL sizes, but looks great on mobile) */}
-      <div className="px-4 pb-3">
+      {/* ✅ tabs visible on mobile */}
+      <div className="mt-3">
         <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
       </div>
     </header>
@@ -128,7 +153,7 @@ export function Header({
 }
 
 export function DesktopHeader({
-  logoSrc = "/brand/bearfit-logo-v2.png",
+  logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
@@ -136,24 +161,14 @@ export function DesktopHeader({
   onRoleChange,
 }: HeaderProps) {
   return (
-    <header className="w-full flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
-      {/* LEFT: Logo */}
-      <div className="flex items-center gap-3">
-        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-secondary">
-  <Image
-    src={logoSrc}
-    alt={logoAlt ?? "BearFit Logo"}
-    fill
-    priority
-    sizes="56px"
-    className="object-contain"
-  />
-</div>
+    <header className="w-full flex items-center justify-between gap-4 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
+      <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} showText />
 
-      {/* CENTER: Tabs */}
-      <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} className="rounded-full px-1" />
+      {/* Desktop: tabs centered */}
+      <div className="flex-1 flex justify-center">
+        <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
+      </div>
 
-      {/* RIGHT: Icons */}
       <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
     </header>
   )
