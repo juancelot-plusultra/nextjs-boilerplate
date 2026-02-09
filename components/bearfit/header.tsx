@@ -25,7 +25,7 @@ function RoleTabs({
   const roles: Role[] = ["Member", "Staff", "Leads", "Admin"]
 
   return (
-    <div className="hidden md:flex items-center bg-secondary rounded-full p-0.5 text-xs">
+    <div className="flex flex-wrap gap-1 items-center bg-secondary rounded-xl p-1 text-xs">">
       {roles.map((role) => {
         const isActive = role === activeRole
         return (
