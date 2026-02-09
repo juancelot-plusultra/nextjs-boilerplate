@@ -1,45 +1,48 @@
 "use client"
 
-import { CheckCircle, Flame, Target, Star } from "lucide-react"
+import { CheckCircle, Flame, Target, Trophy } from "lucide-react"
 
-type BadgeType = "top" | "verified" | "target" | "fire"
+type StatusType = "top" | "verified" | "target" | "fire"
 
-const badgeConfig: Record<BadgeType, {
-  label: string
-  icon: any
-  color: string
-}> = {
+const styles: Record<
+  StatusType,
+  { label: string; icon: any; bg: string; text: string }
+> = {
   top: {
     label: "Top Member",
-    icon: Star,
-    color: "text-yellow-400 bg-yellow-400/10 ring-yellow-400/30",
+    icon: Trophy,
+    bg: "bg-yellow-500/15",
+    text: "text-yellow-500",
   },
   verified: {
     label: "Verified",
     icon: CheckCircle,
-    color: "text-blue-400 bg-blue-400/10 ring-blue-400/30",
+    bg: "bg-green-500/15",
+    text: "text-green-500",
   },
   target: {
     label: "On Target",
     icon: Target,
-    color: "text-green-400 bg-green-400/10 ring-green-400/30",
+    bg: "bg-blue-500/15",
+    text: "text-blue-500",
   },
   fire: {
     label: "On Fire",
     icon: Flame,
-    color: "text-orange-400 bg-orange-400/10 ring-orange-400/30",
+    bg: "bg-orange-500/15",
+    text: "text-orange-500",
   },
 }
 
-export function StatusBadge({ type }: { type: BadgeType }) {
-  const { label, icon: Icon, color } = badgeConfig[type]
+export function StatusBadge({ type }: { type: StatusType }) {
+  const Icon = styles[type].icon
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ring-1 ${color}`}
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${styles[type].bg} ${styles[type].text}`}
     >
       <Icon className="w-3.5 h-3.5" />
-      <span className="font-medium">{label}</span>
+      {styles[type].label}
     </div>
   )
 }
