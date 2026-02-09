@@ -18,14 +18,21 @@ export type HeaderProps = {
 function RoleTabs({
   activeRole = "Member",
   onRoleChange,
+  className = "",
 }: {
   activeRole?: Role
   onRoleChange?: (role: Role) => void
+  className?: string
 }) {
   const roles: Role[] = ["Member", "Staff", "Leads", "Admin"]
 
   return (
-    <div className="flex flex-wrap gap-1 items-center bg-secondary rounded-xl p-1 text-xs">
+    <div
+      className={
+        "flex flex-wrap items-center gap-1 bg-secondary rounded-xl p-1 text-xs " +
+        className
+      }
+    >
       {roles.map((role) => {
         const isActive = role === activeRole
         return (
@@ -35,8 +42,8 @@ function RoleTabs({
             onClick={() => onRoleChange?.(role)}
             className={
               isActive
-                ? "px-4 py-1.5 rounded-full bg-primary text-primary-foreground"
-                : "px-4 py-1.5 rounded-full text-muted-foreground"
+                ? "px-3 py-1.5 rounded-lg bg-primary text-primary-foreground"
+                : "px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground"
             }
           >
             {role}
@@ -56,7 +63,6 @@ function RightIcons({
 }) {
   return (
     <div className="flex items-center gap-3">
-      {/* Notifications */}
       <button
         type="button"
         onClick={onOpenNotifications}
@@ -69,7 +75,6 @@ function RightIcons({
         </span>
       </button>
 
-      {/* Messages */}
       <button
         type="button"
         onClick={onOpenChat}
@@ -81,44 +86,43 @@ function RightIcons({
           2
         </span>
       </button>
-
-      {/* Profile Picture */}
-      <div className="w-9 h-9 rounded-full overflow-hidden border border-border">
-        <Image
-          src="/avatars/default.jpg"
-          alt="Profile picture"
-          width={36}
-          height={36}
-          className="object-cover"
-          priority
-        />
-      </div>
     </div>
   )
 }
+
 export function Header({
-  // ✅ SWITCHED to your v2 logo filename (matches your repo)
-  logoSrc = "/brand/Bearfit-Logo-v2.png",
+  logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
+  activeRole = "Member",
+  onRoleChange,
 }: HeaderProps) {
   return (
-    <header className="w-full flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
-          <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
+    <header className="w-full bg-background/80 backdrop-blur-md border-b border-border">
+      {/* top row */}
+      <div className="flex items-center justify-between px-4 py-3">
+        {/* LEFT: Logo */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
+            <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
+          </div>
         </div>
+
+        {/* RIGHT: Icons */}
+        <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
       </div>
 
-      <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
+      {/* mobile role tabs (shows on ALL sizes, but looks great on mobile) */}
+      <div className="px-4 pb-3">
+        <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
+      </div>
     </header>
   )
 }
 
 export function DesktopHeader({
-  // ✅ SWITCHED to your v2 logo filename (matches your repo)
-  logoSrc = "/brand/Bearfit-Logo-v2.png",
+  logoSrc = "/brand/bearfit-logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
@@ -127,14 +131,17 @@ export function DesktopHeader({
 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border">
+      {/* LEFT: Logo */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
           <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
         </div>
       </div>
 
-      <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
+      {/* CENTER: Tabs */}
+      <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} className="rounded-full px-1" />
 
+      {/* RIGHT: Icons */}
       <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
     </header>
   )
