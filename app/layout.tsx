@@ -1,20 +1,15 @@
 import "./globals.css"
+import type { Metadata } from "next"
 
-export const metadata = {
-  title: "BearFit",
-  description: "BearFit Dashboard",
+export const metadata: Metadata = {
+  title: "BearFitPH",
+  description: "BearFitPH dashboard",
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
-      </body>
+    <html lang="en" className="dark">
+      <body>{children}</body>
     </html>
   )
 }
