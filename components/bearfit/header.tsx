@@ -104,10 +104,16 @@ export function Header({
       <div className="flex items-center justify-between px-4 py-3">
         {/* LEFT: Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg overflow-hidden bg-secondary flex items-center justify-center">
-            <Image src={logoSrc} alt={logoAlt} width={36} height={36} priority />
-          </div>
-        </div>
+          <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-secondary">
+  <Image
+    src={logoSrc}
+    alt={logoAlt ?? "BearFit Logo"}
+    fill
+    priority
+    sizes="56px"
+    className="object-contain"
+  />
+</div>
 
         {/* RIGHT: Icons */}
         <RightIcons onOpenChat={onOpenChat} onOpenNotifications={onOpenNotifications} />
