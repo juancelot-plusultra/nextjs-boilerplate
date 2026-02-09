@@ -76,12 +76,13 @@ export function ProfileCard() {
           <div className="shrink-0">
             <div className="relative w-20 h-24 rounded-xl overflow-hidden border-[3px] border-transparent" style={{ background: "linear-gradient(#1a1a1a, #1a1a1a) padding-box, linear-gradient(135deg, #f97316, #eab308) border-box" }}>
               <Image
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80"
-                alt="Profile"
-                width={80}
-                height={96}
-                className="w-full h-full object-cover object-[center_15%]"
-              />
+  src="/avatars/default.jpg"
+  alt="Profile"
+  width={80}
+  height={96}
+  className="w-full h-full object-cover object-[center_15%]"
+  priority
+/>
             </div>
           </div>
 
