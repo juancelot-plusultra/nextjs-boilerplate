@@ -91,7 +91,7 @@ function RightIcons({
 }
 
 export function Header({
-  logoSrc = "/brand/bearfit-logo-v2.png",
+  logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFitPH Logo",
   onOpenChat,
   onOpenNotifications,
