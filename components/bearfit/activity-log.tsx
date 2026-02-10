@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
   Activity,
   Award,
@@ -10,9 +10,13 @@ import {
   RefreshCw,
   Zap,
   HelpCircle,
+  Gift,
+  CheckCircle2,
+  Clock3,
 } from "lucide-react"
 
-const tabs = ["Activity Log", "Points", "Payments", "Rewards"]
+const tabs = ["Activity Log", "Points", "Payments", "Rewards"] as const
+type Tab = (typeof tabs)[number]
 
 const activities = [
   {
@@ -69,8 +73,120 @@ const activities = [
   },
 ]
 
+type PointsEntry = {
+  title: string
+  subtitle: string
+  amount: number
+  icon: React.ComponentType<{ className?: string }>
+  iconBg: string
+}
+
+type PaymentEntry = {
+  title: string
+  date: string
+  method?: string
+  amountPhp: number
+  status: "Paid" | "Pending"
+}
+
+type RewardEntry = {
+  title: string
+  subtitle: string
+  cost: number
+  available: boolean
+  icon: React.ComponentType<{ className?: string }>
+}
+
+const pointsLedger: PointsEntry[] = [
+  {
+    title: "Workout Completed",
+    subtitle: "Today",
+    amount: 50,
+    icon: Zap,
+    iconBg: "bg-emerald-500/15",
+  },
+  {
+    title: "7-Day Streak Bonus",
+    subtitle: "Yesterday",
+    amount: 100,
+    icon: Flame,
+    iconBg: "bg-emerald-500/15",
+  },
+  {
+    title: "Referral Bonus",
+    subtitle: "Jan 28",
+    amount: 200,
+    icon: Award,
+    iconBg: "bg-emerald-500/15",
+  },
+]
+
+const paymentHistory: PaymentEntry[] = [
+  {
+    title: "Monthly Package Renewal",
+    date: "Feb 3, 2026",
+    method: "GCash",
+    amountPhp: 2500,
+    status: "Paid",
+  },
+  {
+    title: "Personal Training Session",
+    date: "Feb 1, 2026",
+    method: "Bank Transfer",
+    amountPhp: 1500,
+    status: "Paid",
+  },
+  {
+    title: "Pending Renewal",
+    date: "Feb 28, 2026",
+    amountPhp: 2500,
+    status: "Pending",
+  },
+  {
+    title: "Full 48 Package+ Upgrade",
+    date: "Jan 15, 2026",
+    method: "Maya",
+    amountPhp: 48600,
+    status: "Paid",
+  },
+]
+
+const rewardsCatalog: RewardEntry[] = [
+  {
+    title: "Free 1 Session",
+    subtitle: "Redeem a bonus training session",
+    cost: 500,
+    available: true,
+    icon: Gift,
+  },
+  {
+    title: "10% Off Renewal",
+    subtitle: "Applies to your next package renewal",
+    cost: 800,
+    available: true,
+    icon: Award,
+  },
+  {
+    title: "BearFit Merch",
+    subtitle: "Shirt / Towel / Bottle (limited)",
+    cost: 1200,
+    available: false,
+    icon: Heart,
+  },
+]
+
+function formatPhp(n: number) {
+  // simple display (matches your UI vibe)
+  return `₱${n.toLocaleString("en-PH")}`
+}
+
 export function ActivityLog() {
-  const [activeTab, setActiveTab] = useState("Activity Log")
+  const [activeTab, setActiveTab] = useState<Tab>("Activity Log")
+
+  const totalPoints = useMemo(
+    () => pointsLedger.reduce((sum, x) => sum + x.amount, 0),
+    []
+  )
 
   return (
     <div className="mt-4 mx-4 bg-[#1a1a1a] rounded-2xl overflow-hidden border border-border/50">
@@ -155,8 +271,8 @@ export function ActivityLog() {
                   <div
                     className={`col-span-2 text-sm font-semibold ${activity.balanceColor} text-right`}
                   >
-                    {activity.balanceFrom}{" "}
-                    {activity.isAdd ? "+" : ">"} {activity.balanceTo}
+                    {activity.balanceFrom} {activity.isAdd ? "+" : ">"}{" "}
+                    {activity.balanceTo}
                   </div>
                 </div>
               )
@@ -165,11 +281,199 @@ export function ActivityLog() {
         </div>
       )}
 
-      {/* Placeholder other tabs */}
-      {activeTab !== "Activity Log" && (
+      {/* ✅ Points */}
+      {activeTab === "Points" && (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">Total Points</p>
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <HelpCircle className="w-4 h-4" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-black/20 border border-border/30 p-5 mb-5 text-center">
+            <div className="text-[44px] leading-none font-extrabold text-orange-500">
+              {totalPoints.toLocaleString("en-US")} MP
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {pointsLedger.map((p, i) => {
+              const Icon = p.icon
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-2xl bg-black/20 border border-border/30 px-4 py-4"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-10 h-10 rounded-xl ${p.iconBg} flex items-center justify-center border border-emerald-500/20`}
+                    >
+                      <Icon className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {p.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {p.subtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-sm font-semibold text-emerald-400">
+                    +{p.amount}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Payments */}
+      {activeTab === "Payments" && (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-foreground">
+              Payment History
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {paymentHistory.length} transactions
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {paymentHistory.map((p, i) => {
+              const paid = p.status === "Paid"
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-2xl bg-black/20 border border-border/30 px-4 py-4"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                        paid
+                          ? "bg-emerald-500/15 border-emerald-500/20"
+                          : "bg-yellow-500/15 border-yellow-500/20"
+                      }`}
+                    >
+                      {paid ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      ) : (
+                        <Clock3 className="w-5 h-5 text-yellow-400" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {p.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {p.date}
+                        {p.method ? ` • ${p.method}` : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-end flex-col gap-1">
+                    <div
+                      className={`text-sm font-semibold ${
+                        paid ? "text-emerald-400" : "text-yellow-400"
+                      }`}
+                    >
+                      {formatPhp(p.amountPhp)}
+                    </div>
+                    <span
+                      className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                        paid
+                          ? "text-emerald-300 border-emerald-500/20 bg-emerald-500/10"
+                          : "text-yellow-300 border-yellow-500/20 bg-yellow-500/10"
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Rewards */}
+      {activeTab === "Rewards" && (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-foreground">Rewards</p>
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <Award className="w-4 h-4" />
+              Redeem using MP
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {rewardsCatalog.map((r, i) => {
+              const Icon = r.icon
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-2xl bg-black/20 border border-border/30 px-4 py-4"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-border/30 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-white/80" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {r.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {r.subtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-end flex-col gap-2">
+                    <div className="text-sm font-semibold text-orange-400">
+                      {r.cost} MP
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!r.available}
+                      className={`text-[11px] px-3 py-1 rounded-full border transition ${
+                        r.available
+                          ? "text-white border-white/15 bg-white/10 hover:bg-white/15"
+                          : "text-white/40 border-white/10 bg-white/5 cursor-not-allowed"
+                      }`}
+                    >
+                      {r.available ? "Redeem" : "Unavailable"}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* If you still want the old "Coming Soon" style, keep this block instead of the catalog above */}
+          {/* <div className="mt-6 rounded-2xl bg-black/20 border border-border/30 p-8 text-center text-muted-foreground">
+            <div className="mx-auto w-14 h-14 rounded-full bg-white/5 border border-border/30 flex items-center justify-center mb-3">
+              <Zap className="w-6 h-6 text-white/60" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">Coming Soon</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rewards redemption feature is on the way!
+            </p>
+          </div> */}
+        </div>
+      )}
+
+      {/* Safety fallback (should never show) */}
+      {!tabs.includes(activeTab) && (
         <div className="p-6 text-muted-foreground text-sm flex items-center gap-2">
           <HelpCircle className="w-4 h-4" />
-          {activeTab} coming next…
+          Tab coming next…
         </div>
       )}
     </div>
