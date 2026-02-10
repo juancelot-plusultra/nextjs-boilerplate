@@ -15,7 +15,7 @@ type Slide = {
 const STORAGE_KEY = "bearfit_onboarded_v1";
 
 // after welcome, send them to your main app (root)
-const START_PAGE = "/";
+const START_PAGE = "/member/dashboard";
 
 // timings
 const DURATIONS_SECONDS = {
@@ -291,24 +291,24 @@ export default function WelcomePage() {
                   {slide.cta && (
                     <>
                       <button
-                        onClick={() => {
-                          resetIdle();
-                          setFaqOpen(true);
-                        }}
-                        className="mt-5 text-sm underline text-white/80"
-                      >
-                        No guesswork, just gains. Get the facts here
-                      </button>
+  onClick={() => {
+    resetIdle();
+    setFaqOpen(true);
+  }}
+  className="mt-5 text-sm underline text-white/80"
+>
+  No guesswork, just gains. Get the facts here
+</button>
 
-                      <button
-                        onClick={() => {
-                          resetIdle();
-                          completeOnboarding();
-                        }}
-                        className="mt-6 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                      >
-                        Get Started – Free Assessment
-                      </button>
+<button
+  onClick={() => {
+    resetIdle();
+    completeOnboarding();
+  }}
+  className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+>
+  Get Started – Free Assessment
+</button>
 
                       {/* Role preview buttons (Member/Staff/Leads/Admin) */}
                       <div className="mt-5 flex flex-wrap justify-center gap-2">
