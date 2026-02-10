@@ -1,5 +1,6 @@
 "use client"
 
+import { InfoTooltip } from "@/components/bearfit/info-tooltip"
 import { useMemo, useState } from "react"
 import {
   Activity,
@@ -284,17 +285,25 @@ export function ActivityLog() {
 
       {/* ✅ Points */}
       {activeTab === "Points" && (
-  <div className="relative p-6">
-    {/* Floating (?) like your screenshot */}
-    <button
-      type="button"
-      onClick={() => setShowPointsInfo(true)}
-      className="absolute right-6 top-24 w-8 h-8 rounded-full bg-white/5 border border-white/10 text-white/80 flex items-center justify-center hover:bg-white/10 transition"
-      aria-label="Points info"
-      title="Points info"
-    >
-      ?
-    </button>
+  <div className="relative">
+
+    {/* TOP-RIGHT ? (this is Step 2) */}
+    <div className="absolute top-4 right-4 z-10">
+      <InfoTooltip content="MP (Member Points) are earned through workouts, streaks, referrals, and promotions. Points reflect your engagement and progress at BearFit." />
+    </div>
+
+    {/* Existing Points UI — DO NOT REMOVE */}
+    <div className="p-6">
+      <p className="text-white/60 text-sm text-center">Total Points</p>
+      <p className="text-center text-4xl font-bold text-[#F37120]">
+        1,540 MP
+      </p>
+
+      {/* Your existing list goes here */}
+    </div>
+
+  </div>
+)}
 
     {/* Header / Total */}
     <div className="text-center">
