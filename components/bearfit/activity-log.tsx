@@ -283,7 +283,7 @@ export function ActivityLog() {
       )}
 
       {/* ✅ Points */}
-      {{activeTab === "Points" && (
+      {activeTab === "Points" && (
   <div className="relative p-6">
     {/* Floating (?) like your screenshot */}
     <button
