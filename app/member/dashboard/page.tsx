@@ -633,18 +633,7 @@ export default function BearfitApp() {
       {/* Desktop Layout - Sidebar Navigation */}
       <div className="hidden lg:flex">
         {/* Desktop Sidebar */}
-        <aside className="w-64 h-screen sticky top-0 bg-[#0d0d0d] border-r border-border/30 flex flex-col">
-          {/* Logo */}
-<div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
-  <div className="flex items-center gap-3">
-    <Image
-  src="/brand/Bearfit-Logo-v2.png"
-  alt="BearFit Logo"
-  width={120}
-  height={120}
-  priority
-  className="block"
-/>
+        
     </div>
   </div>
 
@@ -720,18 +709,14 @@ export default function BearfitApp() {
             onOpenChat={() => setShowChat(true)} 
             onOpenNotifications={() => setShowNotifications(true)}
             activeRole={activeRole}
-            onRoleChange={handleRoleChange}
+  onRoleChange={setActiveRole}
+  logoSize="lg"
           />
           <div className="px-6 py-4 max-w-5xl mx-auto">
             {/* Member View - Desktop */}
             {activeRole === "Member" && (
               <>
-                {/* Welcome */}
-<div className="flex items-center gap-2 mb-4">
-  <User className="w-5 h-5 text-muted-foreground" />
-  <span className="text-muted-foreground">Welcome,</span>
-  <span className="font-bold text-foreground">Alex</span>
-</div>
+              
 
                 {activeTab === "home" && (
                   <div className="space-y-5">
