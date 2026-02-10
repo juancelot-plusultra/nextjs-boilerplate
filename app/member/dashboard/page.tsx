@@ -647,7 +647,6 @@ export default function BearfitApp() {
 />
     </div>
   </div>
-</div>
 
           {/* Role Tabs */}
           <div className="p-4">
