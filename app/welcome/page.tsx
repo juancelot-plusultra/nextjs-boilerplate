@@ -292,15 +292,13 @@ export default function WelcomePage() {
                     <>
                       <button
   onClick={() => {
-    resetIdle();
-    setFaqOpen(true);
+    resetIdle()
+    setFaqOpen(true)
   }}
-  className="mt-5 text-sm underline text-white/80"
+  className="mt-5 text-sm underline text-white/80 whitespace-nowrap inline-flex"
 >
   No guesswork, just gains. Get the facts here
 </button>
-
-<button
   onClick={() => {
     resetIdle();
     completeOnboarding();
@@ -311,21 +309,20 @@ export default function WelcomePage() {
 </button>
 
                       {/* Role preview buttons (Member/Staff/Leads/Admin) */}
-                      <div className="mt-5 flex flex-wrap justify-center gap-2">
-                        {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => {
-                              resetIdle();
-                              goToRole(role);
-                            }}
-                            className="rounded-full bg-white/10 hover:bg-white/15 px-4 py-2 text-sm font-semibold text-white"
-                          >
-                            {role} View
-                          </button>
-                        ))}
-                      </div>
+                      <div className="mt-4 flex justify-center">
+  <button
+    type="button"
+    onClick={() => {
+      resetIdle()
+      // optional: store a default role for preview
+      localStorage.setItem("bearfit_preview_role", "Member")
+      window.location.href = "/member/dashboard"
+    }}
+    className="rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+  >
+    Dashboard Sample
+  </button>
+</div>
                     </>
                   )}
                 </div>
@@ -481,7 +478,7 @@ export default function WelcomePage() {
                 resetIdle();
                 setFaqOpen(false);
               }}
-              className="mt-6 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
+              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
             >
               Close
             </button>
