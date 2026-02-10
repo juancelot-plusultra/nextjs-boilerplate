@@ -18,7 +18,7 @@ import {
 const tabs = ["Activity Log", "Points", "Payments", "Rewards"] as const
 type Tab = (typeof tabs)[number]
 
-const activities = [
+ activities = [
   {
     title: "Weights Session",
     subtitle: "1 Session Used",
@@ -182,6 +182,7 @@ function formatPhp(n: number) {
 
 export function ActivityLog() {
   const [activeTab, setActiveTab] = useState<Tab>("Activity Log")
+  const [showPointsInfo, setShowPointsInfo] = useState(false)
 
   const totalPoints = useMemo(
     () => pointsLedger.reduce((sum, x) => sum + x.amount, 0),
@@ -282,54 +283,147 @@ export function ActivityLog() {
       )}
 
       {/* ✅ Points */}
-      {activeTab === "Points" && (
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">Total Points</p>
-            <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <HelpCircle className="w-4 h-4" />
+      {{activeTab === "Points" && (
+  <div className="relative p-6">
+    {/* Floating (?) like your screenshot */}
+    <button
+      type="button"
+      onClick={() => setShowPointsInfo(true)}
+      className="absolute right-6 top-24 w-8 h-8 rounded-full bg-white/5 border border-white/10 text-white/80 flex items-center justify-center hover:bg-white/10 transition"
+      aria-label="Points info"
+      title="Points info"
+    >
+      ?
+    </button>
+
+    {/* Header / Total */}
+    <div className="text-center">
+      <p className="text-xs text-muted-foreground">Total Points</p>
+      <div className="mt-2 text-[42px] sm:text-[46px] leading-none font-extrabold text-orange-500">
+        {totalPoints.toLocaleString("en-US")} MP
+      </div>
+    </div>
+
+    {/* Ledger list (matches screenshot rows) */}
+    <div className="mt-6 space-y-3">
+      {pointsLedger.map((p, i) => {
+        const Icon = p.icon
+        return (
+          <div
+            key={i}
+            className="flex items-center justify-between rounded-2xl bg-black/20 border border-border/30 px-4 py-4"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">
+                  {p.title}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {p.subtitle}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-sm font-semibold text-emerald-400">
+              +{p.amount}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+
+    {/* Info modal */}
+    {showPointsInfo && (
+      <div className="fixed inset-0 z-[80]">
+        <div
+          className="absolute inset-0 bg-black/70"
+          onClick={() => setShowPointsInfo(false)}
+        />
+        <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[#111] border border-white/10 shadow-2xl">
+          <div className="p-5 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/20 flex items-center justify-center">
+                <span className="text-orange-400 font-bold">MP</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Points (MP)</p>
+                <p className="text-xs text-white/60">
+                  How you earn & use points in BearFit
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPointsInfo(false)}
+              className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="p-5 space-y-4 text-sm">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="font-semibold text-white">What are MP?</p>
+              <p className="mt-1 text-white/70 text-sm leading-relaxed">
+                MP (Member Points) are rewards you earn by completing workouts,
+                being consistent, and participating in gym activities.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="font-semibold text-white">How to earn</p>
+              <ul className="mt-2 space-y-2 text-white/70 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Workout completed: <span className="text-white/90">+50 MP</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  7-day streak bonus: <span className="text-white/90">+100 MP</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Referral bonus: <span className="text-white/90">+200 MP</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="font-semibold text-white">How to use</p>
+              <p className="mt-1 text-white/70 text-sm leading-relaxed">
+                Redeem MP for perks like free sessions, discounts, or merch.
+                (You’ll see these under the <span className="text-white/90">Rewards</span> tab.)
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="font-semibold text-white">Notes</p>
+              <p className="mt-1 text-white/70 text-sm leading-relaxed">
+                Points are demo values for now. Once we connect Supabase, this modal
+                can show your real rules per branch/package.
+              </p>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-black/20 border border-border/30 p-5 mb-5 text-center">
-            <div className="text-[44px] leading-none font-extrabold text-orange-500">
-              {totalPoints.toLocaleString("en-US")} MP
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {pointsLedger.map((p, i) => {
-              const Icon = p.icon
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-2xl bg-black/20 border border-border/30 px-4 py-4"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`w-10 h-10 rounded-xl ${p.iconBg} flex items-center justify-center border border-emerald-500/20`}
-                    >
-                      <Icon className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {p.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {p.subtitle}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-sm font-semibold text-emerald-400">
-                    +{p.amount}
-                  </div>
-                </div>
-              )
-            })}
+          <div className="p-5 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowPointsInfo(false)}
+              className="w-full rounded-full bg-white/10 hover:bg-white/15 border border-white/10 text-white font-semibold py-3 transition"
+            >
+              Got it
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
+  </div>
+)}
 
       {/* ✅ Payments */}
       {activeTab === "Payments" && (
