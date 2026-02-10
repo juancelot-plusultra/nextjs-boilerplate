@@ -18,7 +18,7 @@ import {
 const tabs = ["Activity Log", "Points", "Payments", "Rewards"] as const
 type Tab = (typeof tabs)[number]
 
- activities = [
+ const activities = [
   {
     title: "Weights Session",
     subtitle: "1 Session Used",
