@@ -324,7 +324,7 @@ export default function WelcomePage() {
     Dashboard Sample
   </button>
 </div>
-                    </>
+          
                   )}
                 </div>
               </div>
