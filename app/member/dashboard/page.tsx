@@ -637,24 +637,41 @@ export default function BearfitApp() {
     </div>
   </div>
 
-          {/* Role Tabs */}
-          <div className="p-4">
-            <div className="flex items-center bg-secondary rounded-xl p-1">
-              {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleChange(role)}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    activeRole === role
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
+         {/* Logo (single, big, no "container" look) */}
+<div className="px-6 pt-6 pb-5 border-b border-border/30">
+  <Image
+    src="/brand/Bearfit-Logo-v2.png"
+    alt="BearFit Logo"
+    width={260}
+    height={70}
+    priority
+    className="h-10 w-auto object-contain"
+  />
+</div>
+
+{/* Role Tabs */}
+<div className="p-4">
+  <div className="flex items-center bg-secondary rounded-xl p-1">
+    {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => {
+      const isActive = role === activeRole
+      return (
+        <button
+          key={role}
+          type="button"
+          onClick={() => setActiveRole(role)}
+          className={[
+            "px-3 py-1.5 rounded-lg text-xs font-semibold transition",
+            isActive
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          ].join(" ")}
+        >
+          {role}
+        </button>
+      )
+    })}
+  </div>
+</div>
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-2">
