@@ -289,43 +289,45 @@ export default function WelcomePage() {
 
                   {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
                   {slide.cta && (
-                    <>
-                      <button
-  onClick={() => {
-    resetIdle()
-    setFaqOpen(true)
-  }}
-  className="mt-5 text-sm underline text-white/80 whitespace-nowrap inline-flex"
->
-  No guesswork, just gains. Get the facts here
-<button
-  type="button"
-  onClick={() => {
-    resetIdle()
-    window.location.href = "/member/dashboard"
-  }}
-  className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
->
-  Get Started – Free Assessment
-</button>
+  <div className="mt-6 flex flex-col items-center">
+    {/* FAQ trigger */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        setFaqOpen(true);
+      }}
+      className="text-sm underline text-white/80 whitespace-nowrap"
+    >
+      No guesswork, just gains. Get the facts here
+    </button>
 
-                      {/* Role preview buttons (Member/Staff/Leads/Admin) */}
-                      <div className="mt-4 flex justify-center">
-  <button
-    type="button"
-    onClick={() => {
-      resetIdle()
-      // optional: store a default role for preview
-      localStorage.setItem("bearfit_preview_role", "Member")
-      window.location.href = "/member/dashboard"
-    }}
-    className="rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
-  >
-    Dashboard Sample
-  </button>
-</div>
-          
-                  )}
+    {/* Main CTA */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+    >
+      Get Started – Free Assessment
+    </button>
+
+    {/* Dashboard sample */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        localStorage.setItem("bearfit_preview_role", "Member");
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+    >
+      Dashboard Sample
+    </button>
+  </div>
+)}
                 </div>
               </div>
             </div>
