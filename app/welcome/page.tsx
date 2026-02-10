@@ -282,35 +282,52 @@ export default function WelcomePage() {
                   )}
 
                   {/* CTA slide: FAQ + start button */}
-                  {slide.cta && (
-                    <>
-                      <button
-                        onClick={() => {
-                          resetIdle();
-                          setFaqOpen(true);
-                        }}
-                        className="mt-5 text-sm underline text-white/80"
-                      >
-                        No guesswork, just gains. Get the facts here
-                      </button>
+{slide.cta && (
+  <>
+    <button
+      onClick={() => {
+        resetIdle()
+        setFaqOpen(true)
+      }}
+      className="mt-5 text-sm underline text-white/80"
+    >
+      No guesswork, just gains. Get the facts here
+    </button>
 
-                      <button
-                        onClick={() => {
-                          resetIdle();
-                          completeOnboarding();
-                        }}
-                        className="mt-6 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                      >
-                        Get Started – Free Assessment
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+    <button
+      onClick={() => {
+        resetIdle()
+        completeOnboarding()
+      }}
+      className="mt-6 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+    >
+      Get Started – Free Assessment
+    </button>
+
+    {/* NEW: Preview roles (Member/Staff/Leads/Admin) */}
+    <div className="mt-4 w-full sm:w-[420px]">
+      <div className="text-xs text-white/70 mb-2">Preview View</div>
+      <div className="grid grid-cols-2 gap-2">
+        {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => (
+          <button
+            key={role}
+            type="button"
+            onClick={() => {
+              resetIdle()
+              // optional: save your chosen view
+              localStorage.setItem("bearfit_preview_role", role)
+              // go to your main app view
+              window.location.href = "/member/dashboard"
+            }}
+            className="rounded-full bg-white/10 hover:bg-white/15 px-4 py-2 text-sm font-semibold text-white"
+          >
+            {role} View
+          </button>
+        ))}
       </div>
+    </div>
+  </>
+)}
 
       {/* Bottom controls */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
