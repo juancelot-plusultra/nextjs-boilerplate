@@ -302,7 +302,6 @@ export function ActivityLog() {
       {/* Your existing list goes here */}
     </div>
 
-  </div>
 )}
 
     {/* Header / Total */}
