@@ -636,15 +636,16 @@ export default function BearfitApp() {
         <aside className="w-64 h-screen sticky top-0 bg-[#0d0d0d] border-r border-border/30 flex flex-col">
           {/* Logo */}
 <div className="p-5 bg-gradient-to-r from-orange-500/10 to-transparent">
-  <div className="flex items-center gap-2 shrink-0">
-    <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-      <Image src="/brand/Bearfit-Logo-v2.png" alt="BearFitPH Logo" width={40} height={40} priority />
-    </div>
-
-    {/* OPTIONAL: remove this text block if you want logo only */}
-    <div className="flex flex-col leading-none">
-      <span className="text-foreground font-semibold tracking-tight">BEARFIT</span>
-      <span className="text-[9px] text-primary/70">Better fitness.</span>
+  <div className="flex items-center gap-3">
+    <div className="relative w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-secondary/70 ring-1 ring-white/10">
+      <Image
+        src="/brand/Bearfit-Logo-v2.png"
+        alt="BearFitPH Logo"
+        fill
+        priority
+        sizes="96px"
+        className="object-contain"
+      />
     </div>
   </div>
 </div>
