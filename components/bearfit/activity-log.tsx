@@ -4,15 +4,20 @@ import { useMemo, useState } from "react"
 import {
   Activity,
   Award,
+  BadgeCheck,
   CreditCard,
   Flame,
+  Gift,
+  HelpCircle,
   Heart,
   RefreshCw,
+  Star,
+  Ticket,
+  Trophy,
+  X,
   Zap,
-  HelpCircle,
   CheckCircle2,
   Clock3,
-  X,
 } from "lucide-react"
 
 const tabs = ["Activity Log", "Points", "Payments", "Rewards"] as const
@@ -91,7 +96,6 @@ type PointsRow = {
   id: string
   title: string
   subtitle: string
-  dateLabel: string
   points: number
   icon: any
   iconBg: string
@@ -110,10 +114,22 @@ type PaymentRow = {
   detail: string
 }
 
+type RewardRow = {
+  id: string
+  title: string
+  subtitle: string
+  cost: number
+  tag: string
+  tagTone: "orange" | "green" | "blue" | "neutral"
+  icon: any
+  iconBg: string
+  detail: string
+}
+
 export function ActivityLog() {
   const [activeTab, setActiveTab] = useState<Tab>("Activity Log")
 
-  // Info modal: supports top-right (?) and per-row (?) details
+  // Info modal for all (?) buttons
   const [infoOpen, setInfoOpen] = useState(false)
   const [infoTitle, setInfoTitle] = useState("")
   const [infoBody, setInfoBody] = useState("")
@@ -129,35 +145,32 @@ export function ActivityLog() {
       {
         id: "p1",
         title: "Workout Completed",
-        subtitle: "Today",
-        dateLabel: "Today",
+        subtitle: "Awarded after finishing a session",
         points: 50,
         icon: Zap,
         iconBg: "bg-emerald-600",
         detail:
-          "Awarded for completing a tracked workout session. Points are added after the session is marked complete.",
+          "You earned points for completing a logged workout session. Points are added after the session is marked complete.",
       },
       {
         id: "p2",
         title: "7-Day Streak Bonus",
-        subtitle: "Yesterday",
-        dateLabel: "Yesterday",
+        subtitle: "Consistency reward",
         points: 110,
         icon: Flame,
         iconBg: "bg-amber-600",
         detail:
-          "Streak bonus for maintaining consistent attendance. Streak resets if no logged activity occurs within the streak window.",
+          "Streak bonus for maintaining a 7-day activity streak. Streak resets if no qualifying activity is logged within the window.",
       },
       {
         id: "p3",
         title: "Referral Bonus",
-        subtitle: "Jan 28",
-        dateLabel: "Jan 28",
+        subtitle: "Invited a new member",
         points: 200,
         icon: Award,
         iconBg: "bg-sky-600",
         detail:
-          "Referral bonus granted after the referred member completes their first confirmed session/package.",
+          "Referral points are granted after the referred member completes their first verified session or package purchase.",
       },
     ],
     []
@@ -180,7 +193,7 @@ export function ActivityLog() {
         icon: CheckCircle2,
         iconBg: "bg-emerald-700/40",
         detail:
-          "Renewal payment confirmed. Package sessions were added to your balance.",
+          "Renewal payment confirmed. Package sessions were added to your balance and reflected on your profile.",
       },
       {
         id: "pay2",
@@ -192,7 +205,7 @@ export function ActivityLog() {
         icon: CheckCircle2,
         iconBg: "bg-emerald-700/40",
         detail:
-          "Single-session payment confirmed. Session can be scheduled anytime within gym hours.",
+          "Single-session payment confirmed. You can schedule the PT session anytime within gym operating hours.",
       },
       {
         id: "pay3",
@@ -204,7 +217,7 @@ export function ActivityLog() {
         icon: Clock3,
         iconBg: "bg-amber-700/35",
         detail:
-          "Pending means we haven't confirmed the payment yet. If you already paid, please wait for verification or message the staff.",
+          "Pending means payment is not yet verified. If you've already paid, wait for confirmation or message staff with proof.",
       },
       {
         id: "pay4",
@@ -216,17 +229,112 @@ export function ActivityLog() {
         icon: CheckCircle2,
         iconBg: "bg-emerald-700/40",
         detail:
-          "Upgrade confirmed. Your membership package was updated and sessions reflected in your account.",
+          "Upgrade confirmed. Your membership plan was updated and sessions were credited to your account.",
       },
     ],
     []
   )
 
-  const paymentsCount = paymentsRows.length
+  const rewardsRows: RewardRow[] = useMemo(
+    () => [
+      {
+        id: "r1",
+        title: "Free 1 Session",
+        subtitle: "Redeemable perk",
+        cost: 300,
+        tag: "Most popular",
+        tagTone: "orange",
+        icon: Ticket,
+        iconBg: "bg-orange-600",
+        detail:
+          "Redeem 1 free session. Once redeemed, staff will verify and add a free session credit to your account.",
+      },
+      {
+        id: "r2",
+        title: "10% Off Renewal",
+        subtitle: "For package renewal",
+        cost: 450,
+        tag: "Best value",
+        tagTone: "green",
+        icon: BadgeCheck,
+        iconBg: "bg-emerald-600",
+        detail:
+          "Applies to your next renewal only. Cannot be combined with other promos unless stated by staff.",
+      },
+      {
+        id: "r3",
+        title: "BearFit Merch",
+        subtitle: "Limited items",
+        cost: 700,
+        tag: "Limited",
+        tagTone: "blue",
+        icon: Gift,
+        iconBg: "bg-sky-600",
+        detail:
+          "Redeem for select merch items (subject to availability). Staff will contact you for size/options.",
+      },
+      {
+        id: "r4",
+        title: "VIP Priority Slot",
+        subtitle: "Priority scheduling perk",
+        cost: 900,
+        tag: "Premium",
+        tagTone: "neutral",
+        icon: Trophy,
+        iconBg: "bg-white/10",
+        detail:
+          "Get priority on peak-hour scheduling for a limited period. Staff will activate the perk after redemption.",
+      },
+      {
+        id: "r5",
+        title: "Top Member Badge",
+        subtitle: "Profile badge",
+        cost: 250,
+        tag: "Cosmetic",
+        tagTone: "neutral",
+        icon: Star,
+        iconBg: "bg-white/10",
+        detail:
+          "Adds a badge on your profile for recognition. Badge stays active until the next reset cycle.",
+      },
+      {
+        id: "r6",
+        title: "On Fire Badge",
+        subtitle: "Streak badge",
+        cost: 250,
+        tag: "Cosmetic",
+        tagTone: "orange",
+        icon: Flame,
+        iconBg: "bg-orange-600",
+        detail:
+          "Adds an 'On Fire' badge on your profile. Best paired with streak bonuses and active attendance.",
+      },
+      {
+        id: "r7",
+        title: "On Target Badge",
+        subtitle: "Goal tracker badge",
+        cost: 250,
+        tag: "Cosmetic",
+        tagTone: "green",
+        icon: Award,
+        iconBg: "bg-emerald-600",
+        detail:
+          "Adds an 'On Target' badge on your profile. Used to highlight consistent progress toward goals.",
+      },
+    ],
+    []
+  )
+
+  const toneClass = (tone: RewardRow["tagTone"]) => {
+    if (tone === "orange") return "bg-orange-500/15 text-orange-300 border-orange-500/20"
+    if (tone === "green") return "bg-emerald-500/15 text-emerald-300 border-emerald-500/20"
+    if (tone === "blue") return "bg-sky-500/15 text-sky-300 border-sky-500/20"
+    return "bg-white/10 text-white/70 border-white/10"
+  }
 
   return (
     <div className="mt-4 mx-4 bg-[#1a1a1a] rounded-2xl overflow-hidden border border-border/50">
-      {/* ✅ Tabs (Evenly Spread) */}
+      {/* Tabs (even width) */}
       <div className="grid grid-cols-4 border-b border-border/50">
         {tabs.map((tab) => (
           <button
@@ -247,10 +355,9 @@ export function ActivityLog() {
         ))}
       </div>
 
-      {/* ✅ Activity Log Table */}
+      {/* Activity Log */}
       {activeTab === "Activity Log" && (
         <div className="overflow-x-auto">
-          {/* HEADER */}
           <div className="min-w-[720px] lg:min-w-0 w-full grid grid-cols-12 px-6 py-3 text-[11px] border-b border-border/30">
             <span className="col-span-6 text-primary font-semibold">
               Transactions
@@ -266,7 +373,6 @@ export function ActivityLog() {
             </span>
           </div>
 
-          {/* ROWS */}
           <div className="divide-y divide-border/20">
             {activities.map((activity, index) => {
               const Icon = activity.icon
@@ -275,7 +381,6 @@ export function ActivityLog() {
                   key={index}
                   className="min-w-[720px] lg:min-w-0 w-full grid grid-cols-12 items-center gap-3 px-6 py-4"
                 >
-                  {/* Transaction */}
                   <div className="col-span-6 flex items-center gap-3 min-w-0">
                     <div
                       className={`w-10 h-10 rounded-xl ${activity.iconBg} flex items-center justify-center shrink-0`}
@@ -293,17 +398,14 @@ export function ActivityLog() {
                     </div>
                   </div>
 
-                  {/* Details */}
                   <div className="col-span-2 text-xs text-muted-foreground text-center">
                     {activity.details}
                   </div>
 
-                  {/* Time */}
                   <div className="col-span-2 text-xs text-muted-foreground text-center">
                     {activity.time}
                   </div>
 
-                  {/* Balance */}
                   <div
                     className={`col-span-2 text-sm font-semibold ${activity.balanceColor} text-right`}
                   >
@@ -317,16 +419,15 @@ export function ActivityLog() {
         </div>
       )}
 
-      {/* ✅ Points (like your screenshot) */}
+      {/* Points */}
       {activeTab === "Points" && (
         <div className="relative p-6">
-          {/* Floating (?) top-right */}
           <button
             type="button"
             onClick={() =>
               openInfo(
                 "Points (MP)",
-                "MP = Member Points. You earn points from workouts, streaks, and promos. Points can later be used for rewards and perks."
+                "MP = Member Points. You earn points from workouts, streaks, referrals, and promos. Points can be used for rewards and perks."
               )
             }
             className="absolute right-5 top-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center"
@@ -335,7 +436,6 @@ export function ActivityLog() {
             <HelpCircle className="w-5 h-5 text-white/70" />
           </button>
 
-          {/* Header / Total */}
           <div className="text-center">
             <div className="text-xs text-white/60">Total Points</div>
             <div className="mt-1 text-4xl font-extrabold text-[#F37120] tracking-tight">
@@ -343,7 +443,6 @@ export function ActivityLog() {
             </div>
           </div>
 
-          {/* List */}
           <div className="mt-6 space-y-3">
             {pointsRows.map((row) => {
               const Icon = row.icon
@@ -370,7 +469,6 @@ export function ActivityLog() {
                       +{row.points}
                     </div>
 
-                    {/* Row (?) on the right like your screenshot */}
                     <button
                       type="button"
                       onClick={() => openInfo(row.title, row.detail)}
@@ -387,16 +485,16 @@ export function ActivityLog() {
         </div>
       )}
 
-      {/* ✅ Payments (like your screenshot) */}
+      {/* Payments */}
       {activeTab === "Payments" && (
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-base font-semibold text-white">
-                Payment History
-              </div>
+            <div className="text-base font-semibold text-white">
+              Payment History
             </div>
-            <div className="text-xs text-white/60">{paymentsCount} transactions</div>
+            <div className="text-xs text-white/60">
+              {paymentsRows.length} transactions
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -424,6 +522,7 @@ export function ActivityLog() {
                     <div className={`text-sm font-semibold ${row.statusColor}`}>
                       {row.amount}
                     </div>
+
                     <div className="mt-1 inline-flex items-center gap-2 justify-end">
                       <span
                         className={`text-[10px] px-2 py-1 rounded-full border border-white/10 ${
@@ -435,7 +534,6 @@ export function ActivityLog() {
                         {row.status}
                       </span>
 
-                      {/* Row (?) */}
                       <button
                         type="button"
                         onClick={() => openInfo(row.title, row.detail)}
@@ -453,22 +551,101 @@ export function ActivityLog() {
         </div>
       )}
 
-      {/* ✅ Rewards (keep “Coming Soon” like your screenshot) */}
+      {/* Rewards (POPULATED) */}
       {activeTab === "Rewards" && (
-        <div className="p-8 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-            <Zap className="w-7 h-7 text-white/60" />
+        <div className="relative p-6">
+          <button
+            type="button"
+            onClick={() =>
+              openInfo(
+                "Rewards",
+                "Redeem rewards using MP points. Some rewards are limited and require staff verification after redemption."
+              )
+            }
+            className="absolute right-5 top-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center"
+            aria-label="Rewards info"
+          >
+            <HelpCircle className="w-5 h-5 text-white/70" />
+          </button>
+
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-base font-semibold text-white">Rewards</div>
+              <div className="text-xs text-white/60">
+                Choose what to redeem with your MP
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-white/70">
+              <CreditCard className="w-4 h-4" />
+              Use MP
+            </div>
           </div>
-          <div className="mt-3 text-base font-semibold text-white/80">
-            Coming Soon
+
+          <div className="mt-5 space-y-3">
+            {rewardsRows.map((row) => {
+              const Icon = row.icon
+              return (
+                <div
+                  key={row.id}
+                  className="flex items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-4 py-4"
+                >
+                  <div
+                    className={`w-11 h-11 rounded-2xl ${row.iconBg} flex items-center justify-center shrink-0 border border-white/10`}
+                  >
+                    <Icon className="w-5 h-5 text-white/80" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-semibold text-white truncate">
+                        {row.title}
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full border ${toneClass(
+                          row.tagTone
+                        )}`}
+                      >
+                        {row.tag}
+                      </span>
+                    </div>
+                    <div className="text-xs text-white/60">{row.subtitle}</div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-[#F37120]">
+                        {row.cost} MP
+                      </div>
+                      <div className="text-[10px] text-white/50">cost</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openInfo(row.title, row.detail)}
+                      className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center"
+                      aria-label={`${row.title} info`}
+                    >
+                      <HelpCircle className="w-4 h-4 text-white/60" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-          <div className="mt-1 text-sm text-white/50">
-            Rewards redemption feature is on the way!
+
+          <div className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-4">
+            <div className="text-sm font-semibold text-white">
+              Redemption Notes
+            </div>
+            <div className="mt-1 text-xs text-white/60 leading-relaxed">
+              After redemption, a staff member may verify and apply the reward to
+              your account. Limited rewards depend on availability.
+            </div>
           </div>
         </div>
       )}
 
-      {/* ✅ Info Modal */}
+      {/* Info Modal */}
       {infoOpen && (
         <div className="fixed inset-0 z-[80]">
           <div
