@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { Header, DesktopHeader } from "@/components/bearfit/header"
 
 export type Role = "Member" | "Staff" | "Leads" | "Admin"
 
