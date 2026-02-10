@@ -298,10 +298,11 @@ export default function WelcomePage() {
   className="mt-5 text-sm underline text-white/80 whitespace-nowrap inline-flex"
 >
   No guesswork, just gains. Get the facts here
-</button>
+<button
+  type="button"
   onClick={() => {
-    resetIdle();
-    completeOnboarding();
+    resetIdle()
+    window.location.href = "/member/dashboard"
   }}
   className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
 >
