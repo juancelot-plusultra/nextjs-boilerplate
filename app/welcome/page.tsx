@@ -327,7 +327,6 @@ export default function WelcomePage() {
       </div>
     </div>
   </>
-)}
 
       {/* Bottom controls */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
