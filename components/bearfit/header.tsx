@@ -1,11 +1,20 @@
 "use client"
 
 import Image from "next/image"
-import clsx from "clsx"
 
-type HeaderProps = {
+export type Role = "Member" | "Staff" | "Leads" | "Admin"
+
+export type HeaderProps = {
   logoSrc?: string
   logoAlt?: string
+
+  // optional: if you still use these in page.tsx
+  onOpenChat?: () => void
+  onOpenNotifications?: () => void
+  activeRole?: Role
+  onRoleChange?: (role: Role) => void
+
+  // optional: hide the BEARFIT text if you want logo-only
   showText?: boolean
 }
 
@@ -13,11 +22,15 @@ function LogoBlock({
   logoSrc = "/brand/Bearfit-Logo-v2.png",
   logoAlt = "BearFit Logo",
   showText = true,
-}: HeaderProps) {
+}: {
+  logoSrc?: string
+  logoAlt?: string
+  showText?: boolean
+}) {
   return (
     <div className="flex items-center gap-3 shrink-0">
-      {/* Logo container — FIXED SIZE */}
-      <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-secondary">
+      {/* FIXED logo size across all screen sizes */}
+      <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden bg-secondary">
         <Image
           src={logoSrc}
           alt={logoAlt}
@@ -28,56 +41,55 @@ function LogoBlock({
         />
       </div>
 
-      {/* Text — FIXED SIZE (does NOT scale down) */}
       {showText && (
         <div className="leading-tight">
           <span className="block text-2xl font-extrabold tracking-wide text-foreground">
             BEARFIT
           </span>
-          <span className="block text-sm text-muted-foreground">
-            Better fitness.
-          </span>
+          <span className="block text-sm text-muted-foreground">Better fitness.</span>
         </div>
       )}
     </div>
   )
 }
 
-export function DesktopHeader({
+function RightIcons() {
+  // keep simple placeholders so you don't break layout
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-10 h-10 rounded-full bg-secondary" />
+      <div className="w-10 h-10 rounded-full bg-secondary" />
+    </div>
+  )
+}
+
+/**
+ * ✅ IMPORTANT:
+ * Your app/page.tsx imports { Header, DesktopHeader }
+ * So we export `Header` (mobile) + `DesktopHeader` (desktop).
+ */
+export function Header({
   logoSrc,
   logoAlt,
-}: {
-  logoSrc?: string
-  logoAlt?: string
-}) {
+  showText = true,
+}: HeaderProps) {
   return (
-    <header className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-border bg-background">
-      <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} />
-
-      <div className="flex items-center gap-3">
-        {/* notifications / profile placeholders */}
-        <div className="w-10 h-10 rounded-full bg-secondary" />
-        <div className="w-10 h-10 rounded-full bg-secondary" />
-      </div>
+    <header className="w-full flex items-center justify-between px-4 py-3 border-b border-border bg-background">
+      <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} showText={showText} />
+      <RightIcons />
     </header>
   )
 }
 
-export function MobileHeader({
+export function DesktopHeader({
   logoSrc,
   logoAlt,
-}: {
-  logoSrc?: string
-  logoAlt?: string
-}) {
+  showText = true,
+}: HeaderProps) {
   return (
-    <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-border bg-background">
-      <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} />
-
-      <div className="flex items-center gap-2">
-        <div className="w-9 h-9 rounded-full bg-secondary" />
-        <div className="w-9 h-9 rounded-full bg-secondary" />
-      </div>
+    <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border bg-background">
+      <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} showText={showText} />
+      <RightIcons />
     </header>
   )
 }
