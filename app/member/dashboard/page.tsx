@@ -727,11 +727,11 @@ export default function BearfitApp() {
             {activeRole === "Member" && (
               <>
                 {/* Welcome */}
-                <div className="flex items-center gap-2 mb-4">
-                  <User className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-muted-foreground">Welcome ,</span>
-                  <span className="font-bold text-foreground">Alex</span>
-                </div>
+<div className="flex items-center gap-2 mb-4">
+  <User className="w-5 h-5 text-muted-foreground" />
+  <span className="text-muted-foreground">Welcome,</span>
+  <span className="font-bold text-foreground">Alex</span>
+</div>
 
                 {activeTab === "home" && (
                   <div className="space-y-5">
