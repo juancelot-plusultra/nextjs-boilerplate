@@ -1,57 +1,79 @@
 "use client"
 
-import Image from "next/image"
-import { useState, useEffect } from "react"
-import { Header, DesktopHeader } from "@/components/bearfit/header"
-import { ProfileCard } from "@/components/bearfit/profile-card"
-import { SessionCard } from "@/components/bearfit/session-card"
-import { ActivityLog } from "@/components/bearfit/activity-log"
-import { PromoBanner } from "@/components/bearfit/promo-banner"
-import { SchedulePage } from "@/components/bearfit/schedule-page"
-import { PaymentPage } from "@/components/bearfit/payment-page"
-import { ProfilePage } from "@/components/bearfit/profile-page"
-import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
+import { useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
+import {
+  Home,
+  Calendar,
+  Users,
+  TrendingUp,
+  MoreHorizontal,
+  ClipboardList,
+  UserCog,
+  Settings,
+} from "lucide-react"
+
+/* ================================
+   SUPABASE CLIENT
+================================ */
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
-const [helpOpen, setHelpOpen] = useState(false)
-const [helpContent, setHelpContent] = useState<{
-  title: string
-  description: string
-} | null>(null)
 
-async function openHelp(key: string) {
-  const { data } = await supabase
-    .from("help_tooltips")
-    .select("title, description")
-    .eq("key", key)
-    .single()
+/* ================================
+   MAIN COMPONENT
+================================ */
 
-  if (data) {
-    setHelpContent(data)
-    setHelpOpen(true)
+export default function BearfitApp() {
+  /* ================================
+     STATE
+  ================================= */
+
+  const [activeRole, setActiveRole] = useState<
+    "Member" | "Staff" | "Leads" | "Admin"
+  >("Member")
+
+  const [helpOpen, setHelpOpen] = useState(false)
+
+  const [helpContent, setHelpContent] = useState<{
+    title: string
+    description: string
+  } | null>(null)
+
+  async function openHelp(key: string) {
+    const { data } = await supabase
+      .from("help_tooltips")
+      .select("title, description")
+      .eq("key", key)
+      .single()
+
+    if (data) {
+      setHelpContent(data)
+      setHelpOpen(true)
+    }
   }
-}
-// Member navigation
-const memberNavItems = [
-  { icon: Home, label: "Home", id: "home" },
-  { icon: Calendar, label: "Schedule", id: "schedule" },
-  { icon: CreditCard, label: "Payment", id: "payment" },
-  { icon: User, label: "Profile", id: "profile" },
-  { icon: MoreHorizontal, label: "More", id: "more" },
-]
 
-// Staff navigation
-const staffNavItems = [
-  { icon: Home, label: "Home", id: "home" },
-  { icon: Calendar, label: "Schedule", id: "schedule" },
-  { icon: Users, label: "Clients", id: "clients" },
-  { icon: TrendingUp, label: "Stats", id: "stats" },
-  { icon: MoreHorizontal, label: "More", id: "more" },
-]
+  /* ================================
+     NAV ITEMS
+  ================================= */
+
+  const memberNavItems = [
+    { icon: Home, label: "Dashboard", id: "dashboard" },
+    { icon: Calendar, label: "Schedule", id: "schedule" },
+    { icon: Users, label: "Community", id: "community" },
+    { icon: TrendingUp, label: "Progress", id: "progress" },
+    { icon: MoreHorizontal, label: "More", id: "more" },
+  ]
+
+  const staffNavItems = [
+    { icon: Home, label: "Dashboard", id: "dashboard" },
+    { icon: Calendar, label: "Schedule", id: "schedule" },
+    { icon: Users, label: "Clients", id: "clients" },
+    { icon: TrendingUp, label: "Stats", id: "stats" },
+    { icon: MoreHorizontal, label: "More", id: "more" },
+  ]
 
 // Leads navigation
 const leadsNavItems = [
