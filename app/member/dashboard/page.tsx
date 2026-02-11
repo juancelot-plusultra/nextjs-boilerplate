@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { useEffect, useMemo, useState } from "react"
+import Image from "next/image"
 import {
   Home,
   Calendar,
@@ -14,66 +14,17 @@ import {
 } from "lucide-react"
 
 /* ================================
-   SUPABASE CLIENT
+   NAV ITEMS
 ================================ */
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-/* ================================
-   MAIN COMPONENT
-================================ */
-
-export default function BearfitApp() {
-  /* ================================
-     STATE
-  ================================= */
-
-  const [activeRole, setActiveRole] = useState<
-    "Member" | "Staff" | "Leads" | "Admin"
-  >("Member")
-
-  const [helpOpen, setHelpOpen] = useState(false)
-
-  const [helpContent, setHelpContent] = useState<{
-    title: string
-    description: string
-  } | null>(null)
-
-  async function openHelp(key: string) {
-    const { data } = await supabase
-      .from("help_tooltips")
-      .select("title, description")
-      .eq("key", key)
-      .single()
-
-    if (data) {
-      setHelpContent(data)
-      setHelpOpen(true)
-    }
-  }
-
-  /* ================================
-     NAV ITEMS
-  ================================= */
-
-  const memberNavItems = [
-    { icon: Home, label: "Dashboard", id: "dashboard" },
-    { icon: Calendar, label: "Schedule", id: "schedule" },
-    { icon: Users, label: "Community", id: "community" },
-    { icon: TrendingUp, label: "Progress", id: "progress" },
-    { icon: MoreHorizontal, label: "More", id: "more" },
-  ]
-
-  const staffNavItems = [
-    { icon: Home, label: "Dashboard", id: "dashboard" },
-    { icon: Calendar, label: "Schedule", id: "schedule" },
-    { icon: Users, label: "Clients", id: "clients" },
-    { icon: TrendingUp, label: "Stats", id: "stats" },
-    { icon: MoreHorizontal, label: "More", id: "more" },
-  ]
+// Staff navigation
+const staffNavItems = [
+  { icon: Home, label: "Home", id: "home" },
+  { icon: Calendar, label: "Schedule", id: "schedule" },
+  { icon: Users, label: "Clients", id: "clients" },
+  { icon: TrendingUp, label: "Stats", id: "stats" },
+  { icon: MoreHorizontal, label: "More", id: "more" },
+]
 
 // Leads navigation
 const leadsNavItems = [
@@ -86,8 +37,18 @@ const leadsNavItems = [
 
 // Peso icon component
 const PesoIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <text x="6" y="18" fontSize="16" fontWeight="bold" fill="currentColor" stroke="none">â‚±</text>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <text x="6" y="18" fontSize="16" fontWeight="bold" fill="currentColor" stroke="none">
+      ₱
+    </text>
   </svg>
 )
 
@@ -99,6 +60,43 @@ const adminNavItems = [
   { icon: UserCog, label: "Staff", id: "staff" },
   { icon: Settings, label: "Settings", id: "settings" },
 ]
+
+/* ================================
+   ✅ RESTORED MISSING DECLARATION
+   (this is what your file LOST)
+================================ */
+const staffAttendance: Record<
+  number,
+  { present: boolean; timeIn?: string; timeOut?: string }
+> = {
+  1: { present: true, timeIn: "5:45 AM" },
+  2: { present: true, timeIn: "7:30 AM" },
+  3: { present: true, timeIn: "1:45 PM" },
+  4: { present: false },
+  5: { present: true, timeIn: "6:00 AM" },
+  6: { present: true, timeIn: "8:00 AM" },
+  7: { present: false },
+  8: { present: true, timeIn: "2:00 PM" },
+  9: { present: false },
+  10: { present: true, timeIn: "6:30 AM" },
+  11: { present: true, timeIn: "7:00 AM" },
+  12: { present: false },
+  13: { present: true, timeIn: "5:30 AM" },
+  14: { present: true, timeIn: "8:15 AM" },
+  15: { present: true, timeIn: "6:45 AM" },
+  17: { present: true, timeIn: "6:00 AM" },
+  18: { present: true, timeIn: "7:30 AM" },
+  19: { present: true, timeIn: "2:00 PM" },
+  20: { present: false },
+  21: { present: true, timeIn: "6:15 AM" },
+  22: { present: true, timeIn: "8:00 AM" },
+  24: { present: true, timeIn: "6:00 AM" },
+  25: { present: true, timeIn: "7:45 AM" },
+  26: { present: true, timeIn: "1:30 PM" },
+  27: { present: false },
+  28: { present: true, timeIn: "6:30 AM" },
+}
+  
 
 const chatMessages = [
   { id: 1, sender: "coach", name: "Coach Joaquin", message: "Great job on your workout today!", time: "2:30 PM" },
