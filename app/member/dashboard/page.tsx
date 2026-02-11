@@ -12,7 +12,24 @@ import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
+const [helpOpen, setHelpOpen] = useState(false)
+const [helpContent, setHelpContent] = useState<{
+  title: string
+  description: string
+} | null>(null)
 
+async function openHelp(key: string) {
+  const { data } = await supabase
+    .from("help_tooltips")
+    .select("title, description")
+    .eq("key", key)
+    .single()
+
+  if (data) {
+    setHelpContent(data)
+    setHelpOpen(true)
+  }
+}
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
