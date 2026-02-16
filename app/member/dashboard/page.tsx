@@ -22,7 +22,6 @@ export default function Dashboard() {
       // Get logged-in user
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
 
       if (!user) {
@@ -81,38 +80,51 @@ export default function Dashboard() {
   if (loading) return <div className="p-4 text-center">Loading your dashboard...</div>;
 
   // ======================
-  // Here is where you put your **existing UI components** exactly as you designed
-  // Replace placeholders like {profile.full_name}, {member.remaining_sessions}, etc.
+  // YOUR DESIGNED UI STARTS HERE
+  // Replace the JSX below with your full Tailwind layout
   // ======================
 
   return (
     <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Welcome, {profile?.full_name || 'Member'}</h1>
+
+      {/* Profile Header */}
+      <div className="flex items-center space-x-4">
+        <img
+          src={profile?.avatar_url || 'https://ui-avatars.com/api/?name=John+Philip+Gallana'}
+          alt="Avatar"
+          className="w-16 h-16 rounded-full"
+        />
+        <div>
+          <h1 className="text-2xl font-bold">{profile?.full_name || 'Member'}</h1>
+          <p className="text-gray-500">{member?.package_name}</p>
+        </div>
+      </div>
 
       {/* Membership Card */}
-      <div className="p-4 border rounded">
-        <h2 className="font-semibold">Membership</h2>
+      <div className="p-4 border rounded shadow-sm bg-white">
+        <h2 className="font-semibold text-lg">Membership</h2>
         <p>Package: {member?.package_name}</p>
+        <p>Total Sessions: {member?.total_sessions}</p>
         <p>Remaining Sessions: {member?.remaining_sessions}</p>
         <p>Status: {member?.membership_status}</p>
       </div>
 
       {/* Points Card */}
-      <div className="p-4 border rounded">
-        <h2 className="font-semibold">Rewards</h2>
+      <div className="p-4 border rounded shadow-sm bg-white">
+        <h2 className="font-semibold text-lg">Rewards & Points</h2>
         <p>Total Points: {points?.total_points}</p>
         <p>Lifetime Points: {points?.lifetime_points}</p>
         <p>Tier: {points?.tier}</p>
       </div>
 
       {/* Payments */}
-      <div className="p-4 border rounded">
-        <h2 className="font-semibold">Payments</h2>
+      <div className="p-4 border rounded shadow-sm bg-white">
+        <h2 className="font-semibold text-lg">Payment History</h2>
         {payments.length === 0 ? <p>No payments yet</p> : (
-          <ul>
+          <ul className="space-y-2">
             {payments.map(p => (
-              <li key={p.id}>
-                {p.stage} — {p.amount} — {p.status} ({p.payment_type})
+              <li key={p.id} className="border-b pb-1">
+                <span className="font-medium">{p.stage}</span> — {p.amount} — {p.status} ({p.payment_type})
               </li>
             ))}
           </ul>
@@ -120,13 +132,13 @@ export default function Dashboard() {
       </div>
 
       {/* Session Bookings */}
-      <div className="p-4 border rounded">
-        <h2 className="font-semibold">Sessions</h2>
-        {bookings.length === 0 ? <p>No sessions yet</p> : (
-          <ul>
+      <div className="p-4 border rounded shadow-sm bg-white">
+        <h2 className="font-semibold text-lg">Upcoming & Completed Sessions</h2>
+        {bookings.length === 0 ? <p>No sessions booked</p> : (
+          <ul className="space-y-2">
             {bookings.map(b => (
-              <li key={b.id}>
-                {b.title} — {b.session_type} — {b.status} — {new Date(b.starts_at).toLocaleString()}
+              <li key={b.id} className="border-b pb-1">
+                <span className="font-medium">{b.title}</span> — {b.session_type} — {b.status} — {new Date(b.starts_at).toLocaleString()}
               </li>
             ))}
           </ul>
