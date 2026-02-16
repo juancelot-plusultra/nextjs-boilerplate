@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-// import type { Database } from '@/lib/database.types'; // remove
+
 export default function Dashboard() {
-const supabase = createClientComponentClient();
+  const supabase = createClientComponentClient();
+
   const [userId, setUserId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<Database['public']['Tables']['profiles']['Row'] | null>(null);
-  const [member, setMember] = useState<Database['public']['Tables']['members']['Row'] | null>(null);
-  const [payments, setPayments] = useState<Database['public']['Tables']['payments']['Row'][]>([]);
-  const [bookings, setBookings] = useState<Database['public']['Tables']['session_bookings']['Row'][]>([]);
-  const [activity, setActivity] = useState<Database['public']['Tables']['activity_log']['Row'][]>([]);
-  const [points, setPoints] = useState<Database['public']['Tables']['points']['Row'] | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [member, setMember] = useState<any>(null);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [activity, setActivity] = useState<any[]>([]);
+  const [points, setPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Step 1: Get logged-in user UUID
@@ -31,63 +32,57 @@ const supabase = createClientComponentClient();
     async function fetchDashboardData() {
       setLoading(true);
 
-      // Fetch profile
+      // Profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
       if (profileError) console.error('Profile fetch error:', profileError);
       else setProfile(profileData);
 
-      // Fetch member main record
+      // Member
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
         .eq('id', userId)
         .single();
-
       if (memberError) console.error('Member fetch error:', memberError);
       else setMember(memberData);
 
-      // Fetch payments
+      // Payments
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payments')
         .select('*')
         .eq('member_id', userId)
         .order('payment_date', { ascending: false });
-
       if (paymentsError) console.error('Payments fetch error:', paymentsError);
       else setPayments(paymentsData || []);
 
-      // Fetch bookings
+      // Bookings
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('session_bookings')
         .select('*')
         .eq('member_id', userId)
         .order('session_date', { ascending: true });
-
       if (bookingsError) console.error('Bookings fetch error:', bookingsError);
       else setBookings(bookingsData || []);
 
-      // Fetch activity log
+      // Activity
       const { data: activityData, error: activityError } = await supabase
         .from('activity_log')
         .select('*')
         .eq('member_id', userId)
         .order('activity_date', { ascending: false });
-
       if (activityError) console.error('Activity fetch error:', activityError);
       else setActivity(activityData || []);
 
-      // Fetch points
+      // Points
       const { data: pointsData, error: pointsError } = await supabase
         .from('points')
         .select('*')
         .eq('member_id', userId)
         .single();
-
       if (pointsError) console.error('Points fetch error:', pointsError);
       else setPoints(pointsData);
 
