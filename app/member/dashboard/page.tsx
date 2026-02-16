@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+// Hardcoded test user ID for Juan Dela Cruz
+const TEST_USER_ID = '9bee38d3-7511-4603-a33c-1aa2031b53eb';
+
 export default function Dashboard() {
   const supabase = createClientComponentClient();
 
-  const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [member, setMember] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
@@ -16,16 +18,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDashboard = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user) {
-        console.log('No session or error', sessionError);
-        setLoading(false);
-        return;
-      }
-
-      const user_id = session.user.id;
-      setUserId(user_id);
+      const user_id = TEST_USER_ID;
 
       // Profile
       const { data: profileData } = await supabase
@@ -74,7 +67,6 @@ export default function Dashboard() {
   }, [supabase]);
 
   if (loading) return <p className="text-center mt-20 text-lg">Loading your dashboard...</p>;
-  if (!userId) return <p className="text-center mt-20 text-red-500">You must be logged in to view the dashboard.</p>;
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
