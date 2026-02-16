@@ -24,67 +24,64 @@ export default function Dashboard() {
   const [activity, setActivity] = useState<any[]>([]);
 
   useEffect(() => {
-    async function fetchDashboard() {
-      setLoading(true);
-      try {
-        const johnUID = "ec3652a2-2645-423a-9a07-fca29889ddb3";
+  const loadDashboard = async () => {
+    // get logged user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-        // Fetch member info
-        const { data: memberData } = await supabase
-          .from("members")
-          .select("*")
-          .eq("id", johnUID)
-          .single();
-        setMember(memberData);
+    if (!user) return
 
-        // Fetch profile info
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("member_id", johnUID)
-          .single();
-        setProfile(profileData);
+    const uid = user.id
 
-        // Fetch payments
-        const { data: paymentsData } = await supabase
-          .from("payments")
-          .select("*")
-          .eq("member_id", johnUID)
-          .order("payment_date", { ascending: false });
-        setPayments(paymentsData || []);
+    // PROFILE
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", uid)
+      .single()
 
-        // Fetch sessions
-        const { data: sessionsData } = await supabase
-          .from("session_bookings")
-          .select("*")
-          .eq("member_id", johnUID)
-          .order("session_date", { ascending: true });
-        setSessions(sessionsData || []);
+    setProfile(profileData)
 
-        // Fetch points
-        const { data: pointsData } = await supabase
-          .from("points")
-          .select("*")
-          .eq("member_id", johnUID)
-          .single();
-        setPoints(pointsData);
+    // MEMBER
+    const { data: memberData } = await supabase
+      .from("members")
+      .select("*")
+      .eq("id", uid)
+      .single()
 
-        // Fetch activity log
-        const { data: activityData } = await supabase
-          .from("activity_log")
-          .select("*")
-          .eq("member_id", johnUID)
-          .order("activity_date", { ascending: false });
-        setActivity(activityData || []);
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
+    setMember(memberData)
 
-    fetchDashboard();
-  }, []);
+    // SESSIONS
+    const { data: sessionsData } = await supabase
+      .from("session_bookings")
+      .select("*")
+      .eq("member_id", uid)
+      .order("start_time", { ascending: false })
+
+    setSessions(sessionsData || [])
+
+    // PAYMENTS
+    const { data: paymentsData } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("member_id", uid)
+      .order("created_at", { ascending: false })
+
+    setPayments(paymentsData || [])
+
+    // ACTIVITY
+    const { data: activityData } = await supabase
+      .from("activity_log")
+      .select("*")
+      .eq("member_id", uid)
+      .order("activity_date", { ascending: false })
+
+    setActivity(activityData || [])
+  }
+
+  loadDashboard()
+}, []);
 
   if (loading) return <div className="p-8 text-center text-lg">Loading your dashboard...</div>;
 
