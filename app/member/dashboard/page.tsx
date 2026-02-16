@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/lib/database.types';
-
+// import type { Database } from '@/lib/database.types'; // remove
 export default function Dashboard() {
-  const supabase = createClientComponentClient<Database>();
-
+const supabase = createClientComponentClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Database['public']['Tables']['profiles']['Row'] | null>(null);
   const [member, setMember] = useState<Database['public']['Tables']['members']['Row'] | null>(null);
