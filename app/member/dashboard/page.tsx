@@ -11,161 +11,133 @@ export default function Dashboard() {
   const [member, setMember] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
   const [points, setPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1️⃣ Get logged-in user session
   useEffect(() => {
-    async function getUser() {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Error getting session:', error);
+    const fetchDashboard = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        console.log('No session or error', sessionError);
+        setLoading(false);
         return;
       }
 
-      if (!session?.user) {
-        // redirect to login if not logged in
-        window.location.href = '/login';
-        return;
-      }
+      const user_id = session.user.id;
+      setUserId(user_id);
 
-      setUserId(session.user.id);
-    }
+      // Profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+      setProfile(profileData || null);
 
-    getUser();
-  }, []);
+      // Member
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+      setMember(memberData || null);
 
-  // 2️⃣ Fetch all dashboard data once userId is available
-  useEffect(() => {
-    if (!userId) return;
+      // Payments
+      const { data: paymentsData } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('member_id', user_id)
+        .order('payment_date', { ascending: false });
+      setPayments(paymentsData || []);
 
-    async function fetchDashboardData() {
-      setLoading(true);
+      // Bookings
+      const { data: bookingsData } = await supabase
+        .from('session_bookings')
+        .select('*')
+        .eq('member_id', user_id)
+        .order('session_date', { ascending: true });
+      setBookings(bookingsData || []);
 
-      try {
-        const [profileRes, memberRes, paymentsRes, bookingsRes, activityRes, pointsRes] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', userId).single(),
-          supabase.from('members').select('*').eq('id', userId).single(),
-          supabase.from('payments').select('*').eq('member_id', userId).order('payment_date', { ascending: false }),
-          supabase.from('session_bookings').select('*').eq('member_id', userId).order('session_date', { ascending: true }),
-          supabase.from('activity_log').select('*').eq('member_id', userId).order('activity_date', { ascending: false }),
-          supabase.from('points').select('*').eq('member_id', userId).single(),
-        ]);
-
-        if (profileRes.error) console.error(profileRes.error);
-        else setProfile(profileRes.data);
-
-        if (memberRes.error) console.error(memberRes.error);
-        else setMember(memberRes.data);
-
-        if (paymentsRes.error) console.error(paymentsRes.error);
-        else setPayments(paymentsRes.data || []);
-
-        if (bookingsRes.error) console.error(bookingsRes.error);
-        else setBookings(bookingsRes.data || []);
-
-        if (activityRes.error) console.error(activityRes.error);
-        else setActivity(activityRes.data || []);
-
-        if (pointsRes.error) console.error(pointsRes.error);
-        else setPoints(pointsRes.data || null);
-
-      } catch (err) {
-        console.error('Dashboard fetch error:', err);
-      }
+      // Points
+      const { data: pointsData } = await supabase
+        .from('points')
+        .select('*')
+        .eq('member_id', user_id)
+        .single();
+      setPoints(pointsData || null);
 
       setLoading(false);
-    }
+    };
 
-    fetchDashboardData();
-  }, [userId]);
+    fetchDashboard();
+  }, [supabase]);
 
-  if (loading) return <p className="p-4 text-center">Loading your dashboard...</p>;
+  if (loading) return <p className="text-center mt-20 text-lg">Loading your dashboard...</p>;
+  if (!userId) return <p className="text-center mt-20 text-red-500">You must be logged in to view the dashboard.</p>;
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 max-w-4xl mx-auto">
       {/* Profile Header */}
-      {profile && (
-        <div className="flex items-center space-x-4">
-          <img
-            src={profile.avatar_url || '/default-avatar.png'}
-            alt="Avatar"
-            className="w-16 h-16 rounded-full object-cover"
-          />
-          <div>
-            <h1 className="text-xl font-bold">{profile.full_name}</h1>
-            <p className="text-gray-500">{profile.branch}</p>
-          </div>
+      <div className="flex items-center mb-6">
+        <img
+          src={profile?.avatar_url || '/default-avatar.png'}
+          alt="Avatar"
+          className="w-16 h-16 rounded-full mr-4"
+        />
+        <div>
+          <h1 className="text-2xl font-bold">{profile?.full_name || member?.name}</h1>
+          <p className="text-gray-600">{profile?.role}</p>
         </div>
-      )}
+      </div>
 
       {/* Membership Card */}
-      {member && (
-        <div className="p-4 bg-gray-100 rounded-lg">
-          <h2 className="font-semibold">Membership Info</h2>
-          <p>Package: {member.package_type}</p>
-          <p>Remaining Sessions: {member.remaining_sessions}</p>
-          <p>Status: {member.membership_status}</p>
-        </div>
-      )}
+      <div className="p-4 mb-6 border rounded shadow">
+        <h2 className="font-bold mb-2">Membership</h2>
+        <p>Package: {member?.package_type || '-'}</p>
+        <p>Remaining Sessions: {member?.remaining_sessions ?? '-'}</p>
+        <p>Status: {member?.membership_status || '-'}</p>
+      </div>
 
-      {/* Upcoming Sessions */}
-      {bookings.length > 0 && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h2 className="font-semibold mb-2">Upcoming Sessions</h2>
-          <ul className="space-y-1">
-            {bookings.slice(0, 5).map((b) => (
-              <li key={b.id} className="flex justify-between">
-                <span>{new Date(b.session_date).toLocaleDateString()} - {b.session_type}</span>
-                <span className="text-gray-500">{b.status}</span>
+      {/* Upcoming Bookings */}
+      <div className="p-4 mb-6 border rounded shadow">
+        <h2 className="font-bold mb-2">Upcoming Sessions</h2>
+        {bookings.length === 0 ? (
+          <p>No upcoming sessions.</p>
+        ) : (
+          <ul>
+            {bookings.map((b) => (
+              <li key={b.id} className="mb-1">
+                {b.session_type} with {b.coach_name} on {new Date(b.session_date).toLocaleDateString()}
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {/* Recent Activity */}
-      {activity.length > 0 && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h2 className="font-semibold mb-2">Recent Activity</h2>
-          <ul className="space-y-1">
-            {activity.slice(0, 5).map((a) => (
-              <li key={a.id}>
-                <p className="font-medium">{a.title}</p>
-                <p className="text-gray-500 text-sm">{a.description}</p>
-                <p className="text-gray-400 text-xs">{new Date(a.activity_date).toLocaleString()}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Payment History */}
-      {payments.length > 0 && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h2 className="font-semibold mb-2">Payment History</h2>
-          <ul className="space-y-1">
+      <div className="p-4 mb-6 border rounded shadow">
+        <h2 className="font-bold mb-2">Payments</h2>
+        {payments.length === 0 ? (
+          <p>No payments yet.</p>
+        ) : (
+          <ul>
             {payments.map((p) => (
-              <li key={p.id} className="flex justify-between">
-                <span>{new Date(p.payment_date).toLocaleDateString()} - {p.payment_type}</span>
-                <span className="text-gray-500">{p.status}</span>
-                <span className="font-medium">${p.amount}</span>
+              <li key={p.id} className="mb-1">
+                {p.payment_type} - ${p.amount} on {new Date(p.payment_date).toLocaleDateString()} ({p.status})
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Points & Tier */}
-      {points && (
-        <div className="p-4 bg-gray-100 rounded-lg">
-          <h2 className="font-semibold">Reward Points</h2>
-          <p>Total Points: {points.total_points}</p>
-          <p>Lifetime Points: {points.lifetime_points}</p>
-          <p>Tier: {points.tier}</p>
-        </div>
-      )}
+      {/* Points */}
+      <div className="p-4 border rounded shadow">
+        <h2 className="font-bold mb-2">Rewards</h2>
+        <p>Total Points: {points?.total_points ?? 0}</p>
+        <p>Lifetime Points: {points?.lifetime_points ?? 0}</p>
+        <p>Tier: {points?.tier || 'N/A'}</p>
+      </div>
     </div>
   );
 }
