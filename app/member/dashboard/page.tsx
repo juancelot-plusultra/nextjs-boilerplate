@@ -1,10 +1,4 @@
-// Importing the Supabase client from the correct path
-import { supabase } from '../../../lib/supabase/supabase'; // Three levels up to reach lib/supabase
-
-import Image from 'next/image';
-
 export default async function Dashboard() {
-  // Get the logged-in user's ID from Supabase
   const { data: { user } } = await supabase.auth.getUser();
   const memberId = user?.id;
 
@@ -16,6 +10,13 @@ export default async function Dashboard() {
   const { data: sessions } = await supabase.from('session_bookings').select('*').eq('member_id', memberId).order('session_date', { ascending: false });
   const { data: activities } = await supabase.from('activity_log').select('*').eq('member_id', memberId).order('activity_date', { ascending: false });
 
+  console.log('Profile:', profile);
+  console.log('Member:', member);
+  console.log('Points:', points);
+  console.log('Payments:', payments);
+  console.log('Sessions:', sessions);
+  console.log('Activities:', activities);
+
   return (
     <main className="p-6 space-y-8">
       {/* Profile Section */}
@@ -24,8 +25,8 @@ export default async function Dashboard() {
           <Image src={profile.avatar_url} width={80} height={80} alt="Avatar" className="rounded-full" />
         )}
         <div>
-          <h1 className="text-3xl font-bold">{profile?.full_name}</h1>
-          <p className="text-gray-500 text-lg">{member?.membership_status}</p>
+          <h1 className="text-3xl font-bold">{profile?.full_name || 'No Profile'}</h1>
+          <p className="text-gray-500 text-lg">{member?.membership_status || 'No Status'}</p>
         </div>
       </section>
 
@@ -33,18 +34,18 @@ export default async function Dashboard() {
       <section className="grid grid-cols-2 gap-6">
         <div className="p-5 bg-white rounded-lg shadow-md">
           <h3 className="font-semibold text-lg">Package</h3>
-          <p>{member?.package_type}</p>
+          <p>{member?.package_type || 'No Package'}</p>
         </div>
         <div className="p-5 bg-white rounded-lg shadow-md">
           <h3 className="font-semibold text-lg">Remaining Sessions</h3>
-          <p>{member?.remaining_sessions}</p>
+          <p>{member?.remaining_sessions || '0'}</p>
         </div>
       </section>
 
       {/* Points Section */}
       <section className="p-5 bg-white rounded-lg shadow-md">
         <h3 className="font-semibold text-lg">Points</h3>
-        <p>Total: {points?.total_points ?? 0}</p>
+        <p>Total: {points?.total_points ?? '0'}</p>
         <p>Tier: {points?.tier ?? 'N/A'}</p>
       </section>
 
