@@ -1,12 +1,12 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase'; // Adjust the path if needed
 import Image from 'next/image';
 
 export default async function Dashboard() {
-  // Fetch logged-in user ID
+  // Get the logged-in user's ID from Supabase
   const { data: { user } } = await supabase.auth.getUser();
   const memberId = user?.id;
 
-  // Fetch data from Supabase
+  // Fetch real data from Supabase tables
   const { data: member } = await supabase.from('members').select('*').eq('id', memberId).single();
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', memberId).single();
   const { data: points } = await supabase.from('points').select('*').eq('member_id', memberId).single();
