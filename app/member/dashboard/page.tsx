@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase'; // Correct path to supabase.ts
+import { supabase } from 'lib/supabase/supabase.ts';  // Correct path based on your structure
 import Image from 'next/image';
 
 export default async function Dashboard() {
