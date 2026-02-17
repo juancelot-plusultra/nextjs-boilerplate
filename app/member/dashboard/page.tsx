@@ -1,4 +1,6 @@
-import { supabase } from 'lib/supabase/supabase';  // Correct path based on your structure
+// Importing the Supabase client from the correct path
+import { supabase } from '../../../lib/supabase/supabase'; // Three levels up to reach lib/supabase
+
 import Image from 'next/image';
 
 export default async function Dashboard() {
