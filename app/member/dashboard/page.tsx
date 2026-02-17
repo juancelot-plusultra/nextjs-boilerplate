@@ -113,57 +113,65 @@ export default function BearfitApp() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadDashboard() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+  async function loadDashboard() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      /* PROFILE */
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-
-      setProfile(profileData)
-
-      /* MEMBER */
-      const { data: memberData } = await supabase
-        .from("members")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-
-      setMember(memberData)
-
-      /* POINTS */
-      const { data: pointsData } = await supabase
-        .from("points")
-        .select("*")
-        .eq("member_id", user.id)
-        .single()
-
-      setPoints(pointsData)
-
-      /* ACTIVITY */
-      const { data: activityData } = await supabase
-        .from("activity_log")
-        .select("*")
-        .eq("member_id", user.id)
-        .order("activity_date", { ascending: false })
-
-      setActivities(activityData || [])
-
-      setLoading(false)
+    if (!user) {
+      setLoading(false);
+      return;
     }
 
-    loadDashboard()
-  }, [])
+    // Log user data to check if we have a logged-in user
+    console.log('User:', user);
+
+    /* PROFILE */
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    console.log('Profile Data:', profileData); // Check profile data
+    setProfile(profileData);
+
+    /* MEMBER */
+    const { data: memberData } = await supabase
+      .from("members")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    console.log('Member Data:', memberData); // Check member data
+    setMember(memberData);
+
+    /* POINTS */
+    const { data: pointsData } = await supabase
+      .from("points")
+      .select("*")
+      .eq("member_id", user.id)
+      .single();
+
+    console.log('Points Data:', pointsData); // Check points data
+    setPoints(pointsData);
+
+    /* ACTIVITY */
+    const { data: activityData } = await supabase
+      .from("activity_log")
+      .select("*")
+      .eq("member_id", user.id)
+      .order("activity_date", { ascending: false });
+
+    console.log('Activity Data:', activityData); // Check activity data
+    setActivities(activityData || []);
+
+    setLoading(false);
+  }
+
+  loadDashboard();
+}, []);
+
 
   /* ===============================
      LOADING STATE
