@@ -1,4 +1,10 @@
-export default async function Dashboard() {
+import { supabase } from '../../../lib/supabase/supabase'; // Correct path to supabase.ts
+import Image from 'next/image';
+
+export async function getServerSideProps(context: any) {
+  const { req } = context;
+  
+  // Get the logged-in user's ID from Supabase
   const { data: { user } } = await supabase.auth.getUser();
   const memberId = user?.id;
 
@@ -10,13 +16,19 @@ export default async function Dashboard() {
   const { data: sessions } = await supabase.from('session_bookings').select('*').eq('member_id', memberId).order('session_date', { ascending: false });
   const { data: activities } = await supabase.from('activity_log').select('*').eq('member_id', memberId).order('activity_date', { ascending: false });
 
-  console.log('Profile:', profile);
-  console.log('Member:', member);
-  console.log('Points:', points);
-  console.log('Payments:', payments);
-  console.log('Sessions:', sessions);
-  console.log('Activities:', activities);
+  return {
+    props: {
+      member,
+      profile,
+      points,
+      payments,
+      sessions,
+      activities,
+    },
+  };
+}
 
+export default function Dashboard({ member, profile, points, payments, sessions, activities }: any) {
   return (
     <main className="p-6 space-y-8">
       {/* Profile Section */}
@@ -53,7 +65,7 @@ export default async function Dashboard() {
       <section>
         <h2 className="font-semibold text-xl">Payment History</h2>
         <ul className="space-y-4">
-          {payments?.map(p => (
+          {payments?.map((p: any) => (
             <li key={p.id} className="flex justify-between bg-white p-4 rounded-lg shadow-md">
               <span>{p.payment_type}</span>
               <span>{p.amount}</span>
@@ -67,7 +79,7 @@ export default async function Dashboard() {
       <section>
         <h2 className="font-semibold text-xl">Session Bookings</h2>
         <ul className="space-y-4">
-          {sessions?.map(s => (
+          {sessions?.map((s: any) => (
             <li key={s.id} className="flex justify-between bg-white p-4 rounded-lg shadow-md">
               <span>{s.session_type}</span>
               <span>{s.coach_name}</span>
@@ -81,7 +93,7 @@ export default async function Dashboard() {
       <section>
         <h2 className="font-semibold text-xl">Activity Log</h2>
         <ul className="space-y-4">
-          {activities?.map(a => (
+          {activities?.map((a: any) => (
             <li key={a.id} className="bg-white p-4 rounded-lg shadow-md">
               <p className="font-semibold">{a.title}</p>
               <p>{a.description}</p>
