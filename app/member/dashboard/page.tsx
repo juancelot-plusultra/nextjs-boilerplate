@@ -117,62 +117,68 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDashboard() {
-      const user = await supabase.auth.getUser();
-
-      // PROFILE
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (profileError) {
-        alert("Profile fetch error: " + profileError.message);
-      }
-      setProfile(profileData);
-
-      // MEMBER
-      const { data: memberData, error: memberError } = await supabase
-        .from("members")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (memberError) {
-        alert("Member fetch error: " + memberError.message);
-      }
-      setMember(memberData);
-
-      // POINTS
-      const { data: pointsData, error: pointsError } = await supabase
-        .from("points")
-        .select("*")
-        .eq("member_id", user.id)
-        .single();
-
-      if (pointsError) {
-        alert("Points fetch error: " + pointsError.message);
-      }
-      setPoints(pointsData);
-
-      // ACTIVITY LOG
-      const { data: activityData, error: activityError } = await supabase
-        .from("activity_log")
-        .select("*")
-        .eq("member_id", user.id)
-        .order("activity_date", { ascending: false });
-
-      if (activityError) {
-        alert("Activity fetch error: " + activityError.message);
-      }
-      setActivities(activityData || []);
-
-      setLoading(false);
+  async function loadDashboard() {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      alert("User fetch error: " + userError.message);
+      return;
     }
+    const userId = userData?.user?.id;  // Get user ID correctly
 
-    loadDashboard();
-  }, []);
+    // PROFILE
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)  // Use userId here
+      .single();
+    
+    if (profileError) {
+      alert("Profile fetch error: " + profileError.message);
+    }
+    setProfile(profileData);
+
+    // MEMBER
+    const { data: memberData, error: memberError } = await supabase
+      .from("members")
+      .select("*")
+      .eq("id", userId)  // Use userId here
+      .single();
+
+    if (memberError) {
+      alert("Member fetch error: " + memberError.message);
+    }
+    setMember(memberData);
+
+    // POINTS
+    const { data: pointsData, error: pointsError } = await supabase
+      .from("points")
+      .select("*")
+      .eq("member_id", userId)  // Use userId here
+      .single();
+
+    if (pointsError) {
+      alert("Points fetch error: " + pointsError.message);
+    }
+    setPoints(pointsData);
+
+    // ACTIVITY LOG
+    const { data: activityData, error: activityError } = await supabase
+      .from("activity_log")
+      .select("*")
+      .eq("member_id", userId)  // Use userId here
+      .order("activity_date", { ascending: false });
+
+    if (activityError) {
+      alert("Activity fetch error: " + activityError.message);
+    }
+    setActivities(activityData || []);
+
+    setLoading(false);
+  }
+
+  loadDashboard();
+}, []);
+
 
   if (loading) {
     return (
