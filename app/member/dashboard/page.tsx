@@ -118,51 +118,79 @@ export default function BearfitApp() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDashboard() {
-      const { data: { user } } = await supabase.auth.getUser();
+  async function loadDashboard() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    // Debugging log to check if user is found
+    console.log('User:', user);
 
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      /* PROFILE */
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setProfile(profileData);
-
-      /* MEMBER */
-      const { data: memberData } = await supabase
-        .from("members")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setMember(memberData);
-
-      /* POINTS */
-      const { data: pointsData } = await supabase
-        .from("points")
-        .select("*")
-        .eq("member_id", user.id)
-        .single();
-      setPoints(pointsData);
-
-      /* ACTIVITY LOG */
-      const { data: activityData } = await supabase
-        .from("activity_log")
-        .select("*")
-        .eq("member_id", user.id)
-        .order("activity_date", { ascending: false });
-
-      setActivities(activityData || []);
+    if (!user) {
+      console.log("No user found!");
       setLoading(false);
+      return;
     }
 
-    loadDashboard();
-  }, []);
+    /* PROFILE */
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    console.log('Profile Data:', profileData); // Log profile data
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+    }
+    setProfile(profileData);
+
+    /* MEMBER */
+    const { data: memberData, error: memberError } = await supabase
+      .from("members")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    console.log('Member Data:', memberData); // Log member data
+
+    if (memberError) {
+      console.error('Member fetch error:', memberError);
+    }
+    setMember(memberData);
+
+    /* POINTS */
+    const { data: pointsData, error: pointsError } = await supabase
+      .from("points")
+      .select("*")
+      .eq("member_id", user.id)
+      .single();
+
+    console.log('Points Data:', pointsData); // Log points data
+
+    if (pointsError) {
+      console.error('Points fetch error:', pointsError);
+    }
+    setPoints(pointsData);
+
+    /* ACTIVITY LOG */
+    const { data: activityData, error: activityError } = await supabase
+      .from("activity_log")
+      .select("*")
+      .eq("member_id", user.id)
+      .order("activity_date", { ascending: false });
+
+    console.log('Activity Data:', activityData); // Log activity data
+
+    if (activityError) {
+      console.error('Activity fetch error:', activityError);
+    }
+    setActivities(activityData || []);
+    setLoading(false);
+  }
+
+  loadDashboard();
+}, []);
+
 
   if (loading) {
     return (
