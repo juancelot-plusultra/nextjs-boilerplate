@@ -121,32 +121,81 @@ export default function BearfitApp() {
   async function loadDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Debugging log: Check if we have a user object
-    console.log('Logged-in user:', user);
+    // Debugging: Show user data in an alert
+    alert("Logged-in user: " + JSON.stringify(user));
 
     if (!user) {
-      alert('No user found!');
+      alert("No user found!");
       setLoading(false);
       return;
     }
 
-    // Fetch profile data
-    const { data: profileData } = await supabase
+    /* PROFILE */
+    const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    console.log('Profile Data:', profileData); // Debugging log for profile data
+    // Debugging: Show profile data in an alert
+    alert("Profile Data: " + JSON.stringify(profileData));
+
+    if (profileError) {
+      alert("Profile fetch error: " + profileError.message);
+    }
     setProfile(profileData);
 
-    // Continue with member, points, and activity fetches...
+    /* MEMBER */
+    const { data: memberData, error: memberError } = await supabase
+      .from("members")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    // Debugging: Show member data in an alert
+    alert("Member Data: " + JSON.stringify(memberData));
+
+    if (memberError) {
+      alert("Member fetch error: " + memberError.message);
+    }
+    setMember(memberData);
+
+    /* POINTS */
+    const { data: pointsData, error: pointsError } = await supabase
+      .from("points")
+      .select("*")
+      .eq("member_id", user.id)
+      .single();
+
+    // Debugging: Show points data in an alert
+    alert("Points Data: " + JSON.stringify(pointsData));
+
+    if (pointsError) {
+      alert("Points fetch error: " + pointsError.message);
+    }
+    setPoints(pointsData);
+
+    /* ACTIVITY LOG */
+    const { data: activityData, error: activityError } = await supabase
+      .from("activity_log")
+      .select("*")
+      .eq("member_id", user.id)
+      .order("activity_date", { ascending: false });
+
+    // Debugging: Show activity data in an alert
+    alert("Activity Data: " + JSON.stringify(activityData));
+
+    if (activityError) {
+      alert("Activity fetch error: " + activityError.message);
+    }
+    setActivities(activityData || []);
 
     setLoading(false);
   }
 
   loadDashboard();
 }, []);
+
 
 
 
