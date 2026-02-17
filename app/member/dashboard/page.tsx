@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase/supabase';  // Adjust path based on your structure
+import { supabase } from '../../lib/supabase'; // Correct path to supabase.ts
 import Image from 'next/image';
 
 export default async function Dashboard() {
@@ -6,7 +6,7 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser();
   const memberId = user?.id;
 
-  // Fetch real data from Supabase tables
+  // Fetch data from Supabase tables
   const { data: member } = await supabase.from('members').select('*').eq('id', memberId).single();
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', memberId).single();
   const { data: points } = await supabase.from('points').select('*').eq('member_id', memberId).single();
