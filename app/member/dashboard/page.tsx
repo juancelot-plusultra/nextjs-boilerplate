@@ -1,40 +1,44 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-/* ===============================
-   SUPABASE CLIENT
-================================ */
-
+// SUPABASE CLIENT
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+);
 
 /* ===============================
    TYPES (simple safe typing)
 ================================ */
 
 type Profile = {
-  id: string
-  full_name: string
-  membership_id: string
-  branch: string
-}
+  id: string;
+  full_name: string;
+  membership_id: string;
+  branch: string;
+};
 
 type Member = {
-  id: string
-  name: string
-  remaining_sessions: number
-  total_sessions: number
-}
+  id: string;
+  name: string;
+  remaining_sessions: number;
+  total_sessions: number;
+};
 
 type Points = {
-  total_points: number
-  lifetime_points: number
-  tier: string
-}
+  total_points: number;
+  lifetime_points: number;
+  tier: string;
+};
+
+type Activity = {
+  id: string;
+  title: string;
+  description: string;
+  activity_date: string;
+};
 
 /* ===============================
    COMPONENTS
@@ -45,9 +49,9 @@ function ProfileCard({
   member,
   points,
 }: {
-  profile: Profile
-  member: Member
-  points: Points
+  profile: Profile;
+  member: Member;
+  points: Points;
 }) {
   return (
     <div className="p-5 rounded-2xl shadow bg-white space-y-2">
@@ -60,21 +64,19 @@ function ProfileCard({
       <p>Points: {points.total_points}</p>
       <p>Tier: {points.tier}</p>
     </div>
-  )
+  );
 }
 
 function SessionCard({ member }: { member: Member }) {
   return (
     <div className="p-5 rounded-2xl shadow bg-white">
       <h3 className="font-semibold">Sessions Remaining</h3>
-      <p className="text-2xl font-bold">
-        {member.remaining_sessions}
-      </p>
+      <p className="text-2xl font-bold">{member.remaining_sessions}</p>
     </div>
-  )
+  );
 }
 
-function ActivityLog({ activities }: { activities: any[] }) {
+function ActivityLog({ activities }: { activities: Activity[] }) {
   return (
     <div className="p-5 rounded-2xl shadow bg-white">
       <h3 className="font-semibold mb-2">Activity</h3>
@@ -83,14 +85,17 @@ function ActivityLog({ activities }: { activities: any[] }) {
         <p className="text-sm text-gray-400">No activity yet</p>
       )}
 
-      {activities.map((a) => (
-        <div key={a.id} className="text-sm border-b py-2">
-          <p className="font-medium">{a.title}</p>
-          <p className="text-gray-500">{a.description}</p>
+      {activities.map((activity) => (
+        <div key={activity.id} className="text-sm border-b py-2">
+          <p className="font-medium">{activity.title}</p>
+          <p className="text-gray-500">{activity.description}</p>
+          <p className="text-xs text-gray-400">
+            {new Date(activity.activity_date).toLocaleString()}
+          </p>
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function PromoBanner() {
@@ -98,7 +103,7 @@ function PromoBanner() {
     <div className="p-5 rounded-2xl bg-black text-white">
       🔥 February Promo — Earn double Bearforce points!
     </div>
-  )
+  );
 }
 
 /* ===============================
@@ -106,83 +111,65 @@ function PromoBanner() {
 ================================ */
 
 export default function BearfitApp() {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [member, setMember] = useState<Member | null>(null)
-  const [points, setPoints] = useState<Points | null>(null)
-  const [activities, setActivities] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [member, setMember] = useState<Member | null>(null);
+  const [points, setPoints] = useState<Points | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  async function loadDashboard() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    async function loadDashboard() {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      /* PROFILE */
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setProfile(profileData);
+
+      /* MEMBER */
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setMember(memberData);
+
+      /* POINTS */
+      const { data: pointsData } = await supabase
+        .from("points")
+        .select("*")
+        .eq("member_id", user.id)
+        .single();
+      setPoints(pointsData);
+
+      /* ACTIVITY LOG */
+      const { data: activityData } = await supabase
+        .from("activity_log")
+        .select("*")
+        .eq("member_id", user.id)
+        .order("activity_date", { ascending: false });
+
+      setActivities(activityData || []);
       setLoading(false);
-      return;
     }
 
-    // Log user data to check if we have a logged-in user
-    console.log('User:', user);
-
-    /* PROFILE */
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    console.log('Profile Data:', profileData); // Check profile data
-    setProfile(profileData);
-
-    /* MEMBER */
-    const { data: memberData } = await supabase
-      .from("members")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    console.log('Member Data:', memberData); // Check member data
-    setMember(memberData);
-
-    /* POINTS */
-    const { data: pointsData } = await supabase
-      .from("points")
-      .select("*")
-      .eq("member_id", user.id)
-      .single();
-
-    console.log('Points Data:', pointsData); // Check points data
-    setPoints(pointsData);
-
-    /* ACTIVITY */
-    const { data: activityData } = await supabase
-      .from("activity_log")
-      .select("*")
-      .eq("member_id", user.id)
-      .order("activity_date", { ascending: false });
-
-    console.log('Activity Data:', activityData); // Check activity data
-    setActivities(activityData || []);
-
-    setLoading(false);
-  }
-
-  loadDashboard();
-}, []);
-
-
-  /* ===============================
-     LOADING STATE
-  ================================= */
+    loadDashboard();
+  }, []);
 
   if (loading) {
     return (
       <div className="p-10 text-center">
         Loading dashboard...
       </div>
-    )
+    );
   }
 
   if (!profile || !member || !points) {
@@ -190,26 +177,15 @@ export default function BearfitApp() {
       <div className="p-10 text-center">
         No member profile found.
       </div>
-    )
+    );
   }
-
-  /* ===============================
-     DASHBOARD UI
-  ================================= */
 
   return (
     <div className="max-w-xl mx-auto space-y-5 p-5">
-      <ProfileCard
-        profile={profile}
-        member={member}
-        points={points}
-      />
-
+      <ProfileCard profile={profile} member={member} points={points} />
       <SessionCard member={member} />
-
       <ActivityLog activities={activities} />
-
       <PromoBanner />
     </div>
-  )
+  );
 }
