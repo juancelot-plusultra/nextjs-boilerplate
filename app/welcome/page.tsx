@@ -37,6 +37,7 @@ const supabase = createClient(
 
 export default function WelcomePage() {
   const router = useRouter();  // Initialize router here
+
   const slides: Slide[] = useMemo(
     () => [
       {
@@ -235,24 +236,32 @@ export default function WelcomePage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Attempting login with email:", email);  // Debugging log
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) setError(error.message);
-    if (data) {
+    if (error) {
+      console.error("Login error:", error.message);  // Log the error if any
+      setError(error.message);
+    } else {
+      console.log("Login successful:", data);  // Log successful login
       router.push("/member/dashboard");
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Attempting sign up with email:", email);  // Debugging log
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
-    if (error) setError(error.message);
-    if (data) {
+    if (error) {
+      console.error("Sign up error:", error.message);  // Log the error if any
+      setError(error.message);
+    } else {
+      console.log("Sign up successful:", data);  // Log successful sign-up
       router.push("/member/dashboard");
     }
   };
