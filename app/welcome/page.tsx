@@ -2,16 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-type Slide = {
-  key: string;
-  title?: string;
-  subtitle?: string;
-  image?: string;
-  video?: string;
-  cta?: boolean;
-};
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
 
@@ -27,13 +18,13 @@ const DURATIONS_SECONDS = {
 // idle restart (seconds)
 const IDLE_RESTART_SECONDS = 60;
 
-// Initialize Supabase Client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function WelcomePage() {
+  const router = useRouter();  // Initialize router here
   const slides: Slide[] = useMemo(
     () => [
       {
@@ -327,44 +318,29 @@ export default function WelcomePage() {
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
+
+                  {/* Bottom controls */}
+                  {slide.key === "welcome-video" && (
+                    <div className="mt-6 flex gap-4">
+                      <button
+                        onClick={() => setLoginModalOpen(true)}
+                        className="w-full bg-blue-600 text-white p-3 rounded-lg"
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={() => setSignupModalOpen(true)}
+                        className="w-full bg-green-600 text-white p-3 rounded-lg"
+                      >
+                        Sign Up
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Bottom controls */}
-      <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
-        <button
-          onClick={() => {
-            resetIdle();
-            skip();
-          }}
-          className="text-white/80"
-        >
-          Skip
-        </button>
-
-        <div className="flex gap-2">
-          {slides.map((_, i) => (
-            <span
-              key={i}
-              className={`h-2 w-2 rounded-full ${i === index ? "bg-white" : "bg-white/40"}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => {
-            resetIdle();
-            next();
-          }}
-          disabled={isLast}
-          className={isLast ? "opacity-40" : "text-white/80"}
-        >
-          Next
-        </button>
       </div>
 
       {/* Login Modal */}
@@ -438,16 +414,6 @@ export default function WelcomePage() {
           </div>
         </div>
       )}
-
-      {/* Bottom controls for Login and Sign Up */}
-      <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
-        <button onClick={() => setLoginModalOpen(true)} className="w-full p-3 mt-3 bg-blue-600 text-white rounded-lg">
-          Login
-        </button>
-        <button onClick={() => setSignupModalOpen(true)} className="w-full p-3 mt-3 bg-green-600 text-white rounded-lg">
-          Sign Up
-        </button>
-      </div>
     </div>
   );
 }
