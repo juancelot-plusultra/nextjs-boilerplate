@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Assuming Supabase client is initialized globally
+// Supabase client setup
 import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,6 +16,16 @@ const START_PAGE = "/member/dashboard";
 const DURATIONS_SECONDS = { welcomeVideo: 47, normal: 10 };
 const IDLE_RESTART_SECONDS = 60;
 
+// Define Slide type
+type Slide = {
+  key: string;
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  video?: string;
+  cta?: boolean;
+};
+
 export default function WelcomePage() {
   const router = useRouter();
   const slides: Slide[] = useMemo(() => [
@@ -25,7 +35,31 @@ export default function WelcomePage() {
       title: "EVERY SESSION BUILDS YOUR STORY.",
       subtitle: "Better Form | Better Function | Better Fitness.",
     },
-    // Other slides go here...
+    {
+      key: "better-form",
+      title: "Better Form",
+      subtitle: "Train smarter with coach-guided movement.",
+      image: "/onboarding/better-form1.jpg",
+    },
+    {
+      key: "better-function",
+      title: "Better Function",
+      subtitle: "Move better in everyday life, not just in the gym.",
+      image: "/onboarding/better-function1.jpg",
+    },
+    {
+      key: "better-fitness",
+      title: "Better Fitness",
+      subtitle: "Build strength, confidence, and consistency.",
+      image: "/onboarding/better-fintness1.jpg",
+    },
+    {
+      key: "free-assessment",
+      title: "Free Assessment",
+      subtitle: "Your journey starts here. Let’s get moving.",
+      image: "/onboarding/free-assesment1.jpg",
+      cta: true,
+    },
   ], []);
 
   const [index, setIndex] = useState(0);
