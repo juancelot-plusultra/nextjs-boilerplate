@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import { createClient } from "@supabase/supabase-js"; // Import createClient
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
 
