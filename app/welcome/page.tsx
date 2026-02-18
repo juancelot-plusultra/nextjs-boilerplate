@@ -1,487 +1,157 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-type Slide = {
-  key: string;
-  title?: string;
-  subtitle?: string;
-  image?: string;
-  video?: string;
-  cta?: boolean;
-};
-
-const STORAGE_KEY = "bearfit_onboarded_v1";
-
-// after welcome, send them to your main app (root)
-const START_PAGE = "/member/dashboard";
-
-// timings
-const DURATIONS_SECONDS = {
-  welcomeVideo: 47,
-  normal: 10,
-};
-
-// idle restart (seconds)
-const IDLE_RESTART_SECONDS = 60;
+const slides = [
+  {
+    key: "welcome",
+    title: "Welcome to Plus Ultra",
+    description: "Your journey starts here.",
+  },
+  {
+    key: "features",
+    title: "Powerful Features",
+    description: "Track progress, unlock potential, grow faster.",
+  },
+  {
+    key: "welcome-video",
+    title: "Get Started",
+    description: "Let’s set up your account.",
+  },
+];
 
 export default function WelcomePage() {
-  const slides: Slide[] = useMemo(
-    () => [
-      {
-        key: "welcome-video",
-        video: "/welcome/welcome-bg.mp4",
-        title: "EVERY SESSION BUILDS YOUR STORY.",
-        subtitle: "Better Form | Better Function | Better Fitness.",
-      },
-      {
-        key: "better-form",
-        title: "Better Form",
-        subtitle: "Train smarter with coach-guided movement.",
-        image: "/onboarding/better-form1.jpg",
-      },
-      {
-        key: "better-function",
-        title: "Better Function",
-        subtitle: "Move better in everyday life, not just in the gym.",
-        image: "/onboarding/better-function1.jpg",
-      },
-      {
-        key: "better-fitness",
-        title: "Better Fitness",
-        subtitle: "Build strength, confidence, and consistency.",
-        image: "/onboarding/better-fintness1.jpg",
-      },
-      {
-        key: "free-assessment",
-        title: "Free Assessment",
-        subtitle: "Your journey starts here. Let’s get moving.",
-        image: "/onboarding/free-assesment1.jpg",
-        cta: true,
-      },
-    ],
-    []
-  );
-
   const [index, setIndex] = useState(0);
-  const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [signUpOpen, setSignUpOpen] = useState(false);
+  const [direction, setDirection] = useState<"left" | "right">("right");
 
-  // countdown (only meaningful on video slide)
-  const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
-
-  const isLast = index === slides.length - 1;
-
-  const next = () => {
-    if (!isLast) setIndex((i) => i + 1);
-  };
-  const prev = () => {
-    if (index > 0) setIndex((i) => i - 1);
-  };
-  const skip = () => setIndex(slides.length - 1);
-
-  const completeOnboarding = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
-    window.location.href = START_PAGE;
+  const nextSlide = () => {
+    if (index < slides.length - 1) {
+      setDirection("right");
+      setIndex(index + 1);
+    }
   };
 
-  const goToRole = (role: "Member" | "Staff" | "Leads" | "Admin") => {
-    localStorage.setItem("bearfit_preview_role", role);
-    localStorage.setItem(STORAGE_KEY, "1");
-    window.location.href = START_PAGE;
+  const prevSlide = () => {
+    if (index > 0) {
+      setDirection("left");
+      setIndex(index - 1);
+    }
   };
 
-  // -----------------------------------
-  // init + redirect logic
-  // -----------------------------------
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("reset") === "1") {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-
-    if (params.get("preview") === "1") {
-      setReady(true);
-      return;
-    }
-
-    const done = localStorage.getItem(STORAGE_KEY) === "1";
-    if (done) {
-      window.location.replace(START_PAGE);
-      return;
-    }
-
-    setReady(true);
-  }, []);
-
-  // -----------------------------------
-  // auto-advance per slide (pause if FAQ open)
-  // -----------------------------------
-  useEffect(() => {
-    if (!ready) return;
-    if (faqOpen) return;
-    if (slides[index]?.key === "free-assessment") return;
-
-    const duration =
-      slides[index]?.key === "welcome-video"
-        ? DURATIONS_SECONDS.welcomeVideo
-        : DURATIONS_SECONDS.normal;
-
-    if (slides[index]?.key === "welcome-video") {
-      setCountdown(DURATIONS_SECONDS.welcomeVideo);
-    }
-
-    const t = window.setTimeout(() => next(), duration * 1000);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, ready, faqOpen]);
-
-  // countdown tick only on video slide (pause if FAQ open)
-  useEffect(() => {
-    if (!ready) return;
-    if (faqOpen) return;
-    if (slides[index]?.key !== "welcome-video") return;
-
-    const t = window.setInterval(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 1000);
-
-    return () => window.clearInterval(t);
-  }, [index, ready, faqOpen, slides]);
-
-  // -----------------------------------
-  // Restart slideshow after idle
-  // -----------------------------------
-  const idleTimerRef = useRef<number | null>(null);
-
-  const resetIdle = () => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = window.setTimeout(() => {
-      setFaqOpen(false);
-      setIndex(0);
-      setCountdown(DURATIONS_SECONDS.welcomeVideo);
-    }, IDLE_RESTART_SECONDS * 1000);
+  const skipSlides = () => {
+    setDirection("right");
+    setIndex(slides.length - 1);
   };
 
   useEffect(() => {
-    if (!ready) return;
-
-    const handler = () => resetIdle();
-
-    window.addEventListener("mousemove", handler);
-    window.addEventListener("mousedown", handler);
-    window.addEventListener("touchstart", handler, { passive: true });
-    window.addEventListener("keydown", handler);
-    window.addEventListener("scroll", handler, { passive: true });
-
-    resetIdle();
-
-    return () => {
-      window.removeEventListener("mousemove", handler);
-      window.removeEventListener("mousedown", handler);
-      window.removeEventListener("touchstart", handler as any);
-      window.removeEventListener("keydown", handler);
-      window.removeEventListener("scroll", handler as any);
-      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") nextSlide();
+      if (e.key === "ArrowLeft") prevSlide();
     };
-  }, [ready]);
-
-  // -----------------------------------
-  // swipe handling (disabled while FAQ open)
-  // -----------------------------------
-  const startX = useRef<number | null>(null);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (faqOpen) return;
-    resetIdle();
-    startX.current = e.touches[0].clientX;
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (faqOpen) return;
-    resetIdle();
-    if (startX.current === null) return;
-
-    const diff = e.changedTouches[0].clientX - startX.current;
-    startX.current = null;
-
-    if (diff < -50) next();
-    if (diff > 50) prev();
-  };
-
-  if (!ready) return null;
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [index]);
 
   return (
-    <div
-      className="fixed inset-0 bg-black overflow-hidden"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* SLIDES */}
-      <div
-        className="flex h-full transition-transform duration-500 ease-out"
-        style={{ transform: `translateX(-${index * 100}%)` }}
-      >
-        {slides.map((slide, i) => {
-          const active = i === index;
-
-          return (
-            <div key={slide.key} className="relative w-full h-full flex-shrink-0">
-              {/* Background */}
-              {slide.video ? (
-                <>
-                  <video
-                    className="absolute inset-0 w-full h-full object-cover"
-                    src={slide.video}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  />
-                  <div className="absolute inset-0 bg-black/45" />
-                </>
-              ) : (
-                <>
-                  <Image
-                    src={slide.image!}
-                    alt={slide.title ?? "BearFitPH slide"}
-                    fill
-                    className="object-cover"
-                    priority={i === 1}
-                  />
-                  <div className="absolute inset-0 bg-black/50" />
-                </>
-              )}
-
-              {/* CENTER EVERYTHING */}
-              <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
-                <div className={`bf-anim ${active ? "bf-anim--in" : ""} max-w-[720px]`}>
-                  {slide.key === "welcome-video" && (
-                    <div className="text-[#F37120] text-sm font-semibold tracking-wide mb-3">
-                      Welcome to BearFitPH
-                    </div>
-                  )}
-
-                  <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
-                    {slide.title}
-                  </h1>
-
-                  {slide.subtitle && (
-                    <p className="mt-4 text-white/85 font-medium">{slide.subtitle}</p>
-                  )}
-
-                  {/* Video slide CTA (shows countdown) */}
-                  {slide.key === "welcome-video" && (
-                    <button
-                      onClick={() => {
-                        resetIdle();
-                        next();
-                      }}
-                      className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
-                    >
-                      <span>Next</span>
-                      <span className="text-black/70 text-sm">{countdown}s</span>
-                    </button>
-                  )}
-
-                  {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
-                  {slide.cta && (
-  <div className="mt-6 flex flex-col items-center">
-    {/* FAQ trigger */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        setFaqOpen(true);
-      }}
-      className="text-sm underline text-white/80 whitespace-nowrap"
-    >
-      No guesswork, just gains. Get the facts here
-    </button>
-
-    {/* Main CTA */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-    >
-      Get Started – Free Assessment
-    </button>
-
-    {/* Dashboard sample */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        localStorage.setItem("bearfit_preview_role", "Member");
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
-    >
-      Dashboard Sample
-    </button>
-  </div>
-)}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Bottom controls */}
-      <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
-        <button
-          onClick={() => {
-            resetIdle();
-            skip();
-          }}
-          className="text-white/80"
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 p-6 overflow-hidden">
+      <div className="w-full max-w-2xl relative">
+        <div
+          key={slides[index].key}
+          className={`bg-white rounded-2xl shadow-xl p-8 text-center space-y-4 transition-all duration-500 ${
+            direction === "right" ? "animate-slide-in-right" : "animate-slide-in-left"
+          }`}
         >
-          Skip
-        </button>
+          <h2 className="text-2xl font-bold">{slides[index].title}</h2>
+          <p className="text-gray-600">{slides[index].description}</p>
 
-        <div className="flex gap-2">
-          {slides.map((_, i) => (
-            <span
-              key={i}
-              className={`h-2 w-2 rounded-full ${i === index ? "bg-white" : "bg-white/40"}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => {
-            resetIdle();
-            next();
-          }}
-          disabled={isLast}
-          className={isLast ? "opacity-40" : "text-white/80"}
-        >
-          Next
-        </button>
-      </div>
-
-      {/* FAQ MODAL — FULL 1–6 */}
-      {faqOpen && (
-        <div className="absolute inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/70"
-            onClick={() => {
-              resetIdle();
-              setFaqOpen(false);
-            }}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80%] rounded-t-2xl bg-[#0b0b0b] p-6 overflow-auto">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-white text-lg font-semibold">Getting Started with BearFit</h2>
+          {slides[index].key === "welcome-video" && (
+            <div className="space-y-4">
               <button
-                onClick={() => {
-                  resetIdle();
-                  setFaqOpen(false);
-                }}
-                className="text-white/70 text-xl leading-none"
-                aria-label="Close FAQs"
+                className="w-full bg-black text-white py-2 rounded-xl"
+                onClick={() => setSignInOpen(true)}
               >
-                ×
+                Sign In
+              </button>
+              <button
+                className="w-full border border-black py-2 rounded-xl"
+                onClick={() => setSignUpOpen(true)}
+              >
+                Sign Up
               </button>
             </div>
+          )}
+        </div>
 
-            <div className="mt-4 space-y-5 text-white/85 text-sm leading-relaxed">
-              <div>
-                <div className="font-semibold text-white">
-                  1. What can I expect from BearFit and what services do you offer?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>BearFit is all about science-based personalized training.</li>
-                  <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
-                  <li>
-                    We offer both in-house and online workout packages so you can train wherever works best for you.
-                  </li>
-                </ul>
-              </div>
+        {/* Navigation Controls */}
+        <div className="flex justify-between mt-6">
+          <button className="text-gray-600" onClick={skipSlides}>
+            Skip
+          </button>
 
-              <div>
-                <div className="font-semibold text-white">
-                  2. How much are the monthly fees and are there any hidden costs?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
-                  <li>You don’t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  3. What do I actually get when I sign up for a workout package?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
-                  <li>You’ll receive a personalized workout program tailored specifically to you.</li>
-                  <li>
-                    Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">4. Where exactly are your branches located?</div>
-                <ul className="mt-2 list-disc pl-5 space-y-2">
-                  <li>
-                    We have two spots in Quezon City:
-                    <div className="mt-1">
-                      <span className="font-semibold">Sikatuna Village:</span> 48 Malingap Street
-                    </div>
-                    <div>
-                      <span className="font-semibold">E. Rodriguez:</span> G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
-                    </div>
-                  </li>
-                  <li>
-                    We also have a location in <span className="font-semibold">Cainta</span>:
-                    <div className="mt-1">
-                      <span className="font-semibold">Primark Town Center Cainta:</span> 271 Ortigas Ave Ext, Cainta, Rizal
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  5. What are your opening hours, and do I need to book ahead?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>We are open Monday through Saturday to fit your schedule.</li>
-                  <li>Mon–Fri: 7 AM to 10 PM • Sat: 7 AM to 2 PM</li>
-                  <li>
-                    <span className="font-semibold">Pro tip:</span> It’s best to schedule your sessions in advance to make sure you get the time slot you want!
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  6. What kind of equipment and extra perks do you have?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>We’re well-equipped with strength and resistance training gear, plus Muay Thai and boxing equipment.</li>
-                  <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
-                  <li>For your comfort: shower rooms, lounge area, bicycle rack, drinking water, free WiFi.</li>
-                </ul>
-              </div>
-            </div>
-
+          <div className="flex gap-2">
             <button
-              onClick={() => {
-                resetIdle();
-                setFaqOpen(false);
-              }}
-              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
+              className="border px-4 py-2 rounded-xl"
+              onClick={prevSlide}
+              disabled={index === 0}
+            >
+              Back
+            </button>
+            <button
+              className="bg-black text-white px-4 py-2 rounded-xl"
+              onClick={nextSlide}
+              disabled={index === slides.length - 1}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
+        {/* Free Assessment Button */}
+        <div className="mt-6 text-center">
+          <button
+            className="bg-blue-600 text-white px-6 py-2 rounded-2xl"
+            onClick={() => setAssessmentOpen(true)}
+          >
+            Free Assessment
+          </button>
+        </div>
+
+        {/* FAQ Button */}
+        <div className="mt-4 text-center">
+          <button
+            className="text-blue-600 underline"
+            onClick={() => setFaqOpen(true)}
+          >
+            View FAQ
+          </button>
+        </div>
+      </div>
+
+      {/* Sign In Modal */}
+      {signInOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold mb-4">Sign In</h3>
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full border p-2 rounded mb-3"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border p-2 rounded mb-4"
+            />
+            <button className="w-full bg-black text-white py-2 rounded-xl mb-2">
+              Login
+            </button>
+            <button
+              className="w-full text-gray-500"
+              onClick={() => setSignInOpen(false)}
             >
               Close
             </button>
@@ -489,16 +159,90 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* text animation */}
+      {/* Sign Up Modal */}
+      {signUpOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold mb-4">Sign Up</h3>
+            <input
+              type="text"
+              placeholder="Full Name"
+              className="w-full border p-2 rounded mb-3"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full border p-2 rounded mb-3"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border p-2 rounded mb-4"
+            />
+            <button className="w-full bg-black text-white py-2 rounded-xl mb-2">
+              Create Account
+            </button>
+            <button
+              className="w-full text-gray-500"
+              onClick={() => setSignUpOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* FAQ Modal */}
+      {faqOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold mb-4">FAQ</h3>
+            <p className="text-gray-600 mb-4">
+              Here are answers to common questions about getting started.
+            </p>
+            <button
+              className="w-full bg-black text-white py-2 rounded-xl"
+              onClick={() => setFaqOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Free Assessment Modal */}
+      {assessmentOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold mb-4">Free Assessment</h3>
+            <p className="text-gray-600 mb-4">
+              Complete this short assessment to personalize your experience.
+            </p>
+            <button
+              className="w-full bg-blue-600 text-white py-2 rounded-xl"
+              onClick={() => setAssessmentOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Simple slide animations */}
       <style jsx global>{`
-        .bf-anim {
-          opacity: 0;
-          transform: translateY(10px);
-          transition: opacity 420ms ease, transform 420ms ease;
+        @keyframes slideInRight {
+          from { transform: translateX(40px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
-        .bf-anim--in {
-          opacity: 1;
-          transform: translateY(0);
+        @keyframes slideInLeft {
+          from { transform: translateX(-40px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right {
+          animation: slideInRight 0.5s ease;
+        }
+        .animate-slide-in-left {
+          animation: slideInLeft 0.5s ease;
         }
       `}</style>
     </div>
