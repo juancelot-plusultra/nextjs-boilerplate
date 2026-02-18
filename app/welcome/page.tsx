@@ -107,43 +107,49 @@ export default function WelcomePage() {
   if (!ready) return null;
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
-      <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${index * 100}%)` }}>
-        {slides.map((slide, i) => (
-          <div key={slide.key} className="relative w-full h-full flex-shrink-0">
-            {slide.video && (
-              <>
-                <video
-                  className="absolute inset-0 w-full h-full object-cover"
-                  src={slide.video}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                />
-                <div className="absolute inset-0 bg-black/45" />
-              </>
-            )}
-            <div className="absolute inset-0 flex items-center justify-center text-center text-white">
-              <div className={`bf-anim ${i === index ? "bf-anim--in" : ""}`}>
-                <h1 className="text-4xl sm:text-5xl font-extrabold">{slide.title}</h1>
-                {slide.subtitle && <p className="mt-4 text-white/85">{slide.subtitle}</p>}
-                {slide.key === "welcome-video" && (
-                  <button
-                    onClick={() => next()}
-                    className="mt-7 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 text-black"
-                  >
-                    <span>Next</span>
-                    <span className="text-sm">{countdown}s</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+    <div className="relative w-full h-full">
+      {/* Background Image or Video */}
+      <div className="absolute inset-0 w-full h-full">
+        {slides[index]?.video ? (
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            src={slides[index]?.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        ) : (
+          <Image
+            src={slides[index]?.image!}
+            alt={slides[index]?.title ?? "BearFitPH slide"}
+            fill
+            className="object-cover"
+            priority={index === 1}
+          />
+        )}
+        <div className="absolute inset-0 bg-black/45" />
       </div>
 
+      {/* Centered Content */}
+      <div className="absolute inset-0 flex items-center justify-center text-center text-white p-6">
+        <div className={`max-w-[720px] transition-opacity duration-500 ${index === 0 ? "opacity-100" : "opacity-0"}`}>
+          <h1 className="text-4xl sm:text-5xl font-extrabold">{slides[index]?.title}</h1>
+          {slides[index]?.subtitle && <p className="mt-4 text-white/85">{slides[index]?.subtitle}</p>}
+          {slides[index]?.key === "welcome-video" && (
+            <button
+              onClick={() => next()}
+              className="mt-7 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 text-black"
+            >
+              <span>Next</span>
+              <span className="text-sm">{countdown}s</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Controls */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
         <button onClick={skip} className="text-white/80">Skip</button>
         <div className="flex gap-2">{slides.map((_, i) => (
@@ -224,7 +230,7 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* Bottom controls */}
+      {/* Bottom controls for Login and Sign Up */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
         <button onClick={() => setLoginModalOpen(true)} className="w-full p-3 mt-3 bg-blue-600 text-white rounded-lg">
           Login
