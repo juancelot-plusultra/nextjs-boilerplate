@@ -2,7 +2,7 @@
 
 import Image from "next/image"; import { useEffect, useMemo, useRef, useState } from "react";
 
-// ----------------------------- // Types // ----------------------------- type Slide = { key: string; title?: string; subtitle?: string; image?: string; video?: string; cta?: boolean; };
+type Slide = { key: string; title?: string; subtitle?: string; image?: string; video?: string; cta?: boolean; };
 
 const STORAGE_KEY = "bearfit_onboarded_v1"; const START_PAGE = "/member/dashboard";
 
@@ -10,25 +10,21 @@ const DURATIONS_SECONDS = { welcomeVideo: 47, normal: 10, };
 
 const IDLE_RESTART_SECONDS = 60;
 
-export default function WelcomePage() { // ----------------------------- // Slides // ----------------------------- const slides: Slide[] = useMemo( () => [ { key: "welcome-video", video: "/welcome/welcome-bg.mp4", title: "EVERY SESSION BUILDS YOUR STORY.", subtitle: "Better Form | Better Function | Better Fitness.", }, { key: "better-form", title: "Better Form", subtitle: "Train smarter with coach-guided movement.", image: "/onboarding/better-form1.jpg", }, { key: "better-function", title: "Better Function", subtitle: "Move better in everyday life, not just in the gym.", image: "/onboarding/better-function1.jpg", }, { key: "better-fitness", title: "Better Fitness", subtitle: "Build strength, confidence, and consistency.", image: "/onboarding/better-fintness1.jpg", }, { key: "free-assessment", title: "Free Assessment", subtitle: "Your journey starts here. Let’s get moving.", image: "/onboarding/free-assesment1.jpg", cta: true, }, ], [] );
+export default function WelcomePage() { const slides: Slide[] = useMemo(() => [ { key: "welcome-video", video: "/welcome/welcome-bg.mp4", title: "EVERY SESSION BUILDS YOUR STORY.", subtitle: "Better Form | Better Function | Better Fitness.", }, { key: "better-form", title: "Better Form", subtitle: "Train smarter with coach-guided movement.", image: "/onboarding/better-form1.jpg", }, { key: "better-function", title: "Better Function", subtitle: "Move better in everyday life, not just in the gym.", image: "/onboarding/better-function1.jpg", }, { key: "better-fitness", title: "Better Fitness", subtitle: "Build strength, confidence, and consistency.", image: "/onboarding/better-fintness1.jpg", }, { key: "free-assessment", title: "Free Assessment", subtitle: "Your journey starts here. Let’s get moving.", image: "/onboarding/free-assesment1.jpg", cta: true, }, ], []);
 
-// ----------------------------- // State // ----------------------------- const [index, setIndex] = useState(0); const [ready, setReady] = useState(false); const [faqOpen, setFaqOpen] = useState(false); const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
+const [index, setIndex] = useState(0); const [ready, setReady] = useState(false); const [faqOpen, setFaqOpen] = useState(false); const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
 
-// Auth State const [authMode, setAuthMode] = useState<"signin" | "signup" | null>(null); const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", });
+const [authMode, setAuthMode] = useState<"signin" | "signup" | null>(null); const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", });
 
 const isLast = index === slides.length - 1;
 
 const next = () => { if (!isLast) setIndex((i) => i + 1); };
 
-const prev = () => { if (index > 0) setIndex((i) => i - 1); };
-
-const skip = () => setIndex(slides.length - 1);
-
 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { setForm({ ...form, [e.target.name]: e.target.value }); };
 
-// ----------------------------- // Init // ----------------------------- useEffect(() => { const done = localStorage.getItem(STORAGE_KEY) === "1"; if (done) { window.location.replace(START_PAGE); return; } setReady(true); }, []);
+// Init useEffect(() => { const done = localStorage.getItem(STORAGE_KEY) === "1"; if (done) { window.location.replace(START_PAGE); } else { setReady(true); } }, []);
 
-// ----------------------------- // Auto Advance // ----------------------------- useEffect(() => { if (!ready) return; if (faqOpen) return; if (slides[index]?.key === "free-assessment") return;
+// Auto advance useEffect(() => { if (!ready || faqOpen) return; if (slides[index]?.key === "free-assessment") return;
 
 const duration =
   slides[index]?.key === "welcome-video"
@@ -39,24 +35,27 @@ if (slides[index]?.key === "welcome-video") {
   setCountdown(DURATIONS_SECONDS.welcomeVideo);
 }
 
-const t = window.setTimeout(() => next(), duration * 1000);
-return () => window.clearTimeout(t);
+const timeout = setTimeout(() => {
+  next();
+}, duration * 1000);
 
-}, [index, ready, faqOpen]);
-
-useEffect(() => { if (!ready) return; if (faqOpen) return; if (slides[index]?.key !== "welcome-video") return;
-
-const t = window.setInterval(() => {
-  setCountdown((c) => Math.max(0, c - 1));
-}, 1000);
-
-return () => window.clearInterval(t);
+return () => clearTimeout(timeout);
 
 }, [index, ready, faqOpen, slides]);
 
-// ----------------------------- // Idle Restart // ----------------------------- const idleTimerRef = useRef<number | null>(null);
+// Countdown timer useEffect(() => { if (!ready || faqOpen) return; if (slides[index]?.key !== "welcome-video") return;
 
-const resetIdle = () => { if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current); idleTimerRef.current = window.setTimeout(() => { setFaqOpen(false); setIndex(0); setCountdown(DURATIONS_SECONDS.welcomeVideo); }, IDLE_RESTART_SECONDS * 1000); };
+const interval = setInterval(() => {
+  setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+}, 1000);
+
+return () => clearInterval(interval);
+
+}, [index, ready, faqOpen, slides]);
+
+// Idle restart const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+const resetIdle = () => { if (idleTimerRef.current) clearTimeout(idleTimerRef.current); idleTimerRef.current = setTimeout(() => { setFaqOpen(false); setIndex(0); setCountdown(DURATIONS_SECONDS.welcomeVideo); }, IDLE_RESTART_SECONDS * 1000); };
 
 useEffect(() => { if (!ready) return;
 
@@ -66,7 +65,6 @@ window.addEventListener("mousemove", handler);
 window.addEventListener("mousedown", handler);
 window.addEventListener("touchstart", handler);
 window.addEventListener("keydown", handler);
-window.addEventListener("scroll", handler);
 
 resetIdle();
 
@@ -75,15 +73,14 @@ return () => {
   window.removeEventListener("mousedown", handler);
   window.removeEventListener("touchstart", handler);
   window.removeEventListener("keydown", handler);
-  window.removeEventListener("scroll", handler);
-  if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+  if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
 };
 
 }, [ready]);
 
 if (!ready) return null;
 
-// ----------------------------- // Render // ----------------------------- return ( <div className="fixed inset-0 bg-black overflow-hidden"> <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: translateX(-${index * 100}%) }} > {slides.map((slide, i) => ( <div key={slide.key} className="relative w-full h-full flex-shrink-0"> {slide.video ? ( <> <video
+return ( <div className="fixed inset-0 bg-black overflow-hidden"> <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: translateX(-${index * 100}%) }} > {slides.map((slide) => ( <div key={slide.key} className="relative w-full h-full flex-shrink-0"> {slide.video ? ( <> <video
 className="absolute inset-0 w-full h-full object-cover"
 src={slide.video}
 autoPlay
@@ -106,7 +103,6 @@ className="object-cover"
               <p className="mt-4 text-white/80">{slide.subtitle}</p>
             )}
 
-            {/* Welcome Slide Auth UI */}
             {slide.key === "welcome-video" && (
               <>
                 <button
