@@ -1,344 +1,172 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
-// -----------------------------
-// Types
-// -----------------------------
-type Slide = {
-  key: string;
-  title?: string;
-  subtitle?: string;
-  image?: string;
-  video?: string;
-  cta?: boolean;
-};
-
-const STORAGE_KEY = "bearfit_onboarded_v1";
-const START_PAGE = "/member/dashboard";
-
-const DURATIONS_SECONDS = {
-  welcomeVideo: 47,
-  normal: 10,
-};
-
-const IDLE_RESTART_SECONDS = 60;
+const slides = [
+  {
+    key: "welcome",
+    title: "Welcome to Plus Ultra",
+    description: "Your journey starts here.",
+  },
+  {
+    key: "features",
+    title: "Powerful Features",
+    description: "Track progress, unlock potential, grow faster.",
+  },
+  {
+    key: "welcome-video",
+    title: "Get Started",
+    description: "Let’s set up your account.",
+  },
+];
 
 export default function WelcomePage() {
-  // -----------------------------
-  // Slides
-  // -----------------------------
-  const slides: Slide[] = useMemo(
-    () => [
-      {
-        key: "welcome-video",
-        video: "/welcome/welcome-bg.mp4",
-        title: "EVERY SESSION BUILDS YOUR STORY.",
-        subtitle: "Better Form | Better Function | Better Fitness.",
-      },
-      {
-        key: "better-form",
-        title: "Better Form",
-        subtitle: "Train smarter with coach-guided movement.",
-        image: "/onboarding/better-form1.jpg",
-      },
-      {
-        key: "better-function",
-        title: "Better Function",
-        subtitle: "Move better in everyday life, not just in the gym.",
-        image: "/onboarding/better-function1.jpg",
-      },
-      {
-        key: "better-fitness",
-        title: "Better Fitness",
-        subtitle: "Build strength, confidence, and consistency.",
-        image: "/onboarding/better-fintness1.jpg",
-      },
-      {
-        key: "free-assessment",
-        title: "Free Assessment",
-        subtitle: "Your journey starts here. Let’s get moving.",
-        image: "/onboarding/free-assesment1.jpg",
-        cta: true,
-      },
-    ],
-    []
-  );
-
-  // -----------------------------
-  // State
-  // -----------------------------
   const [index, setIndex] = useState(0);
-  const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
-  const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
 
-  // Auth State
-  const [authMode, setAuthMode] = useState<"signin" | "signup" | null>(null);
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const isLast = index === slides.length - 1;
-
-  const next = () => {
-    if (!isLast) setIndex((i) => i + 1);
+  const nextSlide = () => {
+    if (index < slides.length - 1) setIndex(index + 1);
   };
 
-  const prev = () => {
-    if (index > 0) setIndex((i) => i - 1);
+  const prevSlide = () => {
+    if (index > 0) setIndex(index - 1);
   };
 
-  const skip = () => setIndex(slides.length - 1);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // -----------------------------
-  // Init
-  // -----------------------------
-  useEffect(() => {
-    const done = localStorage.getItem(STORAGE_KEY) === "1";
-    if (done) {
-      window.location.replace(START_PAGE);
-      return;
-    }
-    setReady(true);
-  }, []);
-
-  // -----------------------------
-  // Auto Advance
-  // -----------------------------
-  useEffect(() => {
-    if (!ready) return;
-    if (faqOpen) return;
-    if (slides[index]?.key === "free-assessment") return;
-
-    const duration =
-      slides[index]?.key === "welcome-video"
-        ? DURATIONS_SECONDS.welcomeVideo
-        : DURATIONS_SECONDS.normal;
-
-    if (slides[index]?.key === "welcome-video") {
-      setCountdown(DURATIONS_SECONDS.welcomeVideo);
-    }
-
-    const t = window.setTimeout(() => next(), duration * 1000);
-    return () => window.clearTimeout(t);
-  }, [index, ready, faqOpen]);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (faqOpen) return;
-    if (slides[index]?.key !== "welcome-video") return;
-
-    const t = window.setInterval(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 1000);
-
-    return () => window.clearInterval(t);
-  }, [index, ready, faqOpen, slides]);
-
-  // -----------------------------
-  // Idle Restart
-  // -----------------------------
-  const idleTimerRef = useRef<number | null>(null);
-
-  const resetIdle = () => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = window.setTimeout(() => {
-      setFaqOpen(false);
-      setIndex(0);
-      setCountdown(DURATIONS_SECONDS.welcomeVideo);
-    }, IDLE_RESTART_SECONDS * 1000);
+  const skipSlides = () => {
+    setIndex(slides.length - 1);
   };
 
   useEffect(() => {
-    if (!ready) return;
-
-    const handler = () => resetIdle();
-
-    window.addEventListener("mousemove", handler);
-    window.addEventListener("mousedown", handler);
-    window.addEventListener("touchstart", handler);
-    window.addEventListener("keydown", handler);
-    window.addEventListener("scroll", handler);
-
-    resetIdle();
-
-    return () => {
-      window.removeEventListener("mousemove", handler);
-      window.removeEventListener("mousedown", handler);
-      window.removeEventListener("touchstart", handler);
-      window.removeEventListener("keydown", handler);
-      window.removeEventListener("scroll", handler);
-      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") nextSlide();
+      if (e.key === "ArrowLeft") prevSlide();
     };
-  }, [ready]);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [index]);
 
-  if (!ready) return null;
-
-  // -----------------------------
-  // Render
-  // -----------------------------
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
-      <div
-        className="flex h-full transition-transform duration-500 ease-out"
-        style={{ transform: `translateX(-${index * 100}%)` }}
-      >
-        {slides.map((slide, i) => (
-          <div key={slide.key} className="relative w-full h-full flex-shrink-0">
-            {slide.video ? (
-              <>
-                <video
-                  className="absolute inset-0 w-full h-full object-cover"
-                  src={slide.video}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
-                <div className="absolute inset-0 bg-black/50" />
-              </>
-            ) : (
-              <>
-                <Image
-                  src={slide.image!}
-                  alt="slide"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/50" />
-              </>
-            )}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 p-6">
+      <div className="w-full max-w-2xl">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={slides[index].key}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Card className="rounded-2xl shadow-xl">
+              <CardContent className="p-8 text-center space-y-4">
+                <h2 className="text-2xl font-bold">{slides[index].title}</h2>
+                <p className="text-gray-600">{slides[index].description}</p>
 
-            <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
-              <div className="max-w-[720px] w-full">
-                <h1 className="text-4xl sm:text-5xl font-extrabold">
-                  {slide.title}
-                </h1>
-                {slide.subtitle && (
-                  <p className="mt-4 text-white/80">{slide.subtitle}</p>
+                {slides[index].key === "welcome-video" && (
+                  <div className="space-y-4">
+                    <Button className="w-full" onClick={() => alert("Sign In clicked")}>
+                      Sign In
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={() => alert("Sign Up clicked")}>
+                      Sign Up
+                    </Button>
+                  </div>
                 )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
 
-                {/* Welcome Slide Auth UI */}
-                {slide.key === "welcome-video" && (
-                  <>
-                    <button
-                      onClick={next}
-                      className="mt-7 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
-                    >
-                      Next ({countdown}s)
-                    </button>
+        {/* Navigation Controls */}
+        <div className="flex justify-between mt-6">
+          <Button variant="ghost" onClick={skipSlides}>
+            Skip
+          </Button>
 
-                    <div className="mt-6 w-full sm:w-[420px] mx-auto bg-white/10 backdrop-blur-md rounded-2xl p-5">
-                      <div className="flex gap-2 mb-4">
-                        <button
-                          onClick={() => setAuthMode("signin")}
-                          className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                            authMode === "signin"
-                              ? "bg-[#F37120] text-black"
-                              : "bg-white/10 text-white"
-                          }`}
-                        >
-                          Sign In
-                        </button>
-                        <button
-                          onClick={() => setAuthMode("signup")}
-                          className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                            authMode === "signup"
-                              ? "bg-[#F37120] text-black"
-                              : "bg-white/10 text-white"
-                          }`}
-                        >
-                          Sign Up
-                        </button>
-                      </div>
-
-                      {authMode === "signin" && (
-                        <div className="space-y-3">
-                          <input
-                            name="email"
-                            placeholder="Email"
-                            value={form.email}
-                            onChange={handleChange}
-                            className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                          />
-                          <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={form.password}
-                            onChange={handleChange}
-                            className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                          />
-                          <button className="w-full rounded-full bg-[#F37120] py-2 text-black font-semibold">
-                            Sign In
-                          </button>
-                        </div>
-                      )}
-
-                      {authMode === "signup" && (
-                        <div className="space-y-3">
-                          <div className="flex gap-2">
-                            <input
-                              name="firstName"
-                              placeholder="First Name"
-                              value={form.firstName}
-                              onChange={handleChange}
-                              className="w-1/2 rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                            />
-                            <input
-                              name="lastName"
-                              placeholder="Last Name"
-                              value={form.lastName}
-                              onChange={handleChange}
-                              className="w-1/2 rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                            />
-                          </div>
-                          <input
-                            name="email"
-                            placeholder="Email"
-                            value={form.email}
-                            onChange={handleChange}
-                            className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                          />
-                          <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={form.password}
-                            onChange={handleChange}
-                            className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                          />
-                          <input
-                            type="password"
-                            name="confirmPassword"
-                            placeholder="Confirm Password"
-                            value={form.confirmPassword}
-                            onChange={handleChange}
-                            className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white"
-                          />
-                          <button className="w-full rounded-full bg-[#F37120] py-2 text-black font-semibold">
-                            Create Account
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={prevSlide} disabled={index === 0}>
+              Back
+            </Button>
+            <Button onClick={nextSlide} disabled={index === slides.length - 1}>
+              Next
+            </Button>
           </div>
-        ))}
+        </div>
+
+        {/* Free Assessment Button */}
+        <div className="mt-6 text-center">
+          <Button
+            className="rounded-2xl px-6"
+            onClick={() => setAssessmentOpen(true)}
+          >
+            Free Assessment
+          </Button>
+        </div>
+
+        {/* FAQ Button */}
+        <div className="mt-4 text-center">
+          <Button variant="link" onClick={() => setFaqOpen(true)}>
+            View FAQ
+          </Button>
+        </div>
       </div>
+
+      {/* FAQ Modal */}
+      <AnimatePresence>
+        {faqOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            >
+              <h3 className="text-xl font-semibold mb-4">FAQ</h3>
+              <p className="text-gray-600 mb-4">
+                Here are answers to common questions about getting started.
+              </p>
+              <Button onClick={() => setFaqOpen(false)} className="w-full">
+                Close
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Free Assessment Modal */}
+      <AnimatePresence>
+        {assessmentOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            >
+              <h3 className="text-xl font-semibold mb-4">Free Assessment</h3>
+              <p className="text-gray-600 mb-4">
+                Complete this short assessment to personalize your experience.
+              </p>
+              <Button onClick={() => setAssessmentOpen(false)} className="w-full">
+                Close
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
