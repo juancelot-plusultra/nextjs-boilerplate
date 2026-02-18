@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 const slides = [
   {
@@ -59,58 +57,72 @@ export default function WelcomePage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.4 }}
+            className="bg-white rounded-2xl shadow-xl p-8 text-center space-y-4"
           >
-            <Card className="rounded-2xl shadow-xl">
-              <CardContent className="p-8 text-center space-y-4">
-                <h2 className="text-2xl font-bold">{slides[index].title}</h2>
-                <p className="text-gray-600">{slides[index].description}</p>
+            <h2 className="text-2xl font-bold">{slides[index].title}</h2>
+            <p className="text-gray-600">{slides[index].description}</p>
 
-                {slides[index].key === "welcome-video" && (
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => alert("Sign In clicked")}>
-                      Sign In
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={() => alert("Sign Up clicked")}>
-                      Sign Up
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {slides[index].key === "welcome-video" && (
+              <div className="space-y-4">
+                <button
+                  className="w-full bg-black text-white py-2 rounded-xl"
+                  onClick={() => alert("Sign In clicked")}
+                >
+                  Sign In
+                </button>
+                <button
+                  className="w-full border border-black py-2 rounded-xl"
+                  onClick={() => alert("Sign Up clicked")}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
         {/* Navigation Controls */}
         <div className="flex justify-between mt-6">
-          <Button variant="ghost" onClick={skipSlides}>
+          <button className="text-gray-600" onClick={skipSlides}>
             Skip
-          </Button>
+          </button>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={prevSlide} disabled={index === 0}>
+            <button
+              className="border px-4 py-2 rounded-xl"
+              onClick={prevSlide}
+              disabled={index === 0}
+            >
               Back
-            </Button>
-            <Button onClick={nextSlide} disabled={index === slides.length - 1}>
+            </button>
+            <button
+              className="bg-black text-white px-4 py-2 rounded-xl"
+              onClick={nextSlide}
+              disabled={index === slides.length - 1}
+            >
               Next
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Free Assessment Button */}
         <div className="mt-6 text-center">
-          <Button
-            className="rounded-2xl px-6"
+          <button
+            className="bg-blue-600 text-white px-6 py-2 rounded-2xl"
             onClick={() => setAssessmentOpen(true)}
           >
             Free Assessment
-          </Button>
+          </button>
         </div>
 
         {/* FAQ Button */}
         <div className="mt-4 text-center">
-          <Button variant="link" onClick={() => setFaqOpen(true)}>
+          <button
+            className="text-blue-600 underline"
+            onClick={() => setFaqOpen(true)}
+          >
             View FAQ
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -133,9 +145,12 @@ export default function WelcomePage() {
               <p className="text-gray-600 mb-4">
                 Here are answers to common questions about getting started.
               </p>
-              <Button onClick={() => setFaqOpen(false)} className="w-full">
+              <button
+                className="w-full bg-black text-white py-2 rounded-xl"
+                onClick={() => setFaqOpen(false)}
+              >
                 Close
-              </Button>
+              </button>
             </motion.div>
           </motion.div>
         )}
@@ -160,9 +175,12 @@ export default function WelcomePage() {
               <p className="text-gray-600 mb-4">
                 Complete this short assessment to personalize your experience.
               </p>
-              <Button onClick={() => setAssessmentOpen(false)} className="w-full">
+              <button
+                className="w-full bg-blue-600 text-white py-2 rounded-xl"
+                onClick={() => setAssessmentOpen(false)}
+              >
                 Close
-              </Button>
+              </button>
             </motion.div>
           </motion.div>
         )}
