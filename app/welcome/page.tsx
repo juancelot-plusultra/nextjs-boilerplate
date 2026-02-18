@@ -5,6 +5,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import { createClient } from "@supabase/supabase-js"; // Import createClient
 
+// Define Slide type
+type Slide = {
+  key: string;
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  video?: string;
+  cta?: boolean;
+};
+
 const STORAGE_KEY = "bearfit_onboarded_v1";
 
 // after welcome, send them to your main app (root)
@@ -19,6 +29,7 @@ const DURATIONS_SECONDS = {
 // idle restart (seconds)
 const IDLE_RESTART_SECONDS = 60;
 
+// Initialize Supabase Client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
