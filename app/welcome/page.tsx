@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 type Slide = {
   key: string;
@@ -25,6 +26,12 @@ const DURATIONS_SECONDS = {
 
 // idle restart (seconds)
 const IDLE_RESTART_SECONDS = 60;
+
+// Initialize Supabase Client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function WelcomePage() {
   const slides: Slide[] = useMemo(
@@ -56,7 +63,7 @@ export default function WelcomePage() {
       {
         key: "free-assessment",
         title: "Free Assessment",
-        subtitle: "Your journey starts here. Letâ€™s get moving.",
+        subtitle: "Your journey starts here. Let’s get moving.",
         image: "/onboarding/free-assesment1.jpg",
         cta: true,
       },
@@ -213,6 +220,40 @@ export default function WelcomePage() {
 
   if (!ready) return null;
 
+  // -----------------------------
+  // Login/Signup Modals and State
+  // -----------------------------
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [signupModalOpen, setSignupModalOpen] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) setError(error.message);
+    if (data) {
+      router.push("/member/dashboard");
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) setError(error.message);
+    if (data) {
+      router.push("/member/dashboard");
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black overflow-hidden"
@@ -286,48 +327,6 @@ export default function WelcomePage() {
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
-
-                  {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
-                  {slide.cta && (
-  <div className="mt-6 flex flex-col items-center">
-    {/* FAQ trigger */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        setFaqOpen(true);
-      }}
-      className="text-sm underline text-white/80 whitespace-nowrap"
-    >
-      No guesswork, just gains. Get the facts here
-    </button>
-
-    {/* Main CTA */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-    >
-      Get Started â€“ Free Assessment
-    </button>
-
-    {/* Dashboard sample */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        localStorage.setItem("bearfit_preview_role", "Member");
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
-    >
-      Dashboard Sample
-    </button>
-  </div>
-)}
                 </div>
               </div>
             </div>
@@ -368,139 +367,87 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* FAQ MODAL â€” FULL 1â€“6 */}
-      {faqOpen && (
-        <div className="absolute inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/70"
-            onClick={() => {
-              resetIdle();
-              setFaqOpen(false);
-            }}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80%] rounded-t-2xl bg-[#0b0b0b] p-6 overflow-auto">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-white text-lg font-semibold">Getting Started with BearFit</h2>
+      {/* Login Modal */}
+      {loginModalOpen && (
+        <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[400px]">
+            <h2 className="text-center text-xl font-semibold mb-4">Login</h2>
+            {error && <p className="text-red-500 text-center">{error}</p>}
+            <form onSubmit={handleLogin}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 mb-4 border rounded-lg"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 mb-4 border rounded-lg"
+                required
+              />
+              <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg">Login</button>
               <button
-                onClick={() => {
-                  resetIdle();
-                  setFaqOpen(false);
-                }}
-                className="text-white/70 text-xl leading-none"
-                aria-label="Close FAQs"
+                type="button"
+                onClick={() => setLoginModalOpen(false)}
+                className="mt-3 w-full p-3 border rounded-lg"
               >
-                Ã—
+                Close
               </button>
-            </div>
-
-            <div className="mt-4 space-y-5 text-white/85 text-sm leading-relaxed">
-              <div>
-                <div className="font-semibold text-white">
-                  1. What can I expect from BearFit and what services do you offer?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>BearFit is all about science-based personalized training.</li>
-                  <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
-                  <li>
-                    We offer both in-house and online workout packages so you can train wherever works best for you.
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  2. How much are the monthly fees and are there any hidden costs?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>The great news is that BearFit doesnâ€™t charge monthly fees at all!</li>
-                  <li>You donâ€™t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  3. What do I actually get when I sign up for a workout package?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
-                  <li>Youâ€™ll receive a personalized workout program tailored specifically to you.</li>
-                  <li>
-                    Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">4. Where exactly are your branches located?</div>
-                <ul className="mt-2 list-disc pl-5 space-y-2">
-                  <li>
-                    We have two spots in Quezon City:
-                    <div className="mt-1">
-                      <span className="font-semibold">Sikatuna Village:</span> 48 Malingap Street
-                    </div>
-                    <div>
-                      <span className="font-semibold">E. Rodriguez:</span> G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
-                    </div>
-                  </li>
-                  <li>
-                    We also have a location in <span className="font-semibold">Cainta</span>:
-                    <div className="mt-1">
-                      <span className="font-semibold">Primark Town Center Cainta:</span> 271 Ortigas Ave Ext, Cainta, Rizal
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  5. What are your opening hours, and do I need to book ahead?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>We are open Monday through Saturday to fit your schedule.</li>
-                  <li>Monâ€“Fri: 7 AM to 10 PM â€¢ Sat: 7 AM to 2 PM</li>
-                  <li>
-                    <span className="font-semibold">Pro tip:</span> Itâ€™s best to schedule your sessions in advance to make sure you get the time slot you want!
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  6. What kind of equipment and extra perks do you have?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>Weâ€™re well-equipped with strength and resistance training gear, plus Muay Thai and boxing equipment.</li>
-                  <li>If you want the full list of whatâ€™s on the floor, feel free to send us a DM!</li>
-                  <li>For your comfort: shower rooms, lounge area, bicycle rack, drinking water, free WiFi.</li>
-                </ul>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                resetIdle();
-                setFaqOpen(false);
-              }}
-              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
-            >
-              Close
-            </button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* text animation */}
-      <style jsx global>{`
-        .bf-anim {
-          opacity: 0;
-          transform: translateY(10px);
-          transition: opacity 420ms ease, transform 420ms ease;
-        }
-        .bf-anim--in {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
+      {/* Sign Up Modal */}
+      {signupModalOpen && (
+        <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[400px]">
+            <h2 className="text-center text-xl font-semibold mb-4">Sign Up</h2>
+            {error && <p className="text-red-500 text-center">{error}</p>}
+            <form onSubmit={handleSignup}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 mb-4 border rounded-lg"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 mb-4 border rounded-lg"
+                required
+              />
+              <button type="submit" className="w-full bg-green-600 text-white p-3 rounded-lg">Sign Up</button>
+              <button
+                type="button"
+                onClick={() => setSignupModalOpen(false)}
+                className="mt-3 w-full p-3 border rounded-lg"
+              >
+                Close
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom controls for Login and Sign Up */}
+      <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
+        <button onClick={() => setLoginModalOpen(true)} className="w-full p-3 mt-3 bg-blue-600 text-white rounded-lg">
+          Login
+        </button>
+        <button onClick={() => setSignupModalOpen(true)} className="w-full p-3 mt-3 bg-green-600 text-white rounded-lg">
+          Sign Up
+        </button>
+      </div>
     </div>
   );
 }
