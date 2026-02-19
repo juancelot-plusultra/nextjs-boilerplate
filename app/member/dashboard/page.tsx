@@ -1,4 +1,7 @@
 "use client"
+import { useState, useEffect } from "react"; // Import React hooks
+import { createClient } from "@supabase/supabase-js"; // Import Supabase client
+
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
