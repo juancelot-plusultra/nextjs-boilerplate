@@ -1,4 +1,4 @@
-"use client"; // Must be the first line in your file to indicate this is a client-side component
+"use client"; // Ensure this is at the very top of your file
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
