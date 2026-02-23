@@ -1,4 +1,4 @@
-"use client"; // Add this at the top of your file to indicate this is a client component
+"use client"; // Must be the first line in your file to indicate this is a client-side component
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
@@ -12,15 +12,13 @@ type Slide = {
   cta?: boolean;
 };
 
-// Rest of the code remains the same
-
 const STORAGE_KEY = "bearfit_onboarded_v1";
-const START_PAGE = "/member/dashboard"; // Redirect to main app after onboarding
+const START_PAGE = "/member/dashboard";
 const DURATIONS_SECONDS = { welcomeVideo: 47, normal: 10 };
 const IDLE_RESTART_SECONDS = 60;
 
 export default function WelcomePage() {
-  const { session } = useSession(); // Check user session
+  const { session } = useSession();
   const router = useRouter();
 
   const slides: Slide[] = useMemo(() => [
@@ -60,14 +58,13 @@ export default function WelcomePage() {
   const next = () => {
     if (isLast) {
       // Redirect to assessment or main app after completion
-      session ? router.push(START_PAGE) : router.push("/signup"); // Handle redirection for logged-in users
+      session ? router.push(START_PAGE) : router.push("/signup");
     } else {
       setIndex(index + 1);
     }
   };
 
   const skipIntro = () => {
-    // Skip onboarding and navigate to the dashboard
     router.push(START_PAGE);
   };
 
