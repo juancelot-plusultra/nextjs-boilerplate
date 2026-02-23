@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Add this at the top of your file to indicate this is a client component
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
@@ -11,6 +11,8 @@ type Slide = {
   image?: string;
   cta?: boolean;
 };
+
+// Rest of the code remains the same
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
 const START_PAGE = "/member/dashboard"; // Redirect to main app after onboarding
