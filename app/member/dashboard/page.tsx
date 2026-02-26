@@ -505,7 +505,7 @@ export default function BearfitApp() {
       setHelpOpen(true)
     }
   }
-  
+
   // Staff states
   const [showScanQR, setShowScanQR] = useState(false)
   const [showCreateSession, setShowCreateSession] = useState(false)
@@ -521,7 +521,7 @@ export default function BearfitApp() {
   const [calendarYear, setCalendarYear] = useState(2026)
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<number | null>(null)
   const [showDayDetail, setShowDayDetail] = useState(false)
-  
+
   // Admin states
   const [showMemberDetail, setShowMemberDetail] = useState<typeof membersData[0] | null>(null)
   const [showStaffDetail, setShowStaffDetail] = useState<typeof staffData[0] | null>(null)
@@ -530,7 +530,7 @@ export default function BearfitApp() {
   const [showReports, setShowReports] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showAnnouncements, setShowAnnouncements] = useState(false)
-  
+
   // More menu states
   const [showReferral, setShowReferral] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -541,7 +541,7 @@ export default function BearfitApp() {
   const [showMonthlyReport, setShowMonthlyReport] = useState(false)
   const [showTimeOff, setShowTimeOff] = useState(false)
   const [showPreferences, setShowPreferences] = useState(false)
-  
+
   // Admin filter states
   const [adminMemberFilter, setAdminMemberFilter] = useState("All")
   const [adminPaymentFilter, setAdminPaymentFilter] = useState("All")
@@ -561,7 +561,7 @@ export default function BearfitApp() {
   const [showAboutBearFit, setShowAboutBearFit] = useState(false)
   const [leadSourceFilter, setLeadSourceFilter] = useState("All")
   const [leadStatusFilter, setLeadStatusFilter] = useState("All")
-  
+
   // Create session form state
   const [sessionForm, setSessionForm] = useState({
     client: "",
@@ -3155,7 +3155,7 @@ export default function BearfitApp() {
                         <p className="text-[7px] text-muted-foreground">Expired</p>
                       </div>
                     </div>
-                    
+
                     <div className="bg-[#141414] rounded-xl p-4 border border-border/30">
                       <div className="flex items-center justify-between mb-3">
                         <h2 className="text-sm font-semibold text-foreground">All Members</h2>
@@ -3412,7 +3412,7 @@ export default function BearfitApp() {
                         ))}
                       </div>
                     </div>
-                    
+
                     {/* Staff Attendance Calendar */}
                     <div className="bg-[#141414] rounded-xl p-4 border border-border/30">
                       <div className="flex items-center justify-between mb-2">
