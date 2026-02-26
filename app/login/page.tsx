@@ -1,95 +1,142 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 
-// Supabase client setup
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function Login() {
-  const router = useRouter();  // Used to redirect after successful login
-  const [email, setEmail] = useState("");  // Changed to allow dynamic email input
-  const [password, setPassword] = useState("");  // Changed to allow dynamic password input
-  const [error, setError] = useState<string | null>(null);
+export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
-    try {
-      // Use Supabase Auth to log in the user
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message); // Display error if login fails
-      } else {
-        // Redirect to the dashboard if login is successful
-        router.push("/member/dashboard");
-      }
-    } catch (err) {
-      setError("An error occurred while logging in.");
-    } finally {
+    // TEMP: replace later with real auth
+    setTimeout(() => {
       setLoading(false);
-    }
+      alert("Login logic goes here");
+    }, 1200);
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 space-y-4">
-      <h2 className="text-2xl font-bold text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F6FA] to-[#ECEEF4] px-4">
+      <div className="w-full max-w-[420px] bg-white rounded-[32px] px-6 py-10 shadow-[0_30px_80px_rgba(0,0,0,0.12)] animate-fade-in">
 
-      {/* Display error message if login fails */}
-      {error && <div className="text-red-500 text-center">{error}</div>}
+        {/* LOGO */}
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/brand/bearfit-logo.png"
+            alt="BearFitPH"
+            width={900}
+            height={300}
+            priority
+            className="w-[220px] h-auto"
+          />
+        </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
+        {/* HEADER */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-extrabold text-[#111827]">
+            Hello Again
+          </h1>
+          <p className="mt-3 text-[#6B7280] text-base">
+            Welcome back — you’ve been missed!
+          </p>
+        </div>
+
+        {/* FORM */}
+        <form onSubmit={onSubmit} className="space-y-5">
           <input
             type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            placeholder="Enter email"
             required
+            className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
           />
+
+          <div className="relative">
+            <input
+              type="password"
+              placeholder="Password"
+              required
+              className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
+            />
+            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#9CA3AF] cursor-pointer">
+              👁
+            </span>
+          </div>
+
+          <div className="text-right">
+            <a
+              href="/forgot-password"
+              className="text-sm font-medium text-[#F37120] hover:underline"
+            >
+              Forgot Password?
+            </a>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-[#F37120] py-4 font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        {/* DIVIDER */}
+        <div className="flex items-center gap-4 my-8">
+          <div className="h-px flex-1 bg-[#E5E7EB]" />
+          <span className="text-sm text-[#9CA3AF]">Or continue with</span>
+          <div className="h-px flex-1 bg-[#E5E7EB]" />
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-            required
-          />
+        {/* SOCIAL LOGIN (UI ONLY) */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button className="h-12 w-12 rounded-full border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F9FAFB]">
+            <Image src="/icons/google.svg" alt="Google" width={22} height={22} />
+          </button>
+          <button className="h-12 w-12 rounded-full border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F9FAFB]">
+            <Image src="/icons/apple.svg" alt="Apple" width={22} height={22} />
+          </button>
+          <button className="h-12 w-12 rounded-full border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F9FAFB]">
+            <Image src="/icons/facebook.svg" alt="Facebook" width={22} height={22} />
+          </button>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full p-3 bg-blue-600 text-white rounded-lg"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+        {/* FOOTER */}
+        <div className="text-center text-sm text-[#6B7280]">
+          Not a member?{" "}
+          <a
+            href="/onboarding"
+            className="font-semibold text-[#F37120] hover:underline"
+          >
+            Register now
+          </a>
+        </div>
 
-      <p className="text-center text-sm">
-        Don't have an account? <a href="/signup" className="text-blue-600">Sign up</a>
-      </p>
+        <p className="mt-8 text-center text-xs text-[#9CA3AF] leading-relaxed">
+          Tip: Staff and Members use the same login.
+          <br />
+          Your role decides where you land.
+        </p>
+      </div>
+
+      {/* SIMPLE FADE ANIMATION */}
+      <style jsx>{`
+        .animate-fade-in {
+          animation: fadeInUp 0.6s ease-out both;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
