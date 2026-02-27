@@ -33,7 +33,7 @@ function useProfileData(userId: string) {
 
     // Subscribe to real-time updates for the 'profiles' table
     const profileSubscription = supabase
-      .from('profiles')  // Subscribe to the 'profiles' table
+      .channel('profiles')  // Create a new subscription channel for the 'profiles' table
       .on('postgres_changes', {
         event: 'UPDATE',  // Listen for UPDATE events
         schema: 'public',
