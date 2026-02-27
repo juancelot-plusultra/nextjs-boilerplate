@@ -1,33 +1,39 @@
 // lib/useProfileData.ts
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';  // Import the Supabase client
+import { supabase } from '@/lib/supabase';  // Import Supabase client
 
-// Custom hook to fetch profile data
+// Define the type for profile data
+interface ProfileData {
+  full_name: string;
+  membership_id: string;
+  branch: string;
+}
+
 function useProfileData(userId: string) {
-  const [profileData, setProfileData] = useState(null);  // Store the fetched profile data
-  const [error, setError] = useState('');  // Store any errors that occur
+  // State to store the profile data or error message
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Function to fetch profile data from Supabase
     async function fetchProfileData() {
+      // Fetch profile data from the "profiles" table in Supabase
       const { data, error } = await supabase
-        .from('profiles')  // Make sure 'profiles' is the correct table name
+        .from('profiles')  // Make sure 'profiles' is the correct table name in Supabase
         .select('*')  // Select all columns
         .eq('id', userId)  // Filter by user ID
-        .single();  // Fetch a single row (since we expect only one profile per user)
+        .single();  // Fetch a single record
 
       if (error) {
-        setError(error.message);  // Set the error message if there's an error
+        setError(error.message);  // Set error if any
       } else {
-        setProfileData(data);  // Set the profile data
+        setProfileData(data);  // Set the fetched profile data
       }
     }
 
-    fetchProfileData();  // Call the function when the component is mounted
-  }, [userId]);  // Only run the effect when the userId changes
+    fetchProfileData();  // Fetch data when the component is mounted
+  }, [userId]);  // Refetch if the userId changes
 
-  return { profileData, error };  // Return the profile data and any errors
+  return { profileData, error };  // Return the data and error
 }
 
 export default useProfileData;
