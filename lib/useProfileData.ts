@@ -33,7 +33,7 @@ function useProfileData(userId: string) {
 
     // Subscribe to real-time updates for the 'profiles' table
     const profileSubscription = supabase
-      .from('profiles')
+      .from('profiles')  // This is the correct way to get a subscription
       .on('UPDATE', (payload) => {
         if (payload.new.id === userId) {
           setProfileData(payload.new);  // Update the profile data when it changes
