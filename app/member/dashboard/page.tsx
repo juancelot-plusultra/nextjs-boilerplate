@@ -7,7 +7,6 @@ import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
 import { ActivityLog } from "@/components/bearfit/activity-log"
 import { PromoBanner } from "@/components/bearfit/promo-banner"
-import { SchedulePage } from "@/components/bearfit/schedule-page"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
@@ -754,7 +753,7 @@ export default function BearfitApp() {
                     <PromoBanner />
                   </div>
                 )}
-                {activeTab === "schedule" && <SchedulePage />}
+                {activeTab === "schedule" && <PromoBanner />}
                 {activeTab === "payment" && <PaymentPage />}
                 {activeTab === "profile" && <ProfilePage />}
                 {activeTab === "more" && (
@@ -2111,7 +2110,7 @@ export default function BearfitApp() {
                   <PromoBanner />
                 </>
               )}
-              {activeTab === "schedule" && <SchedulePage />}
+              {activeTab === "schedule" && <PromoBanner />}
               {activeTab === "payment" && <PaymentPage />}
               {activeTab === "profile" && <ProfilePage />}
               {activeTab === "more" && (
