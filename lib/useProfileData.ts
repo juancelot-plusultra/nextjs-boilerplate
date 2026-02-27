@@ -33,14 +33,14 @@ function useProfileData(userId: string) {
 
     // Subscribe to real-time updates for the 'profiles' table
     const profileSubscription = supabase
-      .from('profiles')  // This is the correct way to get a subscription
+      .from('profiles')  // Subscribe to the 'profiles' table
       .on('postgres_changes', {
         event: 'UPDATE',  // Listen for UPDATE events
         schema: 'public',
         table: 'profiles',  // Table to subscribe to
         filter: `id=eq.${userId}`,  // Only subscribe to updates for the current user
       }, (payload) => {
-        // Update the profile data when it changes
+        // Ensure the payload is correctly typed as ProfileData
         const updatedProfile: ProfileData = {
           full_name: payload.new.full_name,
           membership_id: payload.new.membership_id,
@@ -53,7 +53,7 @@ function useProfileData(userId: string) {
 
     // Clean up the subscription when the component unmounts
     return () => {
-      profileSubscription.unsubscribe();  // Correctly unsubscribe from the channel
+      supabase.removeSubscription(profileSubscription);  // Correctly remove the subscription
     };
   }, [userId]);  // Run the effect whenever the userId changes
 
