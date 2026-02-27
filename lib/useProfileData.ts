@@ -33,21 +33,21 @@ function useProfileData(userId: string) {
 
     // Subscribe to real-time updates for the 'profiles' table
     const profileSubscription = supabase
-      .from('profiles')  // This is the correct way to get a subscription
+      .channel('profiles')  // Create a new subscription channel for the 'profiles' table
       .on('postgres_changes', {
         event: 'UPDATE',  // Listen for UPDATE events
         schema: 'public',
         table: 'profiles',  // Table to subscribe to
         filter: `id=eq.${userId}`,  // Only subscribe to updates for the current user
       }, (payload) => {
-        // Ensure the payload matches the ProfileData structure
+        // Update the profile data when it changes
         const updatedProfile: ProfileData = {
           full_name: payload.new.full_name,
           membership_id: payload.new.membership_id,
           branch: payload.new.branch,
         };
 
-        setProfileData(updatedProfile);  // Update the profile data when it changes
+        setProfileData(updatedProfile);  // Update state with the latest profile data
       })
       .subscribe();  // Start the subscription
 
