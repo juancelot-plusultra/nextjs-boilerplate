@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';  // Import Supabase client
 
-// Define the ProfileData interface
+// Define the type for profile data
 interface ProfileData {
   full_name: string;
   membership_id: string;
@@ -10,54 +10,30 @@ interface ProfileData {
 }
 
 function useProfileData(userId: string) {
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);  // Initialize the profileData state
-  const [error, setError] = useState<string>('');  // State for handling error messages
+  // State to store the profile data or error message
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Function to fetch profile data
     async function fetchProfileData() {
+      // Fetch profile data from the "profiles" table in Supabase
       const { data, error } = await supabase
-        .from('profiles')  // Fetch data from the 'profiles' table
+        .from('profiles')  // Make sure 'profiles' is the correct table name in Supabase
         .select('*')  // Select all columns
-        .eq('id', userId)  // Filter by the user ID
-        .single();  // Get a single record (since we expect only one profile per user)
+        .eq('id', userId)  // Filter by user ID
+        .single();  // Fetch a single record
 
       if (error) {
-        setError(error.message);  // If there's an error, set the error message
+        setError(error.message);  // Set error if any
       } else {
-        setProfileData(data);  // If successful, update profile data
+        setProfileData(data);  // Set the fetched profile data
       }
     }
 
-    fetchProfileData();  // Fetch profile data on initial load
+    fetchProfileData();  // Fetch data when the component is mounted
+  }, [userId]);  // Refetch if the userId changes
 
-    // Subscribe to real-time updates for the 'profiles' table
-    const profileSubscription = supabase
-      .from('profiles')  // Subscribe to the 'profiles' table
-      .on('postgres_changes', {
-        event: 'UPDATE',  // Listen for UPDATE events
-        schema: 'public',
-        table: 'profiles',  // Table to subscribe to
-        filter: `id=eq.${userId}`,  // Only subscribe to updates for the current user
-      }, (payload) => {
-        // Ensure the payload is correctly typed as ProfileData
-        const updatedProfile: ProfileData = {
-          full_name: payload.new.full_name,
-          membership_id: payload.new.membership_id,
-          branch: payload.new.branch,
-        };
-
-        setProfileData(updatedProfile);  // Update state with the latest profile data
-      })
-      .subscribe();  // Start the subscription
-
-    // Clean up the subscription when the component unmounts
-    return () => {
-      supabase.removeSubscription(profileSubscription);  // Correctly remove the subscription
-    };
-  }, [userId]);  // Run the effect whenever the userId changes
-
-  return { profileData, error };  // Return the profile data and error message
+  return { profileData, error };  // Return the data and error
 }
 
 export default useProfileData;
