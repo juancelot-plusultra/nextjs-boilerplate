@@ -3,6 +3,23 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js"; // Import Supabase client
 
+// Define types for the data
+interface ProfileData {
+  full_name: string;
+  membership_id: string;
+  branch: string;
+}
+
+interface MemberData {
+  remaining_sessions: number;
+  total_sessions: number;
+}
+
+interface PointsData {
+  total_points: number;
+  tier: string;
+}
+
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,10 +27,11 @@ const supabase = createClient(
 );
 
 export default function DashboardData() {
-  const [profileData, setProfileData] = useState(null);
-  const [memberData, setMemberData] = useState(null);
-  const [pointsData, setPointsData] = useState(null);
-  const [error, setError] = useState("");
+  // Define state with proper types
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [memberData, setMemberData] = useState<MemberData | null>(null);
+  const [pointsData, setPointsData] = useState<PointsData | null>(null);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
@@ -28,7 +46,7 @@ export default function DashboardData() {
       if (profileError) {
         setError(profileError.message);
       } else {
-        setProfileData(profile);
+        setProfileData(profile as ProfileData);
       }
 
       // Fetch Member Data
@@ -40,7 +58,7 @@ export default function DashboardData() {
       if (memberError) {
         setError(memberError.message);
       } else {
-        setMemberData(member);
+        setMemberData(member as MemberData);
       }
 
       // Fetch Points Data
@@ -52,7 +70,7 @@ export default function DashboardData() {
       if (pointsError) {
         setError(pointsError.message);
       } else {
-        setPointsData(points);
+        setPointsData(points as PointsData);
       }
     }
 
