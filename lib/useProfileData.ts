@@ -33,7 +33,7 @@ function useProfileData(userId: string) {
 
     // Subscribe to real-time updates for the 'profiles' table
     const profileSubscription = supabase
-      .channel('profiles')  // Create a new subscription channel for the 'profiles' table
+      .from('profiles')  // This is the correct way to get a subscription
       .on('postgres_changes', {
         event: 'UPDATE',  // Listen for UPDATE events
         schema: 'public',
@@ -53,7 +53,7 @@ function useProfileData(userId: string) {
 
     // Clean up the subscription when the component unmounts
     return () => {
-      supabase.removeSubscription(profileSubscription);  // Remove the subscription
+      profileSubscription.unsubscribe();  // Correctly unsubscribe from the channel
     };
   }, [userId]);  // Run the effect whenever the userId changes
 
