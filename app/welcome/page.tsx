@@ -97,6 +97,8 @@ export default function WelcomePage() {
       fitness_goal: formData.get("fitness_goal"),
       email: formData.get("email"),
       phone: formData.get("phone"),
+      preferred_schedule: formData.get("preferred_schedule"),
+      additional_goals: formData.get("additional_goals"),
     };
 
     console.log(data); // Log the form data for now
@@ -331,6 +333,7 @@ export default function WelcomePage() {
         </button>
       </div>
 
+      {/* Free Assessment Form Modal */}
       {formModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -346,6 +349,8 @@ export default function WelcomePage() {
               </select>
               <input type="email" name="email" placeholder="Email" required />
               <input type="tel" name="phone" placeholder="Phone" required />
+              <input type="text" name="preferred_schedule" placeholder="Preferred Schedule" required />
+              <textarea name="additional_goals" placeholder="Additional Goals (optional)"></textarea>
               <button type="submit">Submit</button>
             </form>
           </div>
@@ -380,7 +385,7 @@ export default function WelcomePage() {
           cursor: pointer;
         }
 
-        form input, form select {
+        form input, form select, form textarea {
           margin: 10px 0;
           padding: 8px;
           width: 100%;
