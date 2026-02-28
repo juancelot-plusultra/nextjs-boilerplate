@@ -56,7 +56,7 @@ export default function WelcomePage() {
       {
         key: "free-assessment",
         title: "Free Assessment",
-        subtitle: "Your journey starts here. LetÃ¢â‚¬â„¢s get moving.",
+        subtitle: "Your journey starts here. Let’s get moving.",
         image: "/onboarding/free-assesment1.jpg",
         cta: true,
       },
@@ -311,7 +311,7 @@ export default function WelcomePage() {
       }}
       className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
     >
-      Get Started Ã¢â‚¬â€œ Free Assessment
+      Get Started – Free Assessment
     </button>
 
     {/* Dashboard sample */}
@@ -368,7 +368,7 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* FAQ MODAL Ã¢â‚¬â€ FULL 1Ã¢â‚¬â€œ6 */}
+      {/* FAQ MODAL — FULL 1–6 */}
       {faqOpen && (
         <div className="absolute inset-0 z-50">
           <div
@@ -389,7 +389,7 @@ export default function WelcomePage() {
                 className="text-white/70 text-xl leading-none"
                 aria-label="Close FAQs"
               >
-                Ã—
+                ×
               </button>
             </div>
 
@@ -398,3 +398,109 @@ export default function WelcomePage() {
                 <div className="font-semibold text-white">
                   1. What can I expect from BearFit and what services do you offer?
                 </div>
+                <ul className="mt-2 list-disc pl-5 space-y-1">
+                  <li>BearFit is all about science-based personalized training.</li>
+                  <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
+                  <li>
+                    We offer both in-house and online workout packages so you can train wherever works best for you.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="font-semibold text-white">
+                  2. How much are the monthly fees and are there any hidden costs?
+                </div>
+                <ul className="mt-2 list-disc pl-5 space-y-1">
+                  <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
+                  <li>You don’t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="font-semibold text-white">
+                  3. What do I actually get when I sign up for a workout package?
+                </div>
+                <ul className="mt-2 list-disc pl-5 space-y-1">
+                  <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
+                  <li>You’ll receive a personalized workout program tailored specifically to you.</li>
+                  <li>
+                    Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="font-semibold text-white">4. Where exactly are your branches located?</div>
+                <ul className="mt-2 list-disc pl-5 space-y-2">
+                  <li>
+                    We have two spots in Quezon City:
+                    <div className="mt-1">
+                      <span className="font-semibold">Sikatuna Village:</span> 48 Malingap Street
+                    </div>
+                    <div>
+                      <span className="font-semibold">E. Rodriguez:</span> G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
+                    </div>
+                  </li>
+                  <li>
+                    We also have a location in <span className="font-semibold">Cainta</span>:
+                    <div className="mt-1">
+                      <span className="font-semibold">Primark Town Center Cainta:</span> 271 Ortigas Ave Ext, Cainta, Rizal
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="font-semibold text-white">
+                  5. What are your opening hours, and do I need to book ahead?
+                </div>
+                <ul className="mt-2 list-disc pl-5 space-y-1">
+                  <li>We are open Monday through Saturday to fit your schedule.</li>
+                  <li>Mon–Fri: 7 AM to 10 PM • Sat: 7 AM to 2 PM</li>
+                  <li>
+                    <span className="font-semibold">Pro tip:</span> It’s best to schedule your sessions in advance to make sure you get the time slot you want!
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="font-semibold text-white">
+                  6. What kind of equipment and extra perks do you have?
+                </div>
+                <ul className="mt-2 list-disc pl-5 space-y-1">
+                  <li>We’re well-equipped with strength and resistance training gear, plus Muay Thai and boxing equipment.</li>
+                  <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
+                  <li>For your comfort: shower rooms, lounge area, bicycle rack, drinking water, free WiFi.</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                resetIdle();
+                setFaqOpen(false);
+              }}
+              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* text animation */}
+      <style jsx global>{`
+        .bf-anim {
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 420ms ease, transform 420ms ease;
+        }
+        .bf-anim--in {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
+    </div>
+  );
+}
