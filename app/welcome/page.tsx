@@ -13,11 +13,17 @@ type Slide = {
 };
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
+
+// after welcome, send them to your main app (root)
 const START_PAGE = "/member/dashboard";
+
+// timings
 const DURATIONS_SECONDS = {
   welcomeVideo: 47,
   normal: 10,
 };
+
+// idle restart (seconds)
 const IDLE_RESTART_SECONDS = 60;
 
 export default function WelcomePage() {
@@ -50,7 +56,7 @@ export default function WelcomePage() {
       {
         key: "free-assessment",
         title: "Free Assessment",
-        subtitle: "Your journey starts here. Let’s get moving.",
+        subtitle: "Your journey starts here. LetÃ¢â‚¬â„¢s get moving.",
         image: "/onboarding/free-assesment1.jpg",
         cta: true,
       },
@@ -61,8 +67,9 @@ export default function WelcomePage() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+
+  // countdown (only meaningful on video slide)
   const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
-  const [formModalOpen, setFormModalOpen] = useState(false); // State for form modal visibility
 
   const isLast = index === slides.length - 1;
 
@@ -85,27 +92,9 @@ export default function WelcomePage() {
     window.location.href = START_PAGE;
   };
 
-  const openFormModal = () => setFormModalOpen(true); // Open modal
-  const closeFormModal = () => setFormModalOpen(false); // Close modal
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const data = {
-      name: formData.get("name"),
-      age: formData.get("age"),
-      fitness_goal: formData.get("fitness_goal"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      preferred_schedule: formData.get("preferred_schedule"),
-      additional_goals: formData.get("additional_goals"),
-    };
-
-    console.log(data); // Log the form data for now
-    alert("Form submitted successfully!");
-    setFormModalOpen(false); // Close modal after submission
-  };
-
+  // -----------------------------------
+  // init + redirect logic
+  // -----------------------------------
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -127,6 +116,9 @@ export default function WelcomePage() {
     setReady(true);
   }, []);
 
+  // -----------------------------------
+  // auto-advance per slide (pause if FAQ open)
+  // -----------------------------------
   useEffect(() => {
     if (!ready) return;
     if (faqOpen) return;
@@ -143,8 +135,10 @@ export default function WelcomePage() {
 
     const t = window.setTimeout(() => next(), duration * 1000);
     return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, ready, faqOpen]);
 
+  // countdown tick only on video slide (pause if FAQ open)
   useEffect(() => {
     if (!ready) return;
     if (faqOpen) return;
@@ -157,6 +151,9 @@ export default function WelcomePage() {
     return () => window.clearInterval(t);
   }, [index, ready, faqOpen, slides]);
 
+  // -----------------------------------
+  // Restart slideshow after idle
+  // -----------------------------------
   const idleTimerRef = useRef<number | null>(null);
 
   const resetIdle = () => {
@@ -191,6 +188,9 @@ export default function WelcomePage() {
     };
   }, [ready]);
 
+  // -----------------------------------
+  // swipe handling (disabled while FAQ open)
+  // -----------------------------------
   const startX = useRef<number | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -219,6 +219,7 @@ export default function WelcomePage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      {/* SLIDES */}
       <div
         className="flex h-full transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${index * 100}%)` }}
@@ -228,6 +229,7 @@ export default function WelcomePage() {
 
           return (
             <div key={slide.key} className="relative w-full h-full flex-shrink-0">
+              {/* Background */}
               {slide.video ? (
                 <>
                   <video
@@ -254,6 +256,7 @@ export default function WelcomePage() {
                 </>
               )}
 
+              {/* CENTER EVERYTHING */}
               <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
                 <div className={`bf-anim ${active ? "bf-anim--in" : ""} max-w-[720px]`}>
                   {slide.key === "welcome-video" && (
@@ -270,6 +273,7 @@ export default function WelcomePage() {
                     <p className="mt-4 text-white/85 font-medium">{slide.subtitle}</p>
                   )}
 
+                  {/* Video slide CTA (shows countdown) */}
                   {slide.key === "welcome-video" && (
                     <button
                       onClick={() => {
@@ -283,17 +287,47 @@ export default function WelcomePage() {
                     </button>
                   )}
 
+                  {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
                   {slide.cta && (
-                    <div className="mt-6 flex flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={openFormModal} // Open modal on click
-                        className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                      >
-                        Get Started – Free Assessment
-                      </button>
-                    </div>
-                  )}
+  <div className="mt-6 flex flex-col items-center">
+    {/* FAQ trigger */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        setFaqOpen(true);
+      }}
+      className="text-sm underline text-white/80 whitespace-nowrap"
+    >
+      No guesswork, just gains. Get the facts here
+    </button>
+
+    {/* Main CTA */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+    >
+      Get Started Ã¢â‚¬â€œ Free Assessment
+    </button>
+
+    {/* Dashboard sample */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        localStorage.setItem("bearfit_preview_role", "Member");
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+    >
+      Dashboard Sample
+    </button>
+  </div>
+)}
                 </div>
               </div>
             </div>
@@ -301,6 +335,7 @@ export default function WelcomePage() {
         })}
       </div>
 
+      {/* Bottom controls */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
         <button
           onClick={() => {
@@ -333,72 +368,33 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* Free Assessment Form Modal */}
-      {formModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button onClick={closeFormModal} className="close-btn">X</button>
-            <h2>Free Assessment</h2>
-            <form onSubmit={handleSubmit}>
-              <input type="text" name="name" placeholder="Name" required />
-              <input type="number" name="age" placeholder="Age" required />
-              <select name="fitness_goal" required>
-                <option value="weight_loss">Weight Loss</option>
-                <option value="strength_training">Strength Training</option>
-                <option value="cardio">Cardio</option>
-              </select>
-              <input type="email" name="email" placeholder="Email" required />
-              <input type="tel" name="phone" placeholder="Phone" required />
-              <input type="text" name="preferred_schedule" placeholder="Preferred Schedule" required />
-              <textarea name="additional_goals" placeholder="Additional Goals (optional)"></textarea>
-              <button type="submit">Submit</button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* FAQ MODAL Ã¢â‚¬â€ FULL 1Ã¢â‚¬â€œ6 */}
+      {faqOpen && (
+        <div className="absolute inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => {
+              resetIdle();
+              setFaqOpen(false);
+            }}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[80%] rounded-t-2xl bg-[#0b0b0b] p-6 overflow-auto">
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-white text-lg font-semibold">Getting Started with BearFit</h2>
+              <button
+                onClick={() => {
+                  resetIdle();
+                  setFaqOpen(false);
+                }}
+                className="text-white/70 text-xl leading-none"
+                aria-label="Close FAQs"
+              >
+                Ã—
+              </button>
+            </div>
 
-      <style jsx global>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .modal-content {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          width: 300px;
-        }
-
-        .close-btn {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          font-size: 20px;
-          cursor: pointer;
-        }
-
-        form input, form select, form textarea {
-          margin: 10px 0;
-          padding: 8px;
-          width: 100%;
-        }
-
-        button[type="submit"] {
-          background: #F37120;
-          color: white;
-          padding: 10px;
-          border: none;
-          border-radius: 5px;
-        }
-      `}</style>
-    </div>
-  );
-}
+            <div className="mt-4 space-y-5 text-white/85 text-sm leading-relaxed">
+              <div>
+                <div className="font-semibold text-white">
+                  1. What can I expect from BearFit and what services do you offer?
+                </div>
