@@ -13,17 +13,11 @@ type Slide = {
 };
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
-
-// after welcome, send them to your main app (root)
 const START_PAGE = "/member/dashboard";
-
-// timings
 const DURATIONS_SECONDS = {
   welcomeVideo: 47,
   normal: 10,
 };
-
-// idle restart (seconds)
 const IDLE_RESTART_SECONDS = 60;
 
 export default function WelcomePage() {
@@ -67,9 +61,8 @@ export default function WelcomePage() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
-
-  // countdown (only meaningful on video slide)
   const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
+  const [formModalOpen, setFormModalOpen] = useState(false); // State for form modal visibility
 
   const isLast = index === slides.length - 1;
 
@@ -92,9 +85,25 @@ export default function WelcomePage() {
     window.location.href = START_PAGE;
   };
 
-  // -----------------------------------
-  // init + redirect logic
-  // -----------------------------------
+  const openFormModal = () => setFormModalOpen(true); // Open modal
+  const closeFormModal = () => setFormModalOpen(false); // Close modal
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const data = {
+      name: formData.get("name"),
+      age: formData.get("age"),
+      fitness_goal: formData.get("fitness_goal"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+    };
+
+    console.log(data); // Log the form data for now
+    alert("Form submitted successfully!");
+    setFormModalOpen(false); // Close modal after submission
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -116,9 +125,6 @@ export default function WelcomePage() {
     setReady(true);
   }, []);
 
-  // -----------------------------------
-  // auto-advance per slide (pause if FAQ open)
-  // -----------------------------------
   useEffect(() => {
     if (!ready) return;
     if (faqOpen) return;
@@ -135,10 +141,8 @@ export default function WelcomePage() {
 
     const t = window.setTimeout(() => next(), duration * 1000);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, ready, faqOpen]);
 
-  // countdown tick only on video slide (pause if FAQ open)
   useEffect(() => {
     if (!ready) return;
     if (faqOpen) return;
@@ -151,9 +155,6 @@ export default function WelcomePage() {
     return () => window.clearInterval(t);
   }, [index, ready, faqOpen, slides]);
 
-  // -----------------------------------
-  // Restart slideshow after idle
-  // -----------------------------------
   const idleTimerRef = useRef<number | null>(null);
 
   const resetIdle = () => {
@@ -188,9 +189,6 @@ export default function WelcomePage() {
     };
   }, [ready]);
 
-  // -----------------------------------
-  // swipe handling (disabled while FAQ open)
-  // -----------------------------------
   const startX = useRef<number | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -219,7 +217,6 @@ export default function WelcomePage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* SLIDES */}
       <div
         className="flex h-full transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${index * 100}%)` }}
@@ -229,7 +226,6 @@ export default function WelcomePage() {
 
           return (
             <div key={slide.key} className="relative w-full h-full flex-shrink-0">
-              {/* Background */}
               {slide.video ? (
                 <>
                   <video
@@ -256,7 +252,6 @@ export default function WelcomePage() {
                 </>
               )}
 
-              {/* CENTER EVERYTHING */}
               <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
                 <div className={`bf-anim ${active ? "bf-anim--in" : ""} max-w-[720px]`}>
                   {slide.key === "welcome-video" && (
@@ -273,7 +268,6 @@ export default function WelcomePage() {
                     <p className="mt-4 text-white/85 font-medium">{slide.subtitle}</p>
                   )}
 
-                  {/* Video slide CTA (shows countdown) */}
                   {slide.key === "welcome-video" && (
                     <button
                       onClick={() => {
@@ -287,47 +281,17 @@ export default function WelcomePage() {
                     </button>
                   )}
 
-                  {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
                   {slide.cta && (
-  <div className="mt-6 flex flex-col items-center">
-    {/* FAQ trigger */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        setFaqOpen(true);
-      }}
-      className="text-sm underline text-white/80 whitespace-nowrap"
-    >
-      No guesswork, just gains. Get the facts here
-    </button>
-
-    {/* Main CTA */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-    >
-      Get Started – Free Assessment
-    </button>
-
-    {/* Dashboard sample */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        localStorage.setItem("bearfit_preview_role", "Member");
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
-    >
-      Dashboard Sample
-    </button>
-  </div>
-)}
+                    <div className="mt-6 flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={openFormModal} // Open modal on click
+                        className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+                      >
+                        Get Started – Free Assessment
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -335,7 +299,6 @@ export default function WelcomePage() {
         })}
       </div>
 
-      {/* Bottom controls */}
       <div className="absolute bottom-6 inset-x-0 px-6 flex justify-between items-center text-white">
         <button
           onClick={() => {
@@ -368,137 +331,67 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* FAQ MODAL — FULL 1–6 */}
-      {faqOpen && (
-        <div className="absolute inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/70"
-            onClick={() => {
-              resetIdle();
-              setFaqOpen(false);
-            }}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80%] rounded-t-2xl bg-[#0b0b0b] p-6 overflow-auto">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-white text-lg font-semibold">Getting Started with BearFit</h2>
-              <button
-                onClick={() => {
-                  resetIdle();
-                  setFaqOpen(false);
-                }}
-                className="text-white/70 text-xl leading-none"
-                aria-label="Close FAQs"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-5 text-white/85 text-sm leading-relaxed">
-              <div>
-                <div className="font-semibold text-white">
-                  1. What can I expect from BearFit and what services do you offer?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>BearFit is all about science-based personalized training.</li>
-                  <li>You&apos;ll get exclusive workout sessions with our team of certified coaches.</li>
-                  <li>
-                    We offer both in-house and online workout packages so you can train wherever works best for you.
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  2. How much are the monthly fees and are there any hidden costs?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>The great news is that BearFit doesn’t charge monthly fees at all!</li>
-                  <li>You don’t have to worry about joining fees or being stuck in a 12-month lock-in contract.</li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  3. What do I actually get when I sign up for a workout package?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>Each package is fully inclusive, giving you complete access to all gym equipment and amenities.</li>
-                  <li>You’ll receive a personalized workout program tailored specifically to you.</li>
-                  <li>
-                    Your sessions are exclusive and by-appointment-only, so you always have dedicated time with your assigned coach.
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">4. Where exactly are your branches located?</div>
-                <ul className="mt-2 list-disc pl-5 space-y-2">
-                  <li>
-                    We have two spots in Quezon City:
-                    <div className="mt-1">
-                      <span className="font-semibold">Sikatuna Village:</span> 48 Malingap Street
-                    </div>
-                    <div>
-                      <span className="font-semibold">E. Rodriguez:</span> G/F Puzon Building, 1118 E. Rodriguez Sr. Avenue
-                    </div>
-                  </li>
-                  <li>
-                    We also have a location in <span className="font-semibold">Cainta</span>:
-                    <div className="mt-1">
-                      <span className="font-semibold">Primark Town Center Cainta:</span> 271 Ortigas Ave Ext, Cainta, Rizal
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  5. What are your opening hours, and do I need to book ahead?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>We are open Monday through Saturday to fit your schedule.</li>
-                  <li>Mon–Fri: 7 AM to 10 PM • Sat: 7 AM to 2 PM</li>
-                  <li>
-                    <span className="font-semibold">Pro tip:</span> It’s best to schedule your sessions in advance to make sure you get the time slot you want!
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="font-semibold text-white">
-                  6. What kind of equipment and extra perks do you have?
-                </div>
-                <ul className="mt-2 list-disc pl-5 space-y-1">
-                  <li>We’re well-equipped with strength and resistance training gear, plus Muay Thai and boxing equipment.</li>
-                  <li>If you want the full list of what’s on the floor, feel free to send us a DM!</li>
-                  <li>For your comfort: shower rooms, lounge area, bicycle rack, drinking water, free WiFi.</li>
-                </ul>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                resetIdle();
-                setFaqOpen(false);
-              }}
-              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
-            >
-              Close
-            </button>
+      {formModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button onClick={closeFormModal} className="close-btn">X</button>
+            <h2>Free Assessment</h2>
+            <form onSubmit={handleSubmit}>
+              <input type="text" name="name" placeholder="Name" required />
+              <input type="number" name="age" placeholder="Age" required />
+              <select name="fitness_goal" required>
+                <option value="weight_loss">Weight Loss</option>
+                <option value="strength_training">Strength Training</option>
+                <option value="cardio">Cardio</option>
+              </select>
+              <input type="email" name="email" placeholder="Email" required />
+              <input type="tel" name="phone" placeholder="Phone" required />
+              <button type="submit">Submit</button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* text animation */}
       <style jsx global>{`
-        .bf-anim {
-          opacity: 0;
-          transform: translateY(10px);
-          transition: opacity 420ms ease, transform 420ms ease;
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
-        .bf-anim--in {
-          opacity: 1;
-          transform: translateY(0);
+
+        .modal-content {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          width: 300px;
+        }
+
+        .close-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 20px;
+          cursor: pointer;
+        }
+
+        form input, form select {
+          margin: 10px 0;
+          padding: 8px;
+          width: 100%;
+        }
+
+        button[type="submit"] {
+          background: #F37120;
+          color: white;
+          padding: 10px;
+          border: none;
+          border-radius: 5px;
         }
       `}</style>
     </div>
