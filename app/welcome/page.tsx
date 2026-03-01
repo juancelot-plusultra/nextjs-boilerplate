@@ -282,7 +282,7 @@ export default function WelcomePage() {
                       }}
                       className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
                     >
-                      <span>Next</span>
+                      <span>Get Started</span>
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
