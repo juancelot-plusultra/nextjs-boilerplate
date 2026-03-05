@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { signIn } from '../lib/supabaseActions'; // Import the Supabase auth function
 import LoginForm from '../../components/LoginForm';  // Correct path to the LoginForm component
 
 type Slide = {
