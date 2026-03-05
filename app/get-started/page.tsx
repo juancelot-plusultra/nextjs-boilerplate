@@ -10,7 +10,7 @@ export default function GetStartedPage() {
       <div className="w-full max-w-md px-6 py-6">
         {/* ✅ Back Button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push('/welcome')}
           className="mb-6 text-sm text-white/70 hover:text-white flex items-center gap-2"
         >
           ← Back
