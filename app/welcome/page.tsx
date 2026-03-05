@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import LoginForm from '../../components/LoginForm';  // Correct path to the LoginForm component
 
 type Slide = {
   key: string;
@@ -68,7 +67,6 @@ export default function WelcomePage() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
-  const [isLoginVisible, setIsLoginVisible] = useState(false); // State to control login form visibility
 
   const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
 
@@ -270,14 +268,6 @@ export default function WelcomePage() {
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
-
-                  {slide.key === "welcome-video" && (
-                    <p>
-                      Welcome back! <button onClick={() => setIsLoginVisible(true)}>Sign in to access your account</button>
-                    </p>
-                  )}
-
-                  {isLoginVisible && <LoginForm />}
                 </div>
               </div>
             </div>
