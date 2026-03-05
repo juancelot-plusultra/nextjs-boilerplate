@@ -13,6 +13,8 @@ import {
   Target,
   Flame,
 } from "lucide-react"
+import { useUser } from "@/lib/context/UserContext"
+import { getMemberByUserId } from "@/lib/supabase"
 
 // Info explanations for each stat
 const statInfos = {
@@ -66,10 +68,35 @@ function BadgePill({
 }
 
 export function ProfileCard() {
+  const { user, profile } = useUser()
+  const [member, setMember] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [showInfo, setShowInfo] = useState<keyof typeof statInfos | null>(null)
   const totalCards = 4
+
+  useEffect(() => {
+    async function fetchMember() {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        console.log('[v0] Fetching member data for user:', user.id)
+        const memberData = await getMemberByUserId(user.id)
+        console.log('[v0] Member data fetched:', memberData)
+        setMember(memberData)
+      } catch (err) {
+        console.error('[v0] Error fetching member data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchMember()
+  }, [user])
 
   useEffect(() => {
     const scrollEl = scrollRef.current
@@ -86,6 +113,9 @@ export function ProfileCard() {
     return () => scrollEl.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const firstName = profile?.full_name?.split(' ')[0] || 'Member'
+  const sessionPercentage = member ? Math.round((member.total_sessions - member.sessions_left) / member.total_sessions * 100) : 0
+
   return (
     <div className="px-4">
       {/* Welcome */}
@@ -94,7 +124,7 @@ export function ProfileCard() {
           <User className="w-5 h-5 text-muted-foreground" />
           <span className="text-base">
             <span className="text-muted-foreground">Welcome,</span>{" "}
-            <span className="font-semibold text-foreground">Alex</span>
+            <span className="font-semibold text-foreground">{loading ? 'Loading...' : firstName}</span>
           </span>
         </div>
       </div>
@@ -125,18 +155,18 @@ export function ProfileCard() {
 
           {/* Package Info */}
           <div className="flex-1 flex flex-col justify-center min-w-0">
-            <span className="text-sm font-medium text-foreground">Full 48 Package+</span>
+            <span className="text-sm font-medium text-foreground">{member?.package_id || 'Package Loading...'}</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-xs text-green-500 font-medium">Active Member</span>
+              <span className="text-xs text-green-500 font-medium">{member?.status === 'active' ? 'Active Member' : 'Member'}</span>
             </div>
 
             <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
-              <div className="bg-gradient-to-r from-green-500 to-yellow-500 h-1.5 rounded-full" style={{ width: "83%" }} />
+              <div className="bg-gradient-to-r from-green-500 to-yellow-500 h-1.5 rounded-full" style={{ width: `${sessionPercentage}%` }} />
             </div>
 
             <div className="flex flex-col items-center mt-2">
-              <span className="text-xs text-foreground font-medium">40 of 48 sessions</span>
+              <span className="text-xs text-foreground font-medium">{member ? `${member.total_sessions - member.sessions_left} of ${member.total_sessions} sessions` : 'Sessions Loading...'}</span>
               <button className="text-xs text-primary font-medium touch-active mt-1">View Profile</button>
             </div>
           </div>

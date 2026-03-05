@@ -1,4 +1,5 @@
 import "./globals.css"
+import { UserProvider } from "@/lib/context/UserContext"
 
 export const metadata = {
   title: "BearFitPH",
@@ -9,7 +10,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   )
