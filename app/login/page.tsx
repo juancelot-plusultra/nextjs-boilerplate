@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +23,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F6FA] to-[#ECEEF4] px-4">
       <div className="w-full max-w-[420px] bg-white rounded-[32px] px-6 py-10 shadow-[0_30px_80px_rgba(0,0,0,0.12)] animate-fade-in">
+        
+        {/* BACK BUTTON */}
+        <button
+          onClick={() => router.back()}
+          className="mb-6 flex items-center gap-2 text-[#6B7280] hover:text-[#111827] transition font-medium text-sm"
+        >
+          <ArrowLeft size={18} />
+          Go Back
+        </button>
 
         {/* LOGO */}
         <div className="flex justify-center mb-8">
