@@ -268,6 +268,24 @@ export default function WelcomePage() {
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
+
+                  {slide.key === "free-assessment" && (
+                    <div className="space-y-4">
+                      <a href="#" className="inline-block text-white underline text-sm font-medium">
+                        No guesswork, just gains. Get the facts here
+                      </a>
+                      <button
+                        onClick={() => {
+                          resetIdle();
+                          completeOnboarding();
+                        }}
+                        className="block w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black hover:bg-[#F37120]/90 transition-colors"
+                      >
+                        Get Started – Free Assessment
+                      </button>
+                      <p className="text-white/70 text-sm mt-2">Dashboard Sample</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
