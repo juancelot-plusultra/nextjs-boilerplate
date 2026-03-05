@@ -13,7 +13,9 @@ type Slide = {
 };
 
 const STORAGE_KEY = "bearfit_onboarded_v1";
-const START_PAGE = "/get-started";
+
+// after welcome, send them to your main app (root)
+const START_PAGE = "/member/dashboard";
 
 // timings
 const DURATIONS_SECONDS = {
@@ -80,6 +82,12 @@ export default function WelcomePage() {
   const skip = () => setIndex(slides.length - 1);
 
   const completeOnboarding = () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    window.location.href = START_PAGE;
+  };
+
+  const goToRole = (role: "Member" | "Staff" | "Leads" | "Admin") => {
+    localStorage.setItem("bearfit_preview_role", role);
     localStorage.setItem(STORAGE_KEY, "1");
     window.location.href = START_PAGE;
   };
@@ -151,7 +159,6 @@ export default function WelcomePage() {
   const resetIdle = () => {
     if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
     idleTimerRef.current = window.setTimeout(() => {
-      // restart to slide 0 if idle
       setFaqOpen(false);
       setIndex(0);
       setCountdown(DURATIONS_SECONDS.welcomeVideo);
@@ -163,7 +170,6 @@ export default function WelcomePage() {
 
     const handler = () => resetIdle();
 
-    // any interaction resets idle timer
     window.addEventListener("mousemove", handler);
     window.addEventListener("mousedown", handler);
     window.addEventListener("touchstart", handler, { passive: true });
@@ -250,7 +256,7 @@ export default function WelcomePage() {
                 </>
               )}
 
-              {/* ✅ CENTER EVERYTHING */}
+              {/* CENTER EVERYTHING */}
               <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
                 <div className={`bf-anim ${active ? "bf-anim--in" : ""} max-w-[720px]`}>
                   {slide.key === "welcome-video" && (
@@ -276,35 +282,52 @@ export default function WelcomePage() {
                       }}
                       className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
                     >
-                      <span>Next</span>
+                      <span>Get Started</span>
                       <span className="text-black/70 text-sm">{countdown}s</span>
                     </button>
                   )}
 
-                  {/* CTA slide: FAQ + start button */}
+                  {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
                   {slide.cta && (
-                    <>
-                      <button
-                        onClick={() => {
-                          resetIdle();
-                          setFaqOpen(true);
-                        }}
-                        className="mt-5 text-sm underline text-white/80"
-                      >
-                        No guesswork, just gains. Get the facts here
-                      </button>
+  <div className="mt-6 flex flex-col items-center">
+    {/* FAQ trigger */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        setFaqOpen(true);
+      }}
+      className="text-sm underline text-white/80 whitespace-nowrap"
+    >
+      No guesswork, just gains. Get the facts here
+    </button>
 
-                      <button
-                        onClick={() => {
-                          resetIdle();
-                          completeOnboarding();
-                        }}
-                        className="mt-6 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
-                      >
-                        Get Started – Free Assessment
-                      </button>
-                    </>
-                  )}
+    {/* Main CTA */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+    >
+      Get Started – Free Assessment
+    </button>
+
+    {/* Dashboard sample */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        localStorage.setItem("bearfit_preview_role", "Member");
+        window.location.href = "/member/dashboard";
+      }}
+      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+    >
+      Dashboard Sample
+    </button>
+  </div>
+)}
                 </div>
               </div>
             </div>
@@ -345,7 +368,7 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* ✅ FAQ MODAL — FULL 1–6 (RESTORED) */}
+      {/* FAQ MODAL — FULL 1–6 */}
       {faqOpen && (
         <div className="absolute inset-0 z-50">
           <div
@@ -357,9 +380,7 @@ export default function WelcomePage() {
           />
           <div className="absolute inset-x-0 bottom-0 max-h-[80%] rounded-t-2xl bg-[#0b0b0b] p-6 overflow-auto">
             <div className="flex items-start justify-between gap-4">
-              <h2 className="text-white text-lg font-semibold">
-                Getting Started with BearFit
-              </h2>
+              <h2 className="text-white text-lg font-semibold">Getting Started with BearFit</h2>
               <button
                 onClick={() => {
                   resetIdle();
@@ -410,9 +431,7 @@ export default function WelcomePage() {
               </div>
 
               <div>
-                <div className="font-semibold text-white">
-                  4. Where exactly are your branches located?
-                </div>
+                <div className="font-semibold text-white">4. Where exactly are your branches located?</div>
                 <ul className="mt-2 list-disc pl-5 space-y-2">
                   <li>
                     We have two spots in Quezon City:
@@ -462,7 +481,7 @@ export default function WelcomePage() {
                 resetIdle();
                 setFaqOpen(false);
               }}
-              className="mt-6 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
+              className="mt-4 w-full rounded-full bg-white/10 py-3 text-white font-semibold"
             >
               Close
             </button>
