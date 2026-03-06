@@ -1,51 +1,42 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from 'next/image'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const router = useRouter()
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
     try {
-      console.log("[v0] Attempting signin with email:", email);
-      
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      const data = await response.json();
-      console.log("[v0] Signin response:", { success: data.success, hasUser: !!data.user, hasError: !!data.error });
-
-      if (!response.ok || !data.success) {
-        setError(data.error || "Login failed");
-        setLoading(false);
-        return;
+      if (signInError) {
+        setError(signInError.message)
+        setLoading(false)
+        return
       }
 
-      console.log("[v0] Login successful, redirecting to dashboard");
-      
-      // Session cookies are automatically set by the middleware/API
-      // No need to manually store in localStorage
       // Redirect to member dashboard
-      router.push("/member/dashboard");
+      router.push('/member/dashboard')
     } catch (err: any) {
-      console.error("[v0] Login error:", err);
-      setError(err.message || "An error occurred");
-      setLoading(false);
+      setError(err.message || 'An error occurred')
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F6FA] to-[#ECEEF4] px-4">

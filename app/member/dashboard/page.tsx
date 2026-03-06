@@ -1,22 +1,18 @@
 "use client"
 
-import Image from "next/image"
-import { useState, useEffect } from "react"
-import { Header, DesktopHeader } from "@/components/bearfit/header"
-import { ProfileCard } from "@/components/bearfit/profile-card"
-import { SessionCard } from "@/components/bearfit/session-card"
-import { ActivityLog } from "@/components/bearfit/activity-log"
-import { PromoBanner } from "@/components/bearfit/promo-banner"
-import { PaymentPage } from "@/components/bearfit/payment-page"
-import { ProfilePage } from "@/components/bearfit/profile-page"
-import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
-import DashboardData from "@/app/DashboardData"
-import { createClient } from "@supabase/supabase-js"
-import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import Image from 'next/image'
+import { useState, useEffect } from 'react'
+import { Header, DesktopHeader } from '@/components/bearfit/header'
+import { ProfileCard } from '@/components/bearfit/profile-card'
+import { SessionCard } from '@/components/bearfit/session-card'
+import { ActivityLog } from '@/components/bearfit/activity-log'
+import { PromoBanner } from '@/components/bearfit/promo-banner'
+import { PaymentPage } from '@/components/bearfit/payment-page'
+import { ProfilePage } from '@/components/bearfit/profile-page'
+import { DraggableChatButton } from '@/components/bearfit/draggable-chat-button'
+import DashboardData from '@/app/DashboardData'
+import { createClient } from '@/lib/supabase'
+import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from 'lucide-react'
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
@@ -498,59 +494,55 @@ export default function BearfitApp() {
       try {
         setAuthLoading(true)
         
-        console.log("[v0] Fetching user session from Supabase")
+        const supabase = createClient()
         
         // Get user from Supabase auth
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         
         if (authError || !user) {
-          console.log("[v0] No authenticated user found, redirecting to login")
-          window.location.href = "/login"
+          window.location.href = '/login'
           return
         }
 
-        console.log("[v0] User authenticated:", user.id, user.email)
         setCurrentUser({ id: user.id, email: user.email })
 
         // Fetch member data from Supabase
         try {
-          console.log("[v0] Fetching member data for user:", user.id)
           const { data: memberData, error } = await supabase
-            .from("members")
-            .select("*")
-            .eq("user_id", user.id)
+            .from('members')
+            .select('*')
+            .eq('user_id', user.id)
             .single()
 
           if (memberData) {
-            console.log("[v0] Member data found:", memberData)
             setCurrentMember(memberData)
           } else if (error && error.code !== 'PGRST116') {
-            console.error("[v0] Unexpected member fetch error:", error)
-          } else {
-            console.log("[v0] No member record yet, will be created on first access")
+            console.error('Member fetch error:', error)
           }
         } catch (err) {
-          console.error("[v0] Error fetching member data:", err)
+          console.error('Error fetching member data:', err)
         }
 
         setAuthLoading(false)
       } catch (err) {
-        console.error("[v0] Auth check error:", err)
-        window.location.href = "/welcome"
+        console.error('Auth check error:', err)
+        window.location.href = '/login'
       }
     }
 
     fetchUserData()
   }, [])
 
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem("user_id")
-    localStorage.removeItem("user_email")
-    localStorage.removeItem("supabase_session")
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
     
     // Redirect to login
-    window.location.href = "/login"
+    window.location.href = '/login'
   }
 
   // Help modal (loads content from Supabase)
