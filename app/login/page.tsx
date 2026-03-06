@@ -17,6 +17,8 @@ export default function LoginPage() {
     setError("");
 
     try {
+      console.log("[v0] Attempting signin with email:", email);
+      
       const response = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -24,20 +26,22 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      console.log("[v0] Signin response:", { success: data.success, hasUser: !!data.user, hasError: !!data.error });
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         setError(data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      // Store session info in localStorage
-      localStorage.setItem("user_id", data.user.id);
-      localStorage.setItem("user_email", data.user.email);
+      console.log("[v0] Login successful, redirecting to dashboard");
       
+      // Session cookies are automatically set by the middleware/API
+      // No need to manually store in localStorage
       // Redirect to member dashboard
       router.push("/member/dashboard");
     } catch (err: any) {
+      console.error("[v0] Login error:", err);
       setError(err.message || "An error occurred");
       setLoading(false);
     }

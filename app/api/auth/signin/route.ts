@@ -1,27 +1,36 @@
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-
-// Use anon key for auth, service key for data operations if available
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const supabaseAdmin = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
-
 export async function POST(request: NextRequest) {
-  try {
-    const { email, password } = await request.json();
+  const requestUrl = new URL(request.url);
+  const { email, password } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: 'Email and password are required' },
+      { status: 400 }
+    );
+  }
+
+  let response = NextResponse.json({ success: false });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
     }
+  );
 
+  try {
     // Sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -40,24 +49,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch or create member profile using admin client if available
-    let memberData = null;
-    const adminClient = supabaseAdmin || supabase;
-    
-    // First try to fetch existing member
-    const { data: existingMember, error: fetchError } = await adminClient
+    console.log('[v0] User signed in:', data.user.id);
+
+    // Fetch or create member profile
+    const { data: existingMember, error: fetchError } = await supabase
       .from('members')
       .select('*')
       .eq('user_id', data.user.id)
-      .maybeSingle();
+      .single();
+
+    let memberData = null;
 
     if (existingMember) {
       memberData = existingMember;
-    } else if (!fetchError || fetchError?.code === 'PGRST116') {
+      console.log('[v0] Found existing member:', memberData.id);
+    } else if (fetchError?.code === 'PGRST116') {
       // Member doesn't exist, create one
       console.log('[v0] Creating new member profile for user:', data.user.id);
       
-      const { data: newMember, error: createError } = await adminClient
+      const { data: newMember, error: createError } = await supabase
         .from('members')
         .insert([
           {
@@ -80,19 +90,29 @@ export async function POST(request: NextRequest) {
 
       if (createError) {
         console.error('[v0] Member creation error:', createError);
+        return NextResponse.json(
+          { error: 'Failed to create member profile' },
+          { status: 500 }
+        );
       } else {
         memberData = newMember;
+        console.log('[v0] Member created:', memberData.id);
       }
     } else if (fetchError) {
       console.error('[v0] Member fetch error:', fetchError);
+      return NextResponse.json(
+        { error: 'Failed to fetch member profile' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({
+    response = NextResponse.json({
       success: true,
       user: data.user,
       member: memberData,
-      session: data.session,
     });
+
+    return response;
   } catch (error: any) {
     console.error('[v0] Signin error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

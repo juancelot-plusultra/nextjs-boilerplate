@@ -498,40 +498,28 @@ export default function BearfitApp() {
       try {
         setAuthLoading(true)
         
-        // Try to get user_id from localStorage (set during login)
-        let userId = localStorage.getItem("user_id")
-        let userEmail = localStorage.getItem("user_email")
+        console.log("[v0] Fetching user session from Supabase")
         
-        // Fallback: try to get from Supabase session
-        if (!userId) {
-          const sessionStr = localStorage.getItem("supabase_session")
-          if (sessionStr) {
-            const session = JSON.parse(sessionStr)
-            if (session.user) {
-              userId = session.user.id
-              userEmail = session.user.email
-            }
-          }
-        }
+        // Get user from Supabase auth
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
         
-        // If still no user, redirect to login
-        if (!userId) {
-          console.log("[v0] No user found, redirecting to login")
+        if (authError || !user) {
+          console.log("[v0] No authenticated user found, redirecting to login")
           window.location.href = "/login"
           return
         }
 
-        // Create a mock user object
-        setCurrentUser({ id: userId, email: userEmail })
+        console.log("[v0] User authenticated:", user.id, user.email)
+        setCurrentUser({ id: user.id, email: user.email })
 
         // Fetch member data from Supabase
         try {
-          console.log("[v0] Fetching member data for user:", userId)
+          console.log("[v0] Fetching member data for user:", user.id)
           const { data: memberData, error } = await supabase
             .from("members")
             .select("*")
-            .eq("user_id", userId)
-            .maybeSingle()
+            .eq("user_id", user.id)
+            .single()
 
           if (memberData) {
             console.log("[v0] Member data found:", memberData)
