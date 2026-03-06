@@ -1,7 +1,7 @@
 "use client"
 
 import Image from 'next/image'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Header, DesktopHeader } from '@/components/bearfit/header'
 import { ProfileCard } from '@/components/bearfit/profile-card'
 import { SessionCard } from '@/components/bearfit/session-card'
@@ -489,14 +489,16 @@ export default function BearfitApp() {
   const [currentMember, setCurrentMember] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
 
-  // Memoize the Supabase client to prevent multiple instances
-  const supabase = useMemo(() => createClient(), [])
+  // Cache the Supabase client to prevent multiple instances
+  const supabaseRef = useRef(createClient())
 
   // Fetch current user and member data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setAuthLoading(true)
+        
+        const supabase = supabaseRef.current
         
         // Get user from Supabase auth
         const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -507,7 +509,7 @@ export default function BearfitApp() {
           return
         }
 
-        console.log('[v0] User authenticated:', user.id)
+        console.log('[v0] User authenticated:', user.id, user.email)
         setCurrentUser({ id: user.id, email: user.email })
 
         // Fetch member data from Supabase
@@ -524,7 +526,30 @@ export default function BearfitApp() {
           } else if (error && error.code !== 'PGRST116') {
             console.error('[v0] Member fetch error:', error)
           } else {
-            console.log('[v0] No member profile found')
+            console.log('[v0] No member profile found - creating one...')
+            // Auto-create member profile
+            const { data: newMember } = await supabase
+              .from('members')
+              .insert([{
+                user_id: user.id,
+                full_name: user.email?.split('@')[0] || 'Member',
+                email: user.email,
+                phone: '',
+                status: 'active',
+                join_date: new Date().toISOString().split('T')[0],
+                total_sessions: 0,
+                sessions_left: 0,
+                total_paid: 0,
+                branch_id: 'default',
+                avatar: '',
+                package_id: '',
+              }])
+              .select()
+              .single()
+            if (newMember) {
+              setCurrentMember(newMember)
+              console.log('[v0] Member profile created')
+            }
           }
         } catch (err) {
           console.error('[v0] Error fetching member data:', err)
@@ -538,11 +563,11 @@ export default function BearfitApp() {
     }
 
     fetchUserData()
-  }, [supabase])
+  }, [])
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut()
+      await supabaseRef.current.auth.signOut()
       console.log('[v0] User logged out')
     } catch (err) {
       console.error('[v0] Logout error:', err)

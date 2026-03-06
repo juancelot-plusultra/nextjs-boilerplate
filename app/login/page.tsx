@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
@@ -12,27 +12,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const router = useRouter()
 
+  const supabase = useRef(createClient()).current
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const supabase = createClient()
+      console.log('[v0] Login attempt with email:', email)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (signInError) {
+        console.error('[v0] Login failed:', signInError.message)
         setError(signInError.message)
         setLoading(false)
         return
       }
 
-      // Redirect to member dashboard
+      console.log('[v0] Login successful, redirecting...')
       router.push('/member/dashboard')
     } catch (err: any) {
+      console.error('[v0] Login error:', err)
       setError(err.message || 'An error occurred')
       setLoading(false)
     }
