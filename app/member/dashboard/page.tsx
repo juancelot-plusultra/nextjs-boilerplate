@@ -1,7 +1,7 @@
 "use client"
 
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Header, DesktopHeader } from '@/components/bearfit/header'
 import { ProfileCard } from '@/components/bearfit/profile-card'
 import { SessionCard } from '@/components/bearfit/session-card'
@@ -12,6 +12,7 @@ import { ProfilePage } from '@/components/bearfit/profile-page'
 import { DraggableChatButton } from '@/components/bearfit/draggable-chat-button'
 import DashboardData from '@/app/DashboardData'
 import { createClient } from '@/lib/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from 'lucide-react'
 // Member navigation
 const memberNavItems = [
@@ -488,22 +489,25 @@ export default function BearfitApp() {
   const [currentMember, setCurrentMember] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
 
+  // Memoize the Supabase client to prevent multiple instances
+  const supabase = useMemo(() => createClient(), [])
+
   // Fetch current user and member data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setAuthLoading(true)
         
-        const supabase = createClient()
-        
         // Get user from Supabase auth
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         
         if (authError || !user) {
+          console.log('[v0] No authenticated user, redirecting to login')
           window.location.href = '/login'
           return
         }
 
+        console.log('[v0] User authenticated:', user.id)
         setCurrentUser({ id: user.id, email: user.email })
 
         // Fetch member data from Supabase
@@ -515,30 +519,33 @@ export default function BearfitApp() {
             .single()
 
           if (memberData) {
+            console.log('[v0] Member data loaded:', memberData.full_name)
             setCurrentMember(memberData)
           } else if (error && error.code !== 'PGRST116') {
-            console.error('Member fetch error:', error)
+            console.error('[v0] Member fetch error:', error)
+          } else {
+            console.log('[v0] No member profile found')
           }
         } catch (err) {
-          console.error('Error fetching member data:', err)
+          console.error('[v0] Error fetching member data:', err)
         }
 
         setAuthLoading(false)
       } catch (err) {
-        console.error('Auth check error:', err)
+        console.error('[v0] Auth check error:', err)
         window.location.href = '/login'
       }
     }
 
     fetchUserData()
-  }, [])
+  }, [supabase])
 
   const handleLogout = async () => {
     try {
-      const supabase = createClient()
       await supabase.auth.signOut()
+      console.log('[v0] User logged out')
     } catch (err) {
-      console.error('Logout error:', err)
+      console.error('[v0] Logout error:', err)
     }
     
     // Redirect to login
