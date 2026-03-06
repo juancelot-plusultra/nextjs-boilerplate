@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { X, Mail, Lock, User } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,6 +15,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -27,25 +27,31 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
-        setError(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      if (data.user) {
-        setSuccess("Login successful! Redirecting...");
-        setTimeout(() => {
-          onSuccess?.(data.user.id);
-          onClose();
-          window.location.href = "/member/dashboard";
-        }, 1000);
+      setSuccess("Login successful! Redirecting...");
+      // Store session in localStorage
+      if (data.session) {
+        localStorage.setItem("supabase_session", JSON.stringify(data.session));
       }
+      
+      setTimeout(() => {
+        onSuccess?.(data.user.id);
+        onClose();
+        window.location.href = "/member/dashboard";
+      }, 1000);
     } catch (err) {
       setError("An unexpected error occurred");
       setLoading(false);
@@ -67,76 +73,39 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       return;
     }
 
+    if (!fullName.trim()) {
+      setError("Full name is required");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName, phone: phone || null }),
       });
 
-      if (error) {
-        setError(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      if (data.user) {
-        // Create user profile in users table
-        const { error: profileError } = await supabase
-          .from("users")
-          .insert([
-            {
-              id: data.user.id,
-              email,
-              full_name: fullName,
-              avatar_initials: fullName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase(),
-              role: "member",
-            },
-          ]);
-
-        if (profileError) {
-          console.error("Profile creation error:", profileError);
-        }
-
-        // Create member profile
-        const { error: memberError } = await supabase
-          .from("members")
-          .insert([
-            {
-              user_id: data.user.id,
-              email,
-              avatar: fullName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase(),
-            },
-          ]);
-
-        if (memberError) {
-          console.error("Member creation error:", memberError);
-        }
-
-        setSuccess("Account created! Check your email to confirm.");
-        setTimeout(() => {
-          setTab("login");
-          setEmail("");
-          setPassword("");
-          setConfirmPassword("");
-          setFullName("");
-          setSuccess("");
-        }, 2000);
-      }
+      setSuccess("Account created successfully! You can now sign in.");
+      setTimeout(() => {
+        setTab("login");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFullName("");
+        setPhone("");
+        setSuccess("");
+        setLoading(false);
+      }, 2000);
     } catch (err) {
       setError("An unexpected error occurred");
       setLoading(false);
@@ -227,6 +196,22 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                   required={tab === "signup"}
                 />
               </div>
+            </div>
+          )}
+
+          {/* Phone (Sign Up only) */}
+          {tab === "signup" && (
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">
+                Phone (Optional)
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+              />
             </div>
           )}
 

@@ -487,6 +487,55 @@ export default function BearfitApp() {
   const [showNotifications, setShowNotifications] = useState(false)
   const [chatInput, setChatInput] = useState("")
   const [activeRole, setActiveRole] = useState<"Member" | "Staff" | "Leads" | "Admin">("Member")
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentMember, setCurrentMember] = useState<any>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  // Fetch current user and member data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setAuthLoading(true)
+        
+        // Get session from localStorage
+        const sessionStr = localStorage.getItem("supabase_session")
+        if (!sessionStr) {
+          window.location.href = "/welcome"
+          return
+        }
+        
+        const session = JSON.parse(sessionStr)
+        if (!session.user) {
+          window.location.href = "/welcome"
+          return
+        }
+
+        setCurrentUser(session.user)
+
+        // Fetch member data from Supabase
+        try {
+          const { data: memberData, error } = await supabase
+            .from("members")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .single()
+
+          if (memberData) {
+            setCurrentMember(memberData)
+          }
+        } catch (err) {
+          console.error("[v0] Error fetching member data:", err)
+        }
+
+        setAuthLoading(false)
+      } catch (err) {
+        console.error("[v0] Auth check error:", err)
+        window.location.href = "/welcome"
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   // Help modal (loads content from Supabase)
   const [helpOpen, setHelpOpen] = useState(false)
