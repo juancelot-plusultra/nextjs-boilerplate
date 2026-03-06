@@ -1,13 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Redirect to login if trying to access /member routes
-  if (request.nextUrl.pathname.startsWith('/member')) {
-    // The client-side will handle auth check
-    // Just allow the request through
-  }
-  
-  return NextResponse.next(request)
+  // Client-side handles auth check in dashboard
+  // Just allow all requests through
+  return NextResponse.next()
 }
 
 export const config = {
