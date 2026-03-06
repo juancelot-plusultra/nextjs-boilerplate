@@ -512,16 +512,18 @@ export default function BearfitApp() {
 
         setCurrentUser(session.user)
 
-        // Fetch member data from Supabase
+        // Fetch member data from Supabase (optional - table may not exist yet)
         try {
           const { data: memberData, error } = await supabase
             .from("members")
             .select("*")
             .eq("user_id", session.user.id)
-            .single()
+            .maybeSingle()
 
           if (memberData) {
             setCurrentMember(memberData)
+          } else if (error && error.code !== 'PGRST116') {
+            console.error("[v0] Unexpected member fetch error:", error)
           }
         } catch (err) {
           console.error("[v0] Error fetching member data:", err)
