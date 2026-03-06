@@ -2,9 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Use anon key for auth, service key for data operations if available
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseAdmin = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,23 +40,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch or create member profile
+    // Fetch or create member profile using admin client if available
     let memberData = null;
+    const adminClient = supabaseAdmin || supabase;
     
     // First try to fetch existing member
-    const { data: existingMember, error: fetchError } = await supabase
+    const { data: existingMember, error: fetchError } = await adminClient
       .from('members')
       .select('*')
       .eq('user_id', data.user.id)
-      .single();
+      .maybeSingle();
 
     if (existingMember) {
       memberData = existingMember;
-    } else if (fetchError?.code === 'PGRST116') {
+    } else if (!fetchError || fetchError?.code === 'PGRST116') {
       // Member doesn't exist, create one
       console.log('[v0] Creating new member profile for user:', data.user.id);
       
-      const { data: newMember, error: createError } = await supabase
+      const { data: newMember, error: createError } = await adminClient
         .from('members')
         .insert([
           {

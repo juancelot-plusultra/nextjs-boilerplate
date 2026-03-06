@@ -2,9 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Use anon key for auth, service key for data operations if available
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseAdmin = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,10 +41,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create member record (optional - table may not exist yet)
+    // Create member record using admin client if available
     let memberData = null;
+    const adminClient = supabaseAdmin || supabase;
+    
     try {
-      const { data: member, error: memberError } = await supabase
+      const { data: member, error: memberError } = await adminClient
         .from('members')
         .insert([
           {
@@ -62,7 +69,7 @@ export async function POST(request: NextRequest) {
       }
       
       if (memberError) {
-        console.log('[v0] Member table may not exist yet:', memberError.message);
+        console.log('[v0] Member creation error:', memberError.message);
         // This is non-critical - allow signup to succeed even if member record isn't created
       }
     } catch (err) {
