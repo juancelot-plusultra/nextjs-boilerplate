@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AuthModal } from "@/components/bearfit/auth-modal";
 
 type Slide = {
   key: string;
@@ -67,6 +68,7 @@ export default function WelcomePage() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // countdown (only meaningful on video slide)
   const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
@@ -273,18 +275,29 @@ export default function WelcomePage() {
                     <p className="mt-4 text-white/85 font-medium">{slide.subtitle}</p>
                   )}
 
-                  {/* Video slide CTA (shows countdown) */}
+                  {/* Video slide CTA (shows countdown) + Auth Modal */}
                   {slide.key === "welcome-video" && (
-                    <button
-                      onClick={() => {
-                        resetIdle();
-                        next();
-                      }}
-                      className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
-                    >
-                      <span>Get Started</span>
-                      <span className="text-black/70 text-sm">{countdown}s</span>
-                    </button>
+                    <div className="flex flex-col items-center gap-4">
+                      <button
+                        onClick={() => {
+                          resetIdle();
+                          setAuthModalOpen(true);
+                        }}
+                        className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black hover:bg-[#E86010] transition-colors"
+                      >
+                        <span>Sign In / Sign Up</span>
+                        <span className="text-black/70 text-sm">{countdown}s</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          resetIdle();
+                          next();
+                        }}
+                        className="text-white/70 hover:text-white text-sm underline transition-colors"
+                      >
+                        Or skip to learn more
+                      </button>
+                    </div>
                   )}
 
                   {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
@@ -340,11 +353,12 @@ export default function WelcomePage() {
         <button
           onClick={() => {
             resetIdle();
-            skip();
+            prev();
           }}
-          className="text-white/80"
+          disabled={index === 0}
+          className={index === 0 ? "opacity-40 cursor-not-allowed" : "text-white/80 hover:text-white transition-colors"}
         >
-          Skip
+          ← Back
         </button>
 
         <div className="flex gap-2">
@@ -359,14 +373,22 @@ export default function WelcomePage() {
         <button
           onClick={() => {
             resetIdle();
-            next();
+            skip();
           }}
-          disabled={isLast}
-          className={isLast ? "opacity-40" : "text-white/80"}
+          className="text-white/80 hover:text-white transition-colors text-sm"
         >
-          Next
+          Skip
         </button>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={() => {
+          localStorage.setItem(STORAGE_KEY, "1");
+        }}
+      />
 
       {/* FAQ MODAL — FULL 1–6 */}
       {faqOpen && (
