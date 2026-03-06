@@ -57,14 +57,18 @@ export default function DashboardData() {
           .from("members")
           .select("*")
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
 
-        if (memberError) {
+        if (memberError && memberError.code !== 'PGRST116') {
           console.error("[v0] Member fetch error:", memberError);
           setError(memberError.message);
         } else if (member) {
           console.log("[v0] Member data fetched:", member);
           setMemberData(member as MemberData);
+        } else {
+          console.log("[v0] No member record found - user may need to complete profile setup");
+          setError("");
+          setMemberData(null);
         }
       } catch (err: any) {
         console.error("[v0] Error fetching data:", err);
@@ -79,15 +83,20 @@ export default function DashboardData() {
 
   // Only render data once it's loaded
   if (loading) {
-    return <div className="p-6 text-center">Loading your profile...</div>;
+    return <div className="p-6 text-center text-gray-600">Loading your profile...</div>;
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">Error: {error}</div>;
+    return <div className="p-6 bg-red-50 text-red-600 rounded-lg">Error: {error}</div>;
   }
 
   if (!memberData) {
-    return <div className="p-6 text-center">No member data found</div>;
+    return (
+      <div className="p-6 bg-blue-50 rounded-lg text-center">
+        <p className="text-gray-700">Profile information will appear here once it's created.</p>
+        <p className="text-sm text-gray-600 mt-2">Your profile is being set up...</p>
+      </div>
+    );
   }
 
   return (

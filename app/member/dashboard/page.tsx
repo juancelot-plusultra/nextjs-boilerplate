@@ -498,33 +498,48 @@ export default function BearfitApp() {
       try {
         setAuthLoading(true)
         
-        // Get session from localStorage
-        const sessionStr = localStorage.getItem("supabase_session")
-        if (!sessionStr) {
-          window.location.href = "/welcome"
-          return
+        // Try to get user_id from localStorage (set during login)
+        let userId = localStorage.getItem("user_id")
+        let userEmail = localStorage.getItem("user_email")
+        
+        // Fallback: try to get from Supabase session
+        if (!userId) {
+          const sessionStr = localStorage.getItem("supabase_session")
+          if (sessionStr) {
+            const session = JSON.parse(sessionStr)
+            if (session.user) {
+              userId = session.user.id
+              userEmail = session.user.email
+            }
+          }
         }
         
-        const session = JSON.parse(sessionStr)
-        if (!session.user) {
-          window.location.href = "/welcome"
+        // If still no user, redirect to login
+        if (!userId) {
+          console.log("[v0] No user found, redirecting to login")
+          window.location.href = "/login"
           return
         }
 
-        setCurrentUser(session.user)
+        // Create a mock user object
+        setCurrentUser({ id: userId, email: userEmail })
 
-        // Fetch member data from Supabase (optional - table may not exist yet)
+        // Fetch member data from Supabase
         try {
+          console.log("[v0] Fetching member data for user:", userId)
           const { data: memberData, error } = await supabase
             .from("members")
             .select("*")
-            .eq("user_id", session.user.id)
+            .eq("user_id", userId)
             .maybeSingle()
 
           if (memberData) {
+            console.log("[v0] Member data found:", memberData)
             setCurrentMember(memberData)
           } else if (error && error.code !== 'PGRST116') {
             console.error("[v0] Unexpected member fetch error:", error)
+          } else {
+            console.log("[v0] No member record yet, will be created on first access")
           }
         } catch (err) {
           console.error("[v0] Error fetching member data:", err)
@@ -539,6 +554,16 @@ export default function BearfitApp() {
 
     fetchUserData()
   }, [])
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("user_id")
+    localStorage.removeItem("user_email")
+    localStorage.removeItem("supabase_session")
+    
+    // Redirect to login
+    window.location.href = "/login"
+  }
 
   // Help modal (loads content from Supabase)
   const [helpOpen, setHelpOpen] = useState(false)
