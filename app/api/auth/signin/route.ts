@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
+      console.error('[v0] Auth error:', error);
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
@@ -34,21 +35,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch member data
-    const { data: memberData, error: memberError } = await supabase
+    // Fetch or create member profile
+    let memberData = null;
+    
+    // First try to fetch existing member
+    const { data: existingMember, error: fetchError } = await supabase
       .from('members')
       .select('*')
       .eq('user_id', data.user.id)
       .single();
 
-    if (memberError) {
-      console.error('[v0] Member fetch error:', memberError);
+    if (existingMember) {
+      memberData = existingMember;
+    } else if (fetchError?.code === 'PGRST116') {
+      // Member doesn't exist, create one
+      console.log('[v0] Creating new member profile for user:', data.user.id);
+      
+      const { data: newMember, error: createError } = await supabase
+        .from('members')
+        .insert([
+          {
+            user_id: data.user.id,
+            full_name: data.user.email?.split('@')[0] || 'Member',
+            email: data.user.email,
+            phone: '',
+            status: 'active',
+            join_date: new Date().toISOString().split('T')[0],
+            total_sessions: 0,
+            sessions_left: 0,
+            total_paid: 0,
+            branch_id: 'default',
+            avatar: '',
+            package_id: '',
+          },
+        ])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('[v0] Member creation error:', createError);
+      } else {
+        memberData = newMember;
+      }
+    } else if (fetchError) {
+      console.error('[v0] Member fetch error:', fetchError);
     }
 
     return NextResponse.json({
       success: true,
       user: data.user,
-      member: memberData || null,
+      member: memberData,
       session: data.session,
     });
   } catch (error: any) {

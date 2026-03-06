@@ -2,19 +2,45 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // TEMP: replace later with real auth
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Store session info in localStorage
+      localStorage.setItem("user_id", data.user.id);
+      localStorage.setItem("user_email", data.user.email);
+      
+      // Redirect to member dashboard
+      router.push("/member/dashboard");
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
       setLoading(false);
-      alert("Login logic goes here");
-    }, 1200);
+    }
   };
 
   return (
@@ -44,10 +70,18 @@ export default function LoginPage() {
         </div>
 
         {/* FORM */}
+        {error && (
+          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={onSubmit} className="space-y-5">
           <input
             type="email"
             placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
           />
@@ -56,6 +90,8 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
             />

@@ -4,20 +4,20 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js"; // Import Supabase client
 
 // Define types for the data
-interface ProfileData {
-  full_name: string;
-  membership_id: string;
-  branch: string;
-}
-
 interface MemberData {
-  remaining_sessions: number;
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  status: string;
+  sessions_left: number;
   total_sessions: number;
-}
-
-interface PointsData {
-  total_points: number;
-  tier: string;
+  join_date: string;
+  total_paid: number;
+  branch_id?: string;
+  avatar?: string;
+  package_id?: string;
 }
 
 // Initialize Supabase client
@@ -28,49 +28,49 @@ const supabase = createClient(
 
 export default function DashboardData() {
   // Define state with proper types
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [memberData, setMemberData] = useState<MemberData | null>(null);
-  const [pointsData, setPointsData] = useState<PointsData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
-      const userId = "89cb1b22-b510-4cf8-904b-b6be640708e2"; // Alex's UID
+      try {
+        // Get user ID from localStorage or Supabase auth
+        let userId = localStorage.getItem("user_id");
+        
+        if (!userId) {
+          // Try to get from Supabase auth session
+          const { data: { session } } = await supabase.auth.getSession();
+          userId = session?.user?.id;
+        }
 
-      // Fetch Profile Data
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (profileError) {
-        setError(profileError.message);
-      } else {
-        setProfileData(profile as ProfileData);
-      }
+        if (!userId) {
+          setError("No user logged in");
+          setLoading(false);
+          return;
+        }
 
-      // Fetch Member Data
-      const { data: member, error: memberError } = await supabase
-        .from("members")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (memberError) {
-        setError(memberError.message);
-      } else {
-        setMemberData(member as MemberData);
-      }
+        console.log("[v0] Fetching member data for user:", userId);
 
-      // Fetch Points Data
-      const { data: points, error: pointsError } = await supabase
-        .from("points")
-        .select("*")
-        .eq("member_id", userId)
-        .single();
-      if (pointsError) {
-        setError(pointsError.message);
-      } else {
-        setPointsData(points as PointsData);
+        // Fetch Member Data
+        const { data: member, error: memberError } = await supabase
+          .from("members")
+          .select("*")
+          .eq("user_id", userId)
+          .single();
+
+        if (memberError) {
+          console.error("[v0] Member fetch error:", memberError);
+          setError(memberError.message);
+        } else if (member) {
+          console.log("[v0] Member data fetched:", member);
+          setMemberData(member as MemberData);
+        }
+      } catch (err: any) {
+        console.error("[v0] Error fetching data:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -78,24 +78,62 @@ export default function DashboardData() {
   }, []);
 
   // Only render data once it's loaded
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (loading) {
+    return <div className="p-6 text-center">Loading your profile...</div>;
   }
 
-  if (!profileData || !memberData || !pointsData) {
-    return <div>Loading...</div>;
+  if (error) {
+    return <div className="p-6 text-red-600">Error: {error}</div>;
+  }
+
+  if (!memberData) {
+    return <div className="p-6 text-center">No member data found</div>;
   }
 
   return (
-    <div className="dashboard-data">
-      <h2>Profile: {profileData.full_name}</h2>
-      <p>Membership: {profileData.membership_id}</p>
-      <p>Branch: {profileData.branch}</p>
-      <p>
-        Sessions: {memberData.remaining_sessions}/{memberData.total_sessions}
-      </p>
-      <p>Points: {pointsData.total_points}</p>
-      <p>Tier: {pointsData.tier}</p>
+    <div className="dashboard-data p-6 bg-white rounded-lg shadow">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold">{memberData.full_name}</h2>
+          <p className="text-gray-600">{memberData.email}</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-gray-600">Status</p>
+            <p className="text-lg font-semibold capitalize">{memberData.status}</p>
+          </div>
+          
+          <div className="p-4 bg-green-50 rounded-lg">
+            <p className="text-sm text-gray-600">Sessions</p>
+            <p className="text-lg font-semibold">{memberData.sessions_left}/{memberData.total_sessions}</p>
+          </div>
+          
+          <div className="p-4 bg-orange-50 rounded-lg">
+            <p className="text-sm text-gray-600">Total Paid</p>
+            <p className="text-lg font-semibold">₱{memberData.total_paid}</p>
+          </div>
+          
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <p className="text-sm text-gray-600">Member Since</p>
+            <p className="text-lg font-semibold">{memberData.join_date}</p>
+          </div>
+        </div>
+
+        {memberData.phone && (
+          <div>
+            <p className="text-sm text-gray-600">Phone</p>
+            <p className="font-semibold">{memberData.phone}</p>
+          </div>
+        )}
+
+        {memberData.branch_id && (
+          <div>
+            <p className="text-sm text-gray-600">Branch</p>
+            <p className="font-semibold capitalize">{memberData.branch_id}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

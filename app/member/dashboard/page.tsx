@@ -10,6 +10,7 @@ import { PromoBanner } from "@/components/bearfit/promo-banner"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
+import DashboardData from "@/app/DashboardData"
 import { createClient } from "@supabase/supabase-js"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
 const supabase = createClient(
@@ -798,6 +799,7 @@ export default function BearfitApp() {
 
                 {activeTab === "home" && (
                   <div className="space-y-5">
+                    <DashboardData />
                     <ProfileCard />
                     <SessionCard />
                     <ActivityLog />
