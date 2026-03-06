@@ -40,11 +40,21 @@ const setupDatabase = async () => {
       const { error: createError } = await supabase.sql`
         CREATE TABLE IF NOT EXISTS public.members (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+          user_id UUID NOT NULL REFERENCES public.auth.users(id) ON DELETE CASCADE,
+          full_name VARCHAR(255),
+          email VARCHAR(255),
+          phone VARCHAR(20),
+          avatar VARCHAR(255),
+          status VARCHAR(50) DEFAULT 'active',
+          join_date DATE,
+          total_sessions INTEGER DEFAULT 0,
+          sessions_left INTEGER DEFAULT 0,
+          total_paid DECIMAL(10, 2) DEFAULT 0,
+          branch_id VARCHAR(255),
+          package_id VARCHAR(255),
           membership_type VARCHAR(50),
           start_date DATE,
           end_date DATE,
-          status VARCHAR(50) DEFAULT 'active',
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         );
