@@ -356,8 +356,8 @@ export default function WelcomePage() {
             resetIdle();
             prev();
           }}
-          disabled={index <= 1}
-          className={index <= 1 ? "opacity-40 cursor-not-allowed" : "text-white/80 hover:text-white transition-colors"}
+          disabled={index === 0}
+          className={index === 0 ? "opacity-40 cursor-not-allowed" : "text-white/80 hover:text-white transition-colors"}
         >
           ← Back
         </button>
@@ -412,6 +412,8 @@ export default function WelcomePage() {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 console.log("[v0] Assessment submission:", Object.fromEntries(formData));
+                // Show acknowledgement
+                alert("Thank you for submitting your free assessment request!\n\nOur team will get back to you within 24-48 hours to confirm your appointment and discuss your fitness goals.\n\nLet's build your story together! 💪");
                 setAssessmentModalOpen(false);
                 localStorage.setItem(STORAGE_KEY, "1");
                 window.location.href = START_PAGE;
@@ -466,11 +468,19 @@ export default function WelcomePage() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
                 >
                   <option value="">Select a branch</option>
-                  <option value="main">Main Branch</option>
-                  <option value="south">South Branch</option>
-                  <option value="north">North Branch</option>
-                  <option value="east">East Branch</option>
+                  <option value="malingap">Malingap</option>
+                  <option value="erod">E.Rod</option>
+                  <option value="primark">Primark Cainta</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Preferred Assessment Date *</label>
+                <input
+                  type="date"
+                  name="assessmentDate"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
               </div>
               <div>
                 <label className="block text-white/80 text-sm font-medium mb-2">Fitness Goals *</label>
