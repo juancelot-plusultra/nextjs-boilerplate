@@ -7,6 +7,16 @@ export function createClient() {
   )
 }
 
+// Single instance for server-side operations
+let supabaseInstance: ReturnType<typeof createClient> | null = null
+
+function getSupabase() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient()
+  }
+  return supabaseInstance
+}
+
 export interface User {
   id: string
   email: string
@@ -78,6 +88,7 @@ export interface Transaction {
 // ============================================================================
 
 export async function getMemberByUserId(userId: string) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('members')
     .select('*')
@@ -89,6 +100,7 @@ export async function getMemberByUserId(userId: string) {
 }
 
 export async function getAllMembers(branchId?: string) {
+  const supabase = getSupabase()
   let query = supabase.from('members').select('*')
 
   if (branchId) {
@@ -106,6 +118,7 @@ export async function getAllMembers(branchId?: string) {
 // ============================================================================
 
 export async function getStaffByBranch(branchId: string) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('staff')
     .select('*')
@@ -120,6 +133,7 @@ export async function getStaffByBranch(branchId: string) {
 // ============================================================================
 
 export async function getSessionsByMember(memberId: string) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('sessions')
     .select('*')
@@ -131,6 +145,7 @@ export async function getSessionsByMember(memberId: string) {
 }
 
 export async function getSessionsByStaff(staffId: string, sessionDate?: string) {
+  const supabase = getSupabase()
   let query = supabase
     .from('sessions')
     .select('*')
@@ -147,6 +162,7 @@ export async function getSessionsByStaff(staffId: string, sessionDate?: string) 
 }
 
 export async function createSession(sessionData: Partial<Session>) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('sessions')
     .insert([sessionData])
@@ -161,6 +177,7 @@ export async function createSession(sessionData: Partial<Session>) {
 // ============================================================================
 
 export async function getTransactionsByMember(memberId: string) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -172,6 +189,7 @@ export async function getTransactionsByMember(memberId: string) {
 }
 
 export async function createTransaction(transactionData: Partial<Transaction>) {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('transactions')
     .insert([transactionData])
