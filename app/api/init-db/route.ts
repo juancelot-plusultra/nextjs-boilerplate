@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       membersError,
       staffError,
       sessionsError,
-      transError
+      transError,
     ].filter(Boolean);
 
     if (errors.length > 0) {
@@ -126,12 +126,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Database initialized'
+      message: 'Database initialized',
     });
-
   } catch (error: any) {
     console.error('[v0] Database init error:', error);
-
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
