@@ -2,19 +2,34 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authenticateUser, saveUserSession } from "@/lib/auth";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
 
-    // TEMP: replace later with real auth
+    // Simulate network delay
     setTimeout(() => {
-      setLoading(false);
-      alert("Login logic goes here");
-    }, 1200);
+      const user = authenticateUser(email, password);
+      
+      if (user) {
+        saveUserSession(user);
+        // Redirect to appropriate dashboard based on role
+        router.push(`/dashboards/${user.role}`);
+      } else {
+        setError("Invalid email or password");
+        setLoading(false);
+      }
+    }, 600);
   };
 
   return (
@@ -43,11 +58,36 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* ERROR MESSAGE */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* DEMO CREDENTIALS */}
+        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-xs space-y-2">
+          <p className="font-semibold">Demo Credentials:</p>
+          <div className="space-y-1">
+            <p className="font-medium">By Role:</p>
+            <p>• Member: member@bearfit.com / password123</p>
+            <p>• Staff: staff@bearfit.com / password123</p>
+            <p>• Leads: leads@bearfit.com / password123</p>
+            <p>• Admin: admin@bearfit.com / password123</p>
+          </div>
+          <div className="space-y-1 pt-2 border-t border-blue-200">
+            <p className="font-medium">Example:</p>
+            <p>• Member: johndoe@gmail.com / johnisgood</p>
+          </div>
+        </div>
+
         {/* FORM */}
         <form onSubmit={onSubmit} className="space-y-5">
           <input
             type="email"
             placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
           />
@@ -56,6 +96,8 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
             />
@@ -76,7 +118,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-[#F37120] py-4 font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
+            className="w-full rounded-full bg-[#F37120] py-4 font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

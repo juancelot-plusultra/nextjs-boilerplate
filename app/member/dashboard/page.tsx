@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -17,6 +18,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 // Member navigation
+// Import auth utilities
+import { getCurrentUser, clearUserSession } from "@/lib/auth"
+
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
   { icon: Calendar, label: "Schedule", id: "schedule" },
@@ -486,15 +490,38 @@ export default function BearfitApp() {
   const [showChat, setShowChat] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [chatInput, setChatInput] = useState("")
-  const [activeRole, setActiveRole] = useState<"Member" | "Staff" | "Leads" | "Admin">("Member")
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [currentMember, setCurrentMember] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const router = useRouter()
+
+  // Determine role from authenticated user - if they're accessing old route, redirect to new one
+  const authenticatedUser = getCurrentUser()
+  
+  useEffect(() => {
+    if (authenticatedUser) {
+      router.push(`/dashboards/${authenticatedUser.role}`)
+    } else {
+      router.push("/login")
+    }
+  }, [authenticatedUser, router])
+
+  const activeRole = authenticatedUser ? (authenticatedUser.role === "member" ? "Member" : 
+                                          authenticatedUser.role === "staff" ? "Staff" : 
+                                          authenticatedUser.role === "leads" ? "Leads" : 
+                                          "Admin") : "Member"
 
   // Fetch current user and member data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Check authentication
+        const user = getCurrentUser()
+        if (!user) {
+          router.push("/login")
+          return
+        }
+
         setAuthLoading(true)
         
         // Get session from localStorage
@@ -709,22 +736,12 @@ export default function BearfitApp() {
           {/* Sidebar Brand (logo handled in top header to avoid duplicates) */}
           <div className="p-5 bg-gradient-to-b from-background/40 via-background/10 to-transparent" />
 
-          {/* Role Tabs */}
+          {/* Role Display - Read Only */}
           <div className="p-4">
-            <div className="flex items-center bg-secondary rounded-xl p-1">
-              {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleChange(role)}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    activeRole === role
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {role}
-                </button>
-              ))}
+            <div className="flex items-center bg-secondary rounded-xl p-1 justify-center">
+              <span className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-2 rounded-lg">
+                {activeRole} Dashboard
+              </span>
             </div>
           </div>
 
@@ -751,7 +768,7 @@ export default function BearfitApp() {
           </nav>
 
           {/* Bottom Actions */}
-          <div className="p-4 border-t border-border/30">
+          <div className="p-4 border-t border-border/30 space-y-1">
             <button 
               onClick={() => setShowNotifications(true)}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
@@ -764,13 +781,23 @@ export default function BearfitApp() {
             </button>
             <button 
               onClick={() => setShowChat(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all mt-1"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
             >
               <MessageCircle className="w-5 h-5" />
               <span className="font-medium text-sm">Messages</span>
               <span className="ml-auto w-5 h-5 bg-green-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 2
               </span>
+            </button>
+            <button 
+              onClick={() => {
+                clearUserSession()
+                router.push("/login")
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-all"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium text-sm">Logout</span>
             </button>
           </div>
         </aside>
