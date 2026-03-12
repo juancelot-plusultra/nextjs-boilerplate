@@ -3,6 +3,9 @@
 import { ReactNode } from "react"
 import MemberHomeView from "../member/member-home-view"
 import MemberScheduleView from "../member/member-schedule-view"
+import MemberPaymentView from "../member/member-payment-view"
+import MemberProfileView from "../member/member-profile-view"
+import MemberMoreView from "../member/member-more-view"
 
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
@@ -28,26 +31,10 @@ export default function MemberDashboardView({
   return (
     <div className="space-y-6">
       {activeTab === "home" && <MemberHomeView />}
-
       {activeTab === "schedule" && <MemberScheduleView />}
-
-      {activeTab === "payment" && (
-        <div className="bg-white rounded-xl p-6 border shadow-sm">
-          Payment Section
-        </div>
-      )}
-
-      {activeTab === "profile" && (
-        <div className="bg-white rounded-xl p-6 border shadow-sm">
-          Profile Section
-        </div>
-      )}
-
-      {activeTab === "more" && (
-        <div className="bg-white rounded-xl p-6 border shadow-sm">
-          More Section
-        </div>
-      )}
+      {activeTab === "payment" && <MemberPaymentView />}
+      {activeTab === "profile" && <MemberProfileView />}
+      {activeTab === "more" && <MemberMoreView />}
     </div>
   )
 }
