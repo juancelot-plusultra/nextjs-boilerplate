@@ -314,26 +314,14 @@ export default function WelcomePage() {
       No guesswork, just gains. Get the facts here
     </button>
 
-    {/* Main CTA - Open Login */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        setAuthModalOpen(true);
-      }}
-      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black hover:bg-[#E86010] transition-colors"
-    >
-      Get Started
-    </button>
-
-    {/* Free Assessment Button */}
+    {/* Main CTA - Get Free Assessment */}
     <button
       type="button"
       onClick={() => {
         resetIdle();
         setAssessmentModalOpen(true);
       }}
-      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black hover:bg-[#E86010] transition-colors"
     >
       Get Free Assessment
     </button>

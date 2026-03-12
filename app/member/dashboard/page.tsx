@@ -11,14 +11,7 @@ import { PromoBanner } from "@/components/bearfit/promo-banner"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
-import { createClient } from "@supabase/supabase-js"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-// Member navigation
-// Import auth utilities
 import { getCurrentUser, clearUserSession } from "@/lib/auth"
 
 const memberNavItems = [
@@ -493,7 +486,13 @@ export default function BearfitApp() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [currentMember, setCurrentMember] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
+
+  // Ensure component is mounted before rendering to prevent hydration mismatches
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Determine role from authenticated user
   const authenticatedUser = getCurrentUser()
@@ -717,6 +716,10 @@ export default function BearfitApp() {
                (clientFilter === "PT" && c.packageType === "pt") ||
                (clientFilter === "Pilates" && c.packageType === "pilates")
       })
+
+  if (!isMounted) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>
+  }
 
   return (
     <div className="min-h-screen bg-background">
