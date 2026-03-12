@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import MemberHomeView from "../member/member-home-view"
+import MemberScheduleView from "../member/member-schedule-view"
 
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
@@ -27,6 +28,8 @@ export default function MemberDashboardView({
   return (
     <div className="space-y-6">
       {activeTab === "home" && <MemberHomeView />}
+
+      {activeTab === "schedule" && <MemberScheduleView />}
 
       {activeTab === "payment" && (
         <div className="bg-white rounded-xl p-6 border shadow-sm">
