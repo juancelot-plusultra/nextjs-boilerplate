@@ -1,15 +1,29 @@
 "use client"
 
+import { ReactNode } from "react"
 import MemberHomeView from "../member/member-home-view"
 
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 type Props = {
-  role: Role
-  activeTab: string
+  activeRole: Role
+  activeTab?: string
+  children?: ReactNode
 }
 
-export default function MemberDashboardView({ role, activeTab }: Props) {
+export default function MemberDashboardView({
+  activeRole,
+  activeTab = "home",
+  children,
+}: Props) {
+  if (children) {
+    return <>{children}</>
+  }
+
+  if (activeRole !== "Member") {
+    return null
+  }
+
   return (
     <div className="space-y-6">
       {activeTab === "home" && <MemberHomeView />}
