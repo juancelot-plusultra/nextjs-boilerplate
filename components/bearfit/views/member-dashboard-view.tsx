@@ -1,6 +1,5 @@
 "use client"
-import MemberHomeView from "../member/member-home-view"
-import { ReactNode } from "react"
+{activeTab === "home" && <MemberHomeView />}import { ReactNode } from "react"
 
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
