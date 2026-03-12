@@ -11,6 +11,10 @@ import { PromoBanner } from "@/components/bearfit/promo-banner"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
+import { MemberDashboardView } from "@/components/bearfit/views/member-dashboard-view"
+import { StaffDashboardView } from "@/components/bearfit/views/staff-dashboard-view"
+import { LeadsDashboardView } from "@/components/bearfit/views/leads-dashboard-view"
+import { AdminDashboardView } from "@/components/bearfit/views/admin-dashboard-view"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -775,6 +779,7 @@ export default function BearfitApp() {
           />
           <div className="px-6 py-4 max-w-5xl mx-auto">
             {/* Member View - Desktop */}
+            <MemberDashboardView activeRole={activeRole}>
             {activeRole === "Member" && (
               <>
 
@@ -820,8 +825,10 @@ export default function BearfitApp() {
                 )}
               </>
             )}
+            </MemberDashboardView>
 
             {/* Staff & Admin content follows same pattern - showing key parts */}
+            <StaffDashboardView activeRole={activeRole}>
             {activeRole === "Staff" && (
               <>
                 {activeTab === "home" && (
@@ -1333,8 +1340,10 @@ export default function BearfitApp() {
                 )}
               </>
             )}
+            </StaffDashboardView>
 
             {/* Leads View */}
+            <LeadsDashboardView activeRole={activeRole}>
             {activeRole === "Leads" && (
               <>
                 {activeTab === "dashboard" && (
@@ -1612,8 +1621,10 @@ export default function BearfitApp() {
                 )}
               </>
             )}
+            </LeadsDashboardView>
 
             {/* Admin View */}
+            <AdminDashboardView activeRole={activeRole}>
             {activeRole === "Admin" && (
               <>
                 {activeTab === "dashboard" && (
@@ -2119,6 +2130,7 @@ export default function BearfitApp() {
                 )}
               </>
             )}
+            </AdminDashboardView>
           </div>
         </main>
       </div>
@@ -2127,6 +2139,7 @@ export default function BearfitApp() {
       <div className="lg:hidden flex flex-col min-h-screen">
         <main className="flex-1 overflow-y-auto pb-20">
           {/* Member View - Mobile */}
+          <MemberDashboardView activeRole={activeRole}>
           {activeRole === "Member" && (
             <div className="animate-slide-in">
               <Header 
@@ -2177,8 +2190,10 @@ export default function BearfitApp() {
               )}
             </div>
           )}
+          </MemberDashboardView>
 
           {/* Staff View - Mobile */}
+          <StaffDashboardView activeRole={activeRole}>
           {activeRole === "Staff" && (
             <div className="animate-slide-in">
               <Header 
@@ -2706,8 +2721,10 @@ export default function BearfitApp() {
               </div>
             </div>
           )}
+          </StaffDashboardView>
 
           {/* Leads View - Mobile */}
+          <LeadsDashboardView activeRole={activeRole}>
           {activeRole === "Leads" && (
             <div className="animate-slide-in">
               <Header 
@@ -3061,8 +3078,10 @@ export default function BearfitApp() {
               </div>
             </div>
           )}
+          </LeadsDashboardView>
 
           {/* Admin View - Mobile */}
+          <AdminDashboardView activeRole={activeRole}>
           {activeRole === "Admin" && (
             <div className="animate-slide-in">
               <Header 
@@ -3573,6 +3592,7 @@ export default function BearfitApp() {
               </div>
             </div>
           )}
+          </AdminDashboardView>
         </main>
 
         {/* Bottom Navigation - Mobile */}
