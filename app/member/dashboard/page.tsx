@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -13,6 +14,15 @@ import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
 import { getCurrentUser, clearUserSession } from "@/lib/auth"
+
+// Loading screen component
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  )
+}
 
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
@@ -489,7 +499,7 @@ export default function BearfitApp() {
   const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 
-  // Ensure component is mounted before rendering to prevent hydration mismatches
+  // Suppress hydration warnings and ensure client-side rendering
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -718,7 +728,7 @@ export default function BearfitApp() {
       })
 
   if (!isMounted) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>
+    return <LoadingScreen />
   }
 
   return (
@@ -5347,4 +5357,5 @@ export default function BearfitApp() {
       )}
     </div>
   )
+}
 }
