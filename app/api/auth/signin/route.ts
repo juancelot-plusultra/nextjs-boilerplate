@@ -1,10 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { authenticateUser } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,39 +12,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sign in with email and password
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Use dummy authentication from auth.ts
+    const user = authenticateUser(email, password);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    if (!data.user) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Sign in failed' },
-        { status: 500 }
+        { error: 'Invalid email or password' },
+        { status: 401 }
       );
     }
 
-    // Fetch member data
-    const { data: memberData, error: memberError } = await supabase
-      .from('members')
-      .select('*')
-      .eq('user_id', data.user.id)
-      .single();
-
-    if (memberError) {
-      console.error('[v0] Member fetch error:', memberError);
-    }
-
+    // Return authenticated user
     return NextResponse.json({
       success: true,
-      user: data.user,
-      member: memberData || null,
-      session: data.session,
+      user: user,
+      message: 'Login successful'
     });
   } catch (error: any) {
     console.error('[v0] Signin error:', error);
