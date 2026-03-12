@@ -1,7 +1,7 @@
 "use client"
 
-import { ReactNode } from "react"
-import MemberDashboardView from "@/components/bearfit/views/member-dashboard-view"
+import MemberHomeView from "../member/member-home-view"
+
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 type Props = {
@@ -10,10 +10,8 @@ type Props = {
 }
 
 export default function MemberDashboardView({ role, activeTab }: Props) {
-
   return (
     <div className="space-y-6">
-
       {activeTab === "home" && <MemberHomeView />}
 
       {activeTab === "payment" && (
@@ -33,7 +31,6 @@ export default function MemberDashboardView({ role, activeTab }: Props) {
           More Section
         </div>
       )}
-
     </div>
   )
 }
