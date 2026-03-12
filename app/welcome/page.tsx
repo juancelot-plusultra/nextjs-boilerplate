@@ -91,8 +91,8 @@ export default function WelcomePage() {
       const session = await authLib.getSession();
       
       if (!session) {
-        // Not logged in, go to login
-        window.location.href = "/login";
+        // Not logged in, show auth modal
+        setAuthModalOpen(true);
         return;
       }
 
@@ -110,7 +110,7 @@ export default function WelcomePage() {
       window.location.href = redirectUrl;
     } catch (err) {
       console.error("Onboarding error:", err);
-      window.location.href = "/login";
+      setAuthModalOpen(true);
     }
   };
 
@@ -120,7 +120,7 @@ export default function WelcomePage() {
       const session = await authLib.getSession();
       
       if (!session) {
-        window.location.href = "/login";
+        setAuthModalOpen(true);
         return;
       }
 
@@ -139,7 +139,7 @@ export default function WelcomePage() {
       window.location.href = redirectUrl;
     } catch (err) {
       console.error("Role navigation error:", err);
-      window.location.href = "/login";
+      setAuthModalOpen(true);
     }
   };
 
@@ -167,7 +167,9 @@ export default function WelcomePage() {
           const session = await authLib.getSession();
           
           if (!session) {
-            window.location.replace("/login");
+            // Not logged in, show welcome page with auth modal
+            setAuthModalOpen(true);
+            setReady(true);
             return;
           }
 
@@ -182,7 +184,7 @@ export default function WelcomePage() {
           const redirectUrl = dashboardMap[session.role] || "/member/dashboard";
           window.location.replace(redirectUrl);
         } catch (err) {
-          window.location.replace("/login");
+          setReady(true);
         }
       })();
       return;

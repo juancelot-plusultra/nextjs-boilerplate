@@ -27,33 +27,28 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Login failed");
-        setLoading(false);
-        return;
-      }
-
+      const { authLib } = await import("@/lib/auth");
+      const user = await authLib.signIn(email, password);
+      
       setSuccess("Login successful! Redirecting...");
-      // Store session in localStorage
-      if (data.session) {
-        localStorage.setItem("supabase_session", JSON.stringify(data.session));
-      }
       
       setTimeout(() => {
-        onSuccess?.(data.user.id);
+        onSuccess?.(user.id);
         onClose();
-        window.location.href = "/member/dashboard";
+        
+        // Redirect to role-appropriate dashboard
+        const dashboardMap: Record<string, string> = {
+          member: "/member/dashboard",
+          staff: "/staff/dashboard",
+          lead: "/lead/dashboard",
+          admin: "/admin/dashboard",
+        };
+        
+        const redirectUrl = dashboardMap[user.role] || "/member/dashboard";
+        window.location.href = redirectUrl;
       }, 1000);
     } catch (err) {
-      setError("An unexpected error occurred");
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
       setLoading(false);
     }
   };
@@ -81,24 +76,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName, phone: phone || null }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Sign up failed");
-        setLoading(false);
-        return;
-      }
-
-      setSuccess("Account created successfully! You can now sign in.");
+      // For mock auth, sign up is simulated - use one of the test accounts
+      setSuccess("Account signup is simulated. Use test credentials: member@test.com / password123");
       setTimeout(() => {
         setTab("login");
-        setEmail("");
+        setEmail("member@test.com");
         setPassword("");
         setConfirmPassword("");
         setFullName("");
