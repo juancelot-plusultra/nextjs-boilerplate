@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Home, Calendar, CreditCard, User, MoreHorizontal, Users, TrendingUp, ClipboardList, Gift, HelpCircle, Shield, Globe, Bell, Info, LogOut, Settings, UserCog, Smartphone, BarChart3, FileText, Target, Lock, DollarSign } from "lucide-react"
+import { Home, Calendar, CreditCard, User, MoreHorizontal, Users, TrendingUp, ClipboardList, Gift, HelpCircle, Shield, Globe, Bell, Info, LogOut, Settings, UserCog, Smartphone, BarChart3, FileText, Target, Lock, DollarSign, MessageCircle } from "lucide-react"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -3393,7 +3393,7 @@ export default function BearfitApp() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-[11px] font-bold text-foreground">{tx.amount.replace("P", "â‚±")}</p>
+                              <p className="text-[11px] font-bold text-foreground">{tx.amount.replace("P", "â��±")}</p>
                               <p className="text-[7px] text-muted-foreground">{tx.status}</p>
                             </div>
                           </div>
