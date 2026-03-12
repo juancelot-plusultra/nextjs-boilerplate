@@ -1,7 +1,8 @@
-"use client"
+  "use client"
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -10,12 +11,8 @@ import { PromoBanner } from "@/components/bearfit/promo-banner"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
-import { createClient } from "@supabase/supabase-js"
-import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { ProtectedRoute } from "@/components/auth-provider"
+import { logout } from "@/lib/auth"
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
@@ -366,6 +363,7 @@ const memberMoreItems = [
   { icon: Globe, label: "Language", description: "English", id: "language" },
   { icon: Bell, label: "Notifications", description: "Manage alerts", id: "notifications" },
   { icon: Info, label: "About BearFit", description: "Version 2.0.1", id: "about" },
+  { icon: LogOut, label: "Logout", description: "Sign out of your account", id: "logout" },
 ]
 
 // More menu items for Staff
@@ -497,42 +495,24 @@ export default function BearfitApp() {
       try {
         setAuthLoading(true)
         
-        // Get session from localStorage
-        const sessionStr = localStorage.getItem("supabase_session")
-        if (!sessionStr) {
-          window.location.href = "/welcome"
+        // Get user from localStorage (set during login)
+        const userStr = localStorage.getItem("user")
+        if (!userStr) {
+          window.location.href = "/login"
           return
         }
         
-        const session = JSON.parse(sessionStr)
-        if (!session.user) {
-          window.location.href = "/welcome"
+        const user = JSON.parse(userStr)
+        if (!user || !user.email) {
+          window.location.href = "/login"
           return
         }
 
-        setCurrentUser(session.user)
-
-        // Fetch member data from Supabase (optional - table may not exist yet)
-        try {
-          const { data: memberData, error } = await supabase
-            .from("members")
-            .select("*")
-            .eq("user_id", session.user.id)
-            .maybeSingle()
-
-          if (memberData) {
-            setCurrentMember(memberData)
-          } else if (error && error.code !== 'PGRST116') {
-            console.error("[v0] Unexpected member fetch error:", error)
-          }
-        } catch (err) {
-          console.error("[v0] Error fetching member data:", err)
-        }
-
+        setCurrentUser(user)
         setAuthLoading(false)
       } catch (err) {
         console.error("[v0] Auth check error:", err)
-        window.location.href = "/welcome"
+        window.location.href = "/login"
       }
     }
 
@@ -818,6 +798,7 @@ export default function BearfitApp() {
                         else if (item.id === "language") setShowLanguage(true)
                         else if (item.id === "notifications") setShowNotifications(true)
                         else if (item.id === "about") setShowAbout(true)
+                        else if (item.id === "logout") logout()
                       }
                       return (
                         <button key={i} onClick={handleClick} className="w-full flex items-center justify-between p-4 bg-[#141414] rounded-xl border border-border/30 touch-active card-press">

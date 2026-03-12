@@ -1,21 +1,89 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getUser } from "@/lib/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isReady, setIsReady] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  // Check if already logged in
+  useEffect(() => {
+    const user = getUser();
+    if (user) {
+      // Redirect based on role
+      if (user.role === "member") {
+        router.push("/member/dashboard");
+      } else if (user.role === "staff") {
+        router.push("/staff/dashboard");
+      } else if (user.role === "lead") {
+        router.push("/lead/dashboard");
+      } else if (user.role === "admin") {
+        router.push("/admin/dashboard");
+      }
+    } else {
+      setIsReady(true);
+    }
+  }, [router]);
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // TEMP: replace later with real auth
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Store user info in session/localStorage for now
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Redirect to appropriate dashboard based on role
+      const role = data.user.role;
+      if (role === "member") {
+        router.push("/member/dashboard");
+      } else if (role === "staff") {
+        router.push("/staff/dashboard");
+      } else if (role === "lead") {
+        router.push("/lead/dashboard");
+      } else if (role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/member/dashboard"); // Default to member
+      }
+    } catch (err) {
+      setError("An error occurred during login");
       setLoading(false);
-      alert("Login logic goes here");
-    }, 1200);
+    }
   };
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F6FA] to-[#ECEEF4]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F37120] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F6FA] to-[#ECEEF4] px-4">
@@ -45,10 +113,18 @@ export default function LoginPage() {
 
         {/* FORM */}
         <form onSubmit={onSubmit} className="space-y-5">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           <input
             type="email"
             placeholder="Enter email"
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
           />
 
@@ -57,6 +133,8 @@ export default function LoginPage() {
               type="password"
               placeholder="Password"
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
             />
             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#9CA3AF] cursor-pointer">
@@ -117,6 +195,19 @@ export default function LoginPage() {
           Tip: Staff and Members use the same login.
           <br />
           Your role decides where you land.
+          <br />
+          <br />
+          <strong>Test Credentials:</strong>
+          <br />
+          Member: member@bearfit.com
+          <br />
+          Staff: staff@bearfit.com
+          <br />
+          Lead: lead@bearfit.com
+          <br />
+          Admin: admin@bearfit.com
+          <br />
+          Password: password123
         </p>
       </div>
 
