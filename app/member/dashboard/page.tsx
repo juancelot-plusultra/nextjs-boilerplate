@@ -5358,4 +5358,3 @@ export default function BearfitApp() {
     </div>
   )
 }
-}
