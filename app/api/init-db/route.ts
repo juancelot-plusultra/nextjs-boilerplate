@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
           created_at TIMESTAMP DEFAULT NOW()
         );
       `,
-    }).catch(() => ({ error: null }));
+    });
 
     // Create members table
     const { error: membersError } = await supabase.rpc('query', {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    });
 
     // Create staff table
     const { error: staffError } = await supabase.rpc('query', {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    });
 
     // Create sessions table
     const { error: sessionsError } = await supabase.rpc('query', {
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (staff_id) REFERENCES public.staff(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    });
 
     // Create transactions table
     const { error: transError } = await supabase.rpc('query', {
@@ -107,11 +107,34 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    });
 
-    return NextResponse.json({ success: true, message: 'Database initialized' });
+    const errors = [
+      usersError,
+      membersError,
+      staffError,
+      sessionsError,
+      transError
+    ].filter(Boolean);
+
+    if (errors.length > 0) {
+      return NextResponse.json(
+        { success: false, errors },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Database initialized'
+    });
+
   } catch (error: any) {
     console.error('[v0] Database init error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
   }
 }
