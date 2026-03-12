@@ -84,15 +84,63 @@ export default function WelcomePage() {
   };
   const skip = () => setIndex(slides.length - 1);
 
-  const completeOnboarding = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
-    window.location.href = START_PAGE;
+  const completeOnboarding = async () => {
+    try {
+      // Get current user's role from auth
+      const { authLib } = await import("@/lib/auth");
+      const session = await authLib.getSession();
+      
+      if (!session) {
+        // Not logged in, go to login
+        window.location.href = "/login";
+        return;
+      }
+
+      localStorage.setItem(STORAGE_KEY, "1");
+      
+      // Redirect to role-appropriate dashboard
+      const dashboardMap: Record<string, string> = {
+        member: "/member/dashboard",
+        staff: "/staff/dashboard",
+        lead: "/lead/dashboard",
+        admin: "/admin/dashboard",
+      };
+      
+      const redirectUrl = dashboardMap[session.role] || "/member/dashboard";
+      window.location.href = redirectUrl;
+    } catch (err) {
+      console.error("Onboarding error:", err);
+      window.location.href = "/login";
+    }
   };
 
-  const goToRole = (role: "Member" | "Staff" | "Leads" | "Admin") => {
-    localStorage.setItem("bearfit_preview_role", role);
-    localStorage.setItem(STORAGE_KEY, "1");
-    window.location.href = START_PAGE;
+  const goToRole = async (role: "Member" | "Staff" | "Leads" | "Admin") => {
+    try {
+      const { authLib } = await import("@/lib/auth");
+      const session = await authLib.getSession();
+      
+      if (!session) {
+        window.location.href = "/login";
+        return;
+      }
+
+      localStorage.setItem("bearfit_preview_role", role);
+      localStorage.setItem(STORAGE_KEY, "1");
+      
+      // Redirect based on user's actual role
+      const dashboardMap: Record<string, string> = {
+        member: "/member/dashboard",
+        staff: "/staff/dashboard",
+        lead: "/lead/dashboard",
+        admin: "/admin/dashboard",
+      };
+      
+      const redirectUrl = dashboardMap[session.role] || "/member/dashboard";
+      window.location.href = redirectUrl;
+    } catch (err) {
+      console.error("Role navigation error:", err);
+      window.location.href = "/login";
+    }
   };
 
   // -----------------------------------
@@ -112,7 +160,31 @@ export default function WelcomePage() {
 
     const done = localStorage.getItem(STORAGE_KEY) === "1";
     if (done) {
-      window.location.replace(START_PAGE);
+      // Check if user is authenticated
+      (async () => {
+        try {
+          const { authLib } = await import("@/lib/auth");
+          const session = await authLib.getSession();
+          
+          if (!session) {
+            window.location.replace("/login");
+            return;
+          }
+
+          // Redirect to role-appropriate dashboard
+          const dashboardMap: Record<string, string> = {
+            member: "/member/dashboard",
+            staff: "/staff/dashboard",
+            lead: "/lead/dashboard",
+            admin: "/admin/dashboard",
+          };
+          
+          const redirectUrl = dashboardMap[session.role] || "/member/dashboard";
+          window.location.replace(redirectUrl);
+        } catch (err) {
+          window.location.replace("/login");
+        }
+      })();
       return;
     }
 

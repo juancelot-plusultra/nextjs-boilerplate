@@ -1,0 +1,91 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { authLib } from "@/lib/auth"
+import Image from "next/image"
+import { useState as useStateImport } from "react"
+import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
+import { Header, DesktopHeader } from "@/components/bearfit/header"
+import { ProfileCard } from "@/components/bearfit/profile-card"
+import { SessionCard } from "@/components/bearfit/session-card"
+import { ActivityLog } from "@/components/bearfit/activity-log"
+import { PromoBanner } from "@/components/bearfit/promo-banner"
+import { PaymentPage } from "@/components/bearfit/payment-page"
+import { ProfilePage } from "@/components/bearfit/profile-page"
+import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
+
+export default function StaffDashboard() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const session = await authLib.getSession()
+        
+        if (!session) {
+          router.push("/login")
+          return
+        }
+
+        if (session.role !== "staff") {
+          router.push(`/${session.role}/dashboard`)
+          return
+        }
+
+        setIsAuthorized(true)
+      } catch (err) {
+        console.error("Auth check failed:", err)
+        router.push("/login")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
+            <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthorized) {
+    return null
+  }
+
+  return <StaffDashboardContent />
+}
+
+// Wrapper to redirect to member dashboard with staff role pre-selected via URL query
+function StaffDashboardContent() {
+  const router = useRouter()
+  
+  useEffect(() => {
+    // Store the intended role in sessionStorage
+    sessionStorage.setItem("dashboard_role", "Staff")
+    // Redirect to member dashboard
+    router.push("/member/dashboard")
+  }, [router])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
+          <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-sm text-muted-foreground">Loading Staff Dashboard...</p>
+      </div>
+    </div>
+  )
+}

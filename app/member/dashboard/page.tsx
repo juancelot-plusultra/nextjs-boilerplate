@@ -10,12 +10,7 @@ import { PromoBanner } from "@/components/bearfit/promo-banner"
 import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
-import { createClient } from "@supabase/supabase-js"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
@@ -486,7 +481,18 @@ export default function BearfitApp() {
   const [showChat, setShowChat] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [chatInput, setChatInput] = useState("")
-  const [activeRole, setActiveRole] = useState<"Member" | "Staff" | "Leads" | "Admin">("Member")
+  
+  // Initialize role from sessionStorage (set by role-specific dashboards)
+  const [activeRole, setActiveRole] = useState<"Member" | "Staff" | "Leads" | "Admin">(() => {
+    if (typeof window !== "undefined") {
+      const storedRole = sessionStorage.getItem("dashboard_role")
+      if (storedRole === "Staff" || storedRole === "Leads" || storedRole === "Admin") {
+        return storedRole as any
+      }
+    }
+    return "Member"
+  })
+  
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [currentMember, setCurrentMember] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -497,42 +503,20 @@ export default function BearfitApp() {
       try {
         setAuthLoading(true)
         
-        // Get session from localStorage
-        const sessionStr = localStorage.getItem("supabase_session")
-        if (!sessionStr) {
-          window.location.href = "/welcome"
-          return
-        }
+        // Get session from mock auth system
+        const { authLib } = await import("@/lib/auth")
+        const session = await authLib.getSession()
         
-        const session = JSON.parse(sessionStr)
-        if (!session.user) {
-          window.location.href = "/welcome"
+        if (!session) {
+          window.location.href = "/login"
           return
         }
 
-        setCurrentUser(session.user)
-
-        // Fetch member data from Supabase (optional - table may not exist yet)
-        try {
-          const { data: memberData, error } = await supabase
-            .from("members")
-            .select("*")
-            .eq("user_id", session.user.id)
-            .maybeSingle()
-
-          if (memberData) {
-            setCurrentMember(memberData)
-          } else if (error && error.code !== 'PGRST116') {
-            console.error("[v0] Unexpected member fetch error:", error)
-          }
-        } catch (err) {
-          console.error("[v0] Error fetching member data:", err)
-        }
-
+        setCurrentUser(session)
         setAuthLoading(false)
       } catch (err) {
         console.error("[v0] Auth check error:", err)
-        window.location.href = "/welcome"
+        window.location.href = "/login"
       }
     }
 
@@ -677,6 +661,17 @@ export default function BearfitApp() {
 
   const navItems = getNavItems()
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const { authLib } = await import("@/lib/auth")
+      await authLib.signOut()
+      window.location.href = "/login"
+    } catch (err) {
+      console.error("Logout failed:", err)
+    }
+  }
+
   // Performance stats based on selected time view
   const getStaffStats = () => {
     const stats = {
@@ -771,6 +766,13 @@ export default function BearfitApp() {
               <span className="ml-auto w-5 h-5 bg-green-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 2
               </span>
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all mt-2"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium text-sm">Logout</span>
             </button>
           </div>
         </aside>

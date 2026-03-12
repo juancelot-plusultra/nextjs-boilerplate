@@ -2,19 +2,40 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { signIn } = useAuth();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // TEMP: replace later with real auth
-    setTimeout(() => {
+    try {
+      const user = await signIn(email, password);
+      
+      // Redirect based on user role
+      const dashboardMap: Record<string, string> = {
+        member: "/member/dashboard",
+        staff: "/staff/dashboard",
+        lead: "/lead/dashboard",
+        admin: "/admin/dashboard",
+      };
+
+      const redirectUrl = dashboardMap[user.role] || "/member/dashboard";
+      router.push(redirectUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+    } finally {
       setLoading(false);
-      alert("Login logic goes here");
-    }, 1200);
+    }
   };
 
   return (
@@ -43,11 +64,20 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* ERROR MESSAGE */}
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* FORM */}
         <form onSubmit={onSubmit} className="space-y-5">
           <input
             type="email"
             placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
           />
@@ -56,6 +86,8 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full rounded-full border border-[#E5E7EB] px-5 py-4 text-sm outline-none focus:border-[#F37120] transition"
             />
@@ -113,11 +145,14 @@ export default function LoginPage() {
           </a>
         </div>
 
-        <p className="mt-8 text-center text-xs text-[#9CA3AF] leading-relaxed">
-          Tip: Staff and Members use the same login.
-          <br />
-          Your role decides where you land.
-        </p>
+        <div className="mt-8 space-y-2 text-center text-xs text-[#9CA3AF] leading-relaxed">
+          <p className="font-semibold text-[#6B7280]">Test Credentials:</p>
+          <p>Member: member@test.com</p>
+          <p>Staff: staff@test.com</p>
+          <p>Lead: lead@test.com</p>
+          <p>Admin: admin@test.com</p>
+          <p className="text-[#6B7280]">Password: password123</p>
+        </div>
       </div>
 
       {/* SIMPLE FADE ANIMATION */}

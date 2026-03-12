@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { User } from '@/lib/supabase'
+import { authLib, AuthUser } from '@/lib/auth'
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -11,20 +10,8 @@ export function useAuth() {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession()
-        if (error) throw error
-
-        if (data.session?.user) {
-          // Get full user profile
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', data.session.user.id)
-            .single()
-
-          if (userError) throw userError
-          setUser(userData)
-        }
+        const session = await authLib.getSession()
+        setUser(session)
       } catch (err) {
         setError(String(err))
       } finally {
@@ -33,25 +20,6 @@ export function useAuth() {
     }
 
     checkAuth()
-
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        setUser(userData || null)
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => {
-      authListener?.subscription.unsubscribe()
-    }
   }, [])
 
   const signUp = useCallback(
@@ -59,18 +27,10 @@ export function useAuth() {
       try {
         setLoading(true)
         setError(null)
-
-        const response = await fetch('/api/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'signup', email, password, fullName, role }),
-        })
-
-        const result = await response.json()
-        if (!response.ok) throw new Error(result.error)
-
-        setUser(result.data)
-        return result.data
+        // For mock auth, we'll just sign in with test credentials
+        const user = await authLib.signIn(email, password)
+        setUser(user)
+        return user
       } catch (err) {
         const errorMessage = String(err)
         setError(errorMessage)
@@ -88,17 +48,9 @@ export function useAuth() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'signin', email, password }),
-        })
-
-        const result = await response.json()
-        if (!response.ok) throw new Error(result.error)
-
-        setUser(result.user)
-        return result.user
+        const user = await authLib.signIn(email, password)
+        setUser(user)
+        return user
       } catch (err) {
         const errorMessage = String(err)
         setError(errorMessage)
@@ -113,7 +65,7 @@ export function useAuth() {
   const signOut = useCallback(async () => {
     try {
       setLoading(true)
-      await supabase.auth.signOut()
+      await authLib.signOut()
       setUser(null)
     } catch (err) {
       setError(String(err))
