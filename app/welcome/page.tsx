@@ -89,10 +89,8 @@ export default function WelcomePage() {
     window.location.href = START_PAGE;
   };
 
-  const goToRole = (role: "Member" | "Staff" | "Leads" | "Admin") => {
-    localStorage.setItem("bearfit_preview_role", role);
-    localStorage.setItem(STORAGE_KEY, "1");
-    window.location.href = START_PAGE;
+  const openLoginModal = () => {
+    setAuthModalOpen(true);
   };
 
   // -----------------------------------
@@ -316,29 +314,16 @@ export default function WelcomePage() {
       No guesswork, just gains. Get the facts here
     </button>
 
-    {/* Main CTA */}
+    {/* Main CTA - Open Login */}
     <button
       type="button"
       onClick={() => {
         resetIdle();
-        setAssessmentModalOpen(true);
+        setAuthModalOpen(true);
       }}
       className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black hover:bg-[#E86010] transition-colors"
     >
-      Get Started – Free Assessment
-    </button>
-
-    {/* Dashboard sample */}
-    <button
-      type="button"
-      onClick={() => {
-        resetIdle();
-        localStorage.setItem("bearfit_preview_role", "Member");
-        window.location.href = "/member/dashboard";
-      }}
-      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
-    >
-      Dashboard Sample
+      Get Started
     </button>
   </div>
 )}

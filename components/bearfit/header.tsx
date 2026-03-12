@@ -93,9 +93,7 @@ export function Header({
         <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} />
       </div>
 
-      <div className="flex-1 flex items-center justify-center min-w-0">
-        <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-2">
         <button
@@ -139,9 +137,7 @@ export function DesktopHeader({
         <LogoBlock logoSrc={logoSrc} logoAlt={logoAlt} />
       </div>
 
-      <div className="flex-1 flex items-center justify-center">
-        <RoleTabs activeRole={activeRole} onRoleChange={onRoleChange} />
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-3">
         <button

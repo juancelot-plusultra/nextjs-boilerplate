@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { X, Mail, Lock, User } from "lucide-react";
+import { saveUserSession } from "@/lib/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,17 +44,16 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         return;
       }
 
+      // Save user session using our auth system
+      saveUserSession(data.user);
       setSuccess("Login successful! Redirecting...");
-      // Store session in localStorage
-      if (data.session) {
-        localStorage.setItem("supabase_session", JSON.stringify(data.session));
-      }
       
+      // Redirect to appropriate dashboard based on role
       setTimeout(() => {
         onSuccess?.(data.user.id);
         onClose();
-        window.location.href = "/member/dashboard";
-      }, 1000);
+        router.push(`/dashboards/${data.user.role}`);
+      }, 800);
     } catch (err) {
       setError("An unexpected error occurred");
       setLoading(false);

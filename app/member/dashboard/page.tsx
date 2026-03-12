@@ -495,16 +495,8 @@ export default function BearfitApp() {
   const [authLoading, setAuthLoading] = useState(true)
   const router = useRouter()
 
-  // Determine role from authenticated user - if they're accessing old route, redirect to new one
+  // Determine role from authenticated user
   const authenticatedUser = getCurrentUser()
-  
-  useEffect(() => {
-    if (authenticatedUser) {
-      router.push(`/dashboards/${authenticatedUser.role}`)
-    } else {
-      router.push("/login")
-    }
-  }, [authenticatedUser, router])
 
   const activeRole = authenticatedUser ? (authenticatedUser.role === "member" ? "Member" : 
                                           authenticatedUser.role === "staff" ? "Staff" : 
@@ -736,14 +728,7 @@ export default function BearfitApp() {
           {/* Sidebar Brand (logo handled in top header to avoid duplicates) */}
           <div className="p-5 bg-gradient-to-b from-background/40 via-background/10 to-transparent" />
 
-          {/* Role Display - Read Only */}
-          <div className="p-4">
-            <div className="flex items-center bg-secondary rounded-xl p-1 justify-center">
-              <span className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-2 rounded-lg">
-                {activeRole} Dashboard
-              </span>
-            </div>
-          </div>
+
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-2">
