@@ -7,14 +7,12 @@ type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 interface Props {
   children: ReactNode
-  role: Role
   activeRole: Role
   setActiveRole: (role: Role) => void
 }
 
 export function DashboardShell({
   children,
-  role,
   activeRole,
   setActiveRole,
 }: Props) {
@@ -22,7 +20,6 @@ export function DashboardShell({
     <div className="min-h-screen bg-gray-50">
       <div className="hidden md:block">
         <DesktopHeader
-          role={role}
           activeRole={activeRole}
           setActiveRole={setActiveRole}
         />
@@ -30,7 +27,6 @@ export function DashboardShell({
 
       <div className="md:hidden">
         <Header
-          role={role}
           activeRole={activeRole}
           setActiveRole={setActiveRole}
         />
