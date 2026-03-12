@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { Home, Calendar, CreditCard, User, MoreHorizontal, Users, TrendingUp, ClipboardList, Gift, HelpCircle, Shield, Globe, Bell, Info, LogOut } from "lucide-react"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -13,6 +14,7 @@ import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
 import { ProtectedRoute } from "@/components/auth-provider"
 import { logout } from "@/lib/auth"
+
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
