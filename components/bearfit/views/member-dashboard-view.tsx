@@ -1,8 +1,7 @@
 "use client"
 
 import { ReactNode } from "react"
-import MemberHomeView from "../member/member-home-view"
-
+import MemberDashboardView from "@/components/bearfit/views/member-dashboard-view"
 type Role = "Member" | "Staff" | "Leads" | "Admin"
 
 type Props = {
