@@ -325,6 +325,18 @@ export default function WelcomePage() {
     >
       Get Started
     </button>
+
+    {/* Free Assessment Button */}
+    <button
+      type="button"
+      onClick={() => {
+        resetIdle();
+        setAssessmentModalOpen(true);
+      }}
+      className="mt-3 rounded-full bg-white/10 hover:bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+    >
+      Get Free Assessment
+    </button>
   </div>
 )}
                 </div>
