@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Home, Calendar, CreditCard, User, MoreHorizontal, Users, TrendingUp, ClipboardList, Gift, HelpCircle, Shield, Globe, Bell, Info, LogOut, Settings, UserCog, Smartphone } from "lucide-react"
+import { Home, Calendar, CreditCard, User, MoreHorizontal, Users, TrendingUp, ClipboardList, Gift, HelpCircle, Shield, Globe, Bell, Info, LogOut, Settings, UserCog, Smartphone, BarChart3, FileText, Target, Lock, DollarSign } from "lucide-react"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -53,7 +53,7 @@ const PesoIcon = ({ className }: { className?: string }) => (
 const adminNavItems = [
   { icon: Home, label: "Dashboard", id: "dashboard" },
   { icon: Users, label: "Members", id: "members" },
-  { icon: PesoIcon, label: "Payments", id: "payments" },
+  { icon: DollarSign, label: "Payments", id: "payments" },
   { icon: UserCog, label: "Staff", id: "staff" },
   { icon: Settings, label: "Settings", id: "settings" },
 ]
