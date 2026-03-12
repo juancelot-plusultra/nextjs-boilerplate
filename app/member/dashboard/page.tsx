@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { createClient } from "@supabase/supabase-js"
 import { Header, DesktopHeader } from "@/components/bearfit/header"
 import { ProfileCard } from "@/components/bearfit/profile-card"
 import { SessionCard } from "@/components/bearfit/session-card"
@@ -12,11 +11,6 @@ import { PaymentPage } from "@/components/bearfit/payment-page"
 import { ProfilePage } from "@/components/bearfit/profile-page"
 import { DraggableChatButton } from "@/components/bearfit/draggable-chat-button"
 import { Home, Calendar, CreditCard, User, MoreHorizontal, MessageCircle, X, Send, Bell, ChevronRight, QrCode, CalendarPlus, Users, ClipboardList, DollarSign, BarChart3, Settings, Package, UserCog, Clock, CheckCircle, AlertCircle, TrendingUp, FileText, Dumbbell, Star, ChevronDown, ArrowLeft, Phone, Mail, MapPin, Target, Zap, Plus, Search, Filter, ChevronLeft, LogIn, LogOut, CalendarDays, Info, Gift, HelpCircle, Shield, Globe, Lock, Smartphone, CarIcon as CardIcon } from "lucide-react"
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
 // Member navigation
 const memberNavItems = [
   { icon: Home, label: "Home", id: "home" },
@@ -710,24 +704,6 @@ export default function BearfitApp() {
           {/* Sidebar Brand (logo handled in top header to avoid duplicates) */}
           <div className="p-5 bg-gradient-to-b from-background/40 via-background/10 to-transparent" />
 
-          {/* Role Tabs */}
-          <div className="p-4">
-            <div className="flex items-center bg-secondary rounded-xl p-1">
-              {(["Member", "Staff", "Leads", "Admin"] as const).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleChange(role)}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    activeRole === role
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-2">
@@ -795,14 +771,6 @@ export default function BearfitApp() {
             {/* Member View - Desktop */}
             {activeRole === "Member" && (
               <>
-          <div className="[&>header>div:first-child>div:first-child]:scale-[1.6] [&>header>div:first-child>div:first-child]:origin-left [&>header>div:first-child>div:first-child>div:first-child]:bg-transparent [&>header>div:first-child>div:first-child>div:first-child]:rounded-none">
-            <DesktopHeader
-              onOpenChat={() => setShowChat(true)}
-              onOpenNotifications={() => setShowNotifications(true)}
-              activeRole={activeRole}
-              onRoleChange={handleRoleChange}
-            />
-          </div>
 
                 {activeTab === "home" && (
                   <div className="space-y-5">
