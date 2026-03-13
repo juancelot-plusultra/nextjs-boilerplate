@@ -1,6 +1,6 @@
 "use client"
 
-import { PromoBanner } from "@/components/bearfit/promo-banner"
+import { PromoBanner } from "@/components/bearfit/schedule-page"
 
 export default function MemberScheduleView() {
   return (
