@@ -1,5 +1,5 @@
 "use client"
-
+import BookSessionModal from "@/components/bearfit/member/book-session-modal"
 import { useState } from "react"
 import { CalendarDays, Clock3, MapPin, User2, Plus } from "lucide-react"
 
