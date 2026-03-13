@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Calendar from "react-calendar"
-import "react-calendar/dist/Calendar.css"
 import { supabase } from "@/lib/supabase"
 
 const timeSlots = [
@@ -16,7 +14,7 @@ const timeSlots = [
 ]
 
 export default function BookSessionModal({ close }: { close: () => void }) {
-  const [date, setDate] = useState<Date | null>(new Date())
+  const [date, setDate] = useState("")
   const [time, setTime] = useState<string | null>(null)
 
   async function bookSession() {
@@ -35,41 +33,48 @@ export default function BookSessionModal({ close }: { close: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-[#141414] p-6 rounded-xl w-[90%] max-w-md">
+        <h3 className="text-lg font-semibold mb-4">Book a Session</h3>
 
-        <h3 className="text-lg font-semibold mb-4">
-          Book a Session
-        </h3>
+        <div className="space-y-3">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full bg-[#1e1e1e] border border-border rounded-lg p-2 text-sm"
+          />
 
-        {/* Calendar */}
-        <Calendar
-          onChange={(value) => setDate(value as Date)}
-          value={date}
-        />
-
-        {/* Time Slots */}
-        <div className="grid grid-cols-3 gap-2 mt-4">
-          {timeSlots.map((slot) => (
-            <button
-              key={slot}
-              onClick={() => setTime(slot)}
-              className={`text-xs py-2 rounded-lg border ${
-                time === slot
-                  ? "bg-primary text-white"
-                  : "border-border"
-              }`}
-            >
-              {slot}
-            </button>
-          ))}
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            {timeSlots.map((slot) => (
+              <button
+                key={slot}
+                onClick={() => setTime(slot)}
+                className={`text-xs py-2 rounded-lg border ${
+                  time === slot
+                    ? "bg-primary text-white"
+                    : "border-border"
+                }`}
+              >
+                {slot}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button
-          onClick={bookSession}
-          className="w-full mt-5 bg-primary py-2 rounded-lg text-white"
-        >
-          Confirm Booking
-        </button>
+        <div className="flex gap-3 mt-5">
+          <button
+            onClick={close}
+            className="flex-1 py-2 text-sm border border-border rounded-lg"
+          >
+            Cancel
+          </button>
 
+          <button
+            onClick={bookSession}
+            className="flex-1 py-2 text-sm bg-primary rounded-lg text-white"
+          >
+            Confirm Booking
+          </button>
+        </div>
       </div>
     </div>
   )
