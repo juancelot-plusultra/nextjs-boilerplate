@@ -51,7 +51,7 @@ export default function BookSessionModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="w-full max-w-md rounded-3xl bg-[#141414] p-6 border border-border/40 shadow-2xl">
-        <h3 className="text-2xl font-bold text-white mb-6">
+        <h3 className="mb-6 text-2xl font-bold text-white">
           Book a Session
         </h3>
 
