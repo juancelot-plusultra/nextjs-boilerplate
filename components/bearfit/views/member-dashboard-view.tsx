@@ -1,40 +1,34 @@
+
 "use client"
 
-import { ReactNode } from "react"
-import MemberHomeView from "../member/member-home-view"
-import MemberScheduleView from "../member/member-schedule-view"
-import MemberPaymentView from "../member/member-payment-view"
-import MemberProfileView from "../member/member-profile-view"
-import MemberMoreView from "../member/member-more-view"
-
-type Role = "Member" | "Staff" | "Leads" | "Admin"
+import MemberHomeView from "@/components/bearfit/member/member-home-view"
+import MemberScheduleView from "@/components/bearfit/member/member-schedule-view"
+import MemberPaymentView from "@/components/bearfit/member/member-payment-view"
+import MemberProfileView from "@/components/bearfit/member/member-profile-view"
+import MemberMoreView from "@/components/bearfit/member/member-more-view"
 
 type Props = {
-  activeRole: Role
-  activeTab?: string
-  children?: ReactNode
+  activeRole: string
+  activeTab: string
+  setActiveTab: (tab:string)=>void
 }
 
-export default function MemberDashboardView({
-  activeRole,
-  activeTab = "home",
-  children,
-}: Props) {
-  if (children) {
-    return <>{children}</>
-  }
+export default function MemberDashboardView({activeRole,activeTab}:Props){
 
-  if (activeRole !== "Member") {
-    return null
-  }
+  if(activeRole !== "Member") return null
 
-  return (
-    <div className="space-y-6">
-      {activeTab === "home" && <MemberHomeView />}
-      {activeTab === "schedule" && <MemberScheduleView />}
-      {activeTab === "payment" && <MemberPaymentView />}
-      {activeTab === "profile" && <MemberProfileView />}
-      {activeTab === "more" && <MemberMoreView />}
-    </div>
-  )
+  switch(activeTab){
+    case "home":
+      return <MemberHomeView/>
+    case "schedule":
+      return <MemberScheduleView/>
+    case "payment":
+      return <MemberPaymentView/>
+    case "profile":
+      return <MemberProfileView/>
+    case "more":
+      return <MemberMoreView/>
+    default:
+      return <MemberHomeView/>
+  }
 }
