@@ -1,7 +1,8 @@
 "use client"
-import BookSessionModal from "@/components/bearfit/member/book-session-modal"
+
 import { useState } from "react"
 import { CalendarDays, Clock3, MapPin, User2, Plus } from "lucide-react"
+import BookSessionModal from "@/components/bearfit/member/book-session-modal"
 
 const upcomingSessions = [
   {
@@ -48,8 +49,6 @@ export default function MemberScheduleView() {
 
   return (
     <div className="space-y-6 px-4 lg:px-0">
-
-      {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground">My Schedule</h2>
@@ -60,14 +59,13 @@ export default function MemberScheduleView() {
 
         <button
           onClick={() => setShowBooking(true)}
-          className="flex items-center gap-2 text-xs bg-primary px-3 py-2 rounded-full text-white"
+          className="flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs text-white"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           Book Session
         </button>
       </div>
 
-      {/* UPCOMING SESSIONS */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-foreground">
           Upcoming Sessions
@@ -76,38 +74,37 @@ export default function MemberScheduleView() {
         {upcomingSessions.map((session) => (
           <div
             key={session.id}
-            className="bg-[#141414] border border-border/30 rounded-xl p-4"
+            className="rounded-xl border border-border/30 bg-[#141414] p-4"
           >
-            <p className="text-sm font-semibold">{session.title}</p>
+            <p className="text-sm font-semibold text-foreground">
+              {session.title}
+            </p>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              <User2 className="w-3 h-3" />
+            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              <User2 className="h-3 w-3" />
               {session.coach}
             </div>
 
             <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
-
               <div className="flex items-center gap-2">
-                <CalendarDays className="w-3 h-3" />
+                <CalendarDays className="h-3 w-3" />
                 {session.date}
               </div>
 
               <div className="flex items-center gap-2">
-                <Clock3 className="w-3 h-3" />
+                <Clock3 className="h-3 w-3" />
                 {session.time}
               </div>
 
               <div className="flex items-center gap-2">
-                <MapPin className="w-3 h-3" />
+                <MapPin className="h-3 w-3" />
                 {session.location}
               </div>
-
             </div>
           </div>
         ))}
       </div>
 
-      {/* COACH AVAILABILITY */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-foreground">
           Coach Availability
@@ -116,21 +113,23 @@ export default function MemberScheduleView() {
         {coaches.map((coach) => (
           <div
             key={coach.id}
-            className="bg-[#141414] border border-border/30 rounded-xl p-4 flex items-center justify-between"
+            className="flex items-center justify-between rounded-xl border border-border/30 bg-[#141414] p-4"
           >
             <div>
-              <p className="text-sm font-semibold">{coach.name}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {coach.name}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {coach.specialty}
               </p>
-              <p className="text-xs text-primary mt-1">
+              <p className="mt-1 text-xs text-primary">
                 {coach.availability}
               </p>
             </div>
 
             <button
               onClick={() => setShowBooking(true)}
-              className="text-xs px-3 py-1.5 bg-primary rounded-full text-white"
+              className="rounded-full bg-primary px-3 py-1.5 text-xs text-white"
             >
               Book
             </button>
@@ -138,54 +137,8 @@ export default function MemberScheduleView() {
         ))}
       </div>
 
-      {/* BOOKING MODAL */}
       {showBooking && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-
-          <div className="bg-[#141414] p-6 rounded-xl w-[90%] max-w-md">
-
-            <h3 className="text-lg font-semibold mb-4">
-              Book a Session
-            </h3>
-
-            <div className="space-y-3">
-
-              <input
-                placeholder="Choose Coach"
-                className="w-full bg-[#1e1e1e] border border-border rounded-lg p-2 text-sm"
-              />
-
-              <input
-                placeholder="Select Date"
-                className="w-full bg-[#1e1e1e] border border-border rounded-lg p-2 text-sm"
-              />
-
-              <input
-                placeholder="Select Time"
-                className="w-full bg-[#1e1e1e] border border-border rounded-lg p-2 text-sm"
-              />
-
-            </div>
-
-            <div className="flex gap-3 mt-5">
-
-              <button
-                onClick={() => setShowBooking(false)}
-                className="flex-1 py-2 text-sm border border-border rounded-lg"
-              >
-                Cancel
-              </button>
-
-              <button
-                className="flex-1 py-2 text-sm bg-primary rounded-lg text-white"
-              >
-                Confirm
-              </button>
-
-            </div>
-
-          </div>
-        </div>
+        <BookSessionModal close={() => setShowBooking(false)} />
       )}
     </div>
   )
