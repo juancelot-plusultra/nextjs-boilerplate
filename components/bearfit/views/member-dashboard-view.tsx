@@ -1,4 +1,3 @@
-
 "use client"
 
 import MemberHomeView from "@/components/bearfit/member/member-home-view"
@@ -10,25 +9,24 @@ import MemberMoreView from "@/components/bearfit/member/member-more-view"
 type Props = {
   activeRole: string
   activeTab: string
-  setActiveTab: (tab:string)=>void
+  setActiveTab: (tab: string) => void
 }
 
-export default function MemberDashboardView({activeRole,activeTab}:Props){
+export default function MemberDashboardView({ activeRole, activeTab }: Props) {
+  if (activeRole !== "Member") return null
 
-  if(activeRole !== "Member") return null
-
-  switch(activeTab){
+  switch (activeTab) {
     case "home":
-      return <MemberHomeView/>
+      return <MemberHomeView />
     case "schedule":
-      return <MemberScheduleView/>
+      return <MemberScheduleView />
     case "payment":
-      return <MemberPaymentView/>
+      return <MemberPaymentView />
     case "profile":
-      return <MemberProfileView/>
+      return <MemberProfileView />
     case "more":
-      return <MemberMoreView/>
+      return <MemberMoreView />
     default:
-      return <MemberHomeView/>
+      return <MemberHomeView />
   }
 }
