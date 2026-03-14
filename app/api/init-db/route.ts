@@ -1,14 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[v0] Initializing database...');
+    console.log('[v0] Initializing database...')
 
     // Create users table
     const { error: usersError } = await supabase.rpc('query', {
@@ -19,7 +19,11 @@ export async function POST(request: NextRequest) {
           created_at TIMESTAMP DEFAULT NOW()
         );
       `,
-    }).catch(() => ({ error: null }));
+    })
+
+    if (usersError) {
+      console.error('[v0] Users table error:', usersError)
+    }
 
     // Create members table
     const { error: membersError } = await supabase.rpc('query', {
@@ -43,7 +47,11 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    })
+
+    if (membersError) {
+      console.error('[v0] Members table error:', membersError)
+    }
 
     // Create staff table
     const { error: staffError } = await supabase.rpc('query', {
@@ -66,7 +74,11 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    })
+
+    if (staffError) {
+      console.error('[v0] Staff table error:', staffError)
+    }
 
     // Create sessions table
     const { error: sessionsError } = await supabase.rpc('query', {
@@ -89,7 +101,11 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (staff_id) REFERENCES public.staff(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    })
+
+    if (sessionsError) {
+      console.error('[v0] Sessions table error:', sessionsError)
+    }
 
     // Create transactions table
     const { error: transError } = await supabase.rpc('query', {
@@ -107,11 +123,25 @@ export async function POST(request: NextRequest) {
           FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE
         );
       `,
-    }).catch(() => ({ error: null }));
+    })
 
-    return NextResponse.json({ success: true, message: 'Database initialized' });
+    if (transError) {
+      console.error('[v0] Transactions table error:', transError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Database initialized',
+      errors: {
+        usersError,
+        membersError,
+        staffError,
+        sessionsError,
+        transError,
+      },
+    })
   } catch (error: any) {
-    console.error('[v0] Database init error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[v0] Database init error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
