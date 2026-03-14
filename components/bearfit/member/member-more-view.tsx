@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
+  ChevronDown,
   ChevronRight,
   Gift,
   HelpCircle,
@@ -9,11 +10,12 @@ import {
   Globe,
   Bell,
   Info,
-  X,
-  CheckCircle,
+  CheckCircle2,
+  Copy,
+  Mail,
 } from "lucide-react"
 
-type ModalType =
+type SectionType =
   | null
   | "referral"
   | "help"
@@ -65,7 +67,7 @@ const memberMoreItems = [
   },
 ]
 
-const notifications = [
+const notificationItems = [
   {
     id: 1,
     title: "Session Reminder",
@@ -89,268 +91,333 @@ const notifications = [
   },
 ]
 
+const faqItems = [
+  {
+    q: "How do I book a session?",
+    a: "Go to the Schedule tab and tap Book Session.",
+  },
+  {
+    q: "How do I earn points?",
+    a: "Complete workouts, refer friends, and join challenges.",
+  },
+  {
+    q: "Can I cancel a booking?",
+    a: "Yes, up to 2 hours before your scheduled session.",
+  },
+  {
+    q: "How do I update my payment method?",
+    a: "Go to the Payment tab and manage your payment details there.",
+  },
+]
+
 export default function MemberMoreView({
   onOpenNotifications,
 }: MemberMoreViewProps) {
-  const [openModal, setOpenModal] = useState<ModalType>(null)
+  const [activeSection, setActiveSection] = useState<SectionType>(null)
   const [selectedLanguage, setSelectedLanguage] = useState("English")
+  const [copied, setCopied] = useState(false)
 
-  const closeModal = () => setOpenModal(null)
+  const referralCode = "BEARFIT-2026"
+
+  const items = useMemo(
+    () =>
+      memberMoreItems.map((item) =>
+        item.id === "language"
+          ? { ...item, description: selectedLanguage }
+          : item
+      ),
+    [selectedLanguage]
+  )
+
+  const handleItemClick = (id: Exclude<SectionType, null>) => {
+    if (id === "notifications" && onOpenNotifications) {
+      onOpenNotifications()
+      return
+    }
+
+    setActiveSection((prev) => (prev === id ? null : id))
+  }
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(referralCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   return (
-    <>
-      <div className="px-4 lg:px-0 space-y-4 pb-6">
-        {memberMoreItems.map((item) => {
+    <div className="px-4 pb-8 lg:px-0">
+      <div className="space-y-4">
+        {items.map((item) => {
           const Icon = item.icon
+          const isOpen = activeSection === item.id
+          const isExternalNotifications =
+            item.id === "notifications" && Boolean(onOpenNotifications)
 
           return (
-            <button
+            <div
               key={item.id}
-              onClick={() => {
-                if (item.id === "notifications" && onOpenNotifications) {
-                  onOpenNotifications()
-                } else {
-                  setOpenModal(item.id)
-                }
-              }}
-              className="w-full flex items-center justify-between rounded-[28px] border border-[#17305b] bg-[#111111] px-6 py-7 text-left transition hover:border-[#26467a]"
+              className="overflow-hidden rounded-[28px] border border-[#17305b] bg-[#111111]"
             >
-              <div className="flex items-center gap-5">
-                <div className="flex h-[68px] w-[68px] items-center justify-center rounded-[22px] bg-[#1d2b46]">
-                  <Icon className="h-8 w-8 text-[#ff7a1a]" />
-                </div>
-
-                <div>
-                  <p className="text-[18px] font-semibold text-white">
-                    {item.label}
-                  </p>
-                  <p className="mt-1 text-[14px] text-[#9eabc0]">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
-
-              <ChevronRight className="h-7 w-7 text-[#b8c3d9]" />
-            </button>
-          )
-        })}
-      </div>
-
-      {openModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
-          <div className="w-full max-w-3xl rounded-[30px] border border-[#17305b] bg-[#111111] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#17305b] px-8 py-7">
-              <h3 className="text-[28px] font-bold text-white">
-                {openModal === "referral" && "Referral Program"}
-                {openModal === "help" && "Help & Support"}
-                {openModal === "privacy" && "Privacy & Security"}
-                {openModal === "language" && "Language"}
-                {openModal === "notifications" && "Notifications"}
-                {openModal === "about" && "About BearFit"}
-              </h3>
-
               <button
-                onClick={closeModal}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1d2b46]"
+                type="button"
+                onClick={() => handleItemClick(item.id)}
+                className="flex w-full items-center justify-between px-5 py-5 text-left transition hover:bg-[#151515] md:px-6 md:py-6"
               >
-                <X className="h-8 w-8 text-[#a9b6cb]" />
-              </button>
-            </div>
-
-            <div className="px-8 py-8">
-              {openModal === "referral" && (
-                <div className="space-y-6">
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">
-                      Your Referral Code
-                    </p>
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                      <div className="rounded-[16px] bg-black px-5 py-4 text-[20px] font-bold tracking-[0.2em] text-[#ff7a1a]">
-                        BEARFIT-2026
-                      </div>
-                      <button
-                        onClick={() =>
-                          navigator.clipboard?.writeText("BEARFIT-2026")
-                        }
-                        className="rounded-[16px] bg-[#ff7a1a] px-5 py-4 text-[15px] font-semibold text-white"
-                      >
-                        Copy Code
-                      </button>
-                    </div>
+                <div className="flex min-w-0 items-center gap-4 md:gap-5">
+                  <div className="flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-[20px] bg-[#1d2b46] md:h-[68px] md:w-[68px] md:rounded-[22px]">
+                    <Icon className="h-7 w-7 text-[#ff7a1a] md:h-8 md:w-8" />
                   </div>
 
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">
-                      How it works
+                  <div className="min-w-0">
+                    <p className="truncate text-[20px] font-semibold text-white md:text-[22px]">
+                      {item.label}
                     </p>
-                    <div className="mt-4 space-y-3 text-[15px] text-[#c2cbda]">
-                      <p>• Share your referral code with friends</p>
-                      <p>• Friend signs up and completes registration</p>
-                      <p>• You earn BearFit points automatically</p>
-                    </div>
+                    <p className="mt-1 text-[14px] text-[#9eabc0] md:text-[15px]">
+                      {item.description}
+                    </p>
                   </div>
                 </div>
-              )}
 
-              {openModal === "help" && (
-                <div className="space-y-6">
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="mb-5 text-[16px] font-semibold text-white">
-                      Frequently Asked Questions
-                    </p>
+                <div className="ml-4 shrink-0">
+                  {isExternalNotifications ? (
+                    <ChevronRight className="h-7 w-7 text-[#b8c3d9]" />
+                  ) : isOpen ? (
+                    <ChevronDown className="h-7 w-7 text-white" />
+                  ) : (
+                    <ChevronRight className="h-7 w-7 text-[#b8c3d9]" />
+                  )}
+                </div>
+              </button>
 
+              {!isExternalNotifications && isOpen && (
+                <div className="border-t border-[#17305b] px-5 pb-5 pt-5 md:px-6 md:pb-6 md:pt-6">
+                  {item.id === "referral" && (
                     <div className="space-y-4">
-                      {[
-                        {
-                          q: "How do I book a session?",
-                          a: "Go to Schedule tab and tap Book Session.",
-                        },
-                        {
-                          q: "How do I earn points?",
-                          a: "Complete workouts, refer friends, and join challenges.",
-                        },
-                        {
-                          q: "Can I cancel a booking?",
-                          a: "Yes, up to 2 hours before your scheduled session.",
-                        },
-                        {
-                          q: "How do I update my payment method?",
-                          a: "Go to Payment tab and manage your payment details there.",
-                        },
-                      ].map((faq, i) => (
-                        <div key={i} className="rounded-[20px] bg-black p-6">
-                          <p className="text-[16px] font-semibold text-white">
-                            {faq.q}
-                          </p>
-                          <p className="mt-2 text-[14px] text-[#9eabc0]">
-                            {faq.a}
-                          </p>
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          Your Referral Code
+                        </p>
+
+                        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                          <div className="flex-1 rounded-[20px] bg-[#111111] px-5 py-4 text-[24px] font-bold tracking-[0.18em] text-[#ff7a1a]">
+                            {referralCode}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="inline-flex h-[56px] items-center justify-center gap-2 rounded-[18px] bg-[#ff7a1a] px-5 text-[15px] font-semibold text-white transition hover:opacity-90"
+                          >
+                            {copied ? (
+                              <>
+                                <CheckCircle2 className="h-5 w-5" />
+                                Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-5 w-5" />
+                                Copy Code
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          How It Works
+                        </p>
+
+                        <div className="mt-4 grid gap-3 md:grid-cols-3">
+                          {[
+                            "Share your code with friends",
+                            "They sign up and complete registration",
+                            "You earn BearFit points automatically",
+                          ].map((step) => (
+                            <div
+                              key={step}
+                              className="rounded-[18px] bg-[#111111] px-4 py-4 text-[14px] text-[#d7ddea]"
+                            >
+                              {step}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.id === "help" && (
+                    <div className="space-y-4">
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          Frequently Asked Questions
+                        </p>
+
+                        <div className="mt-4 space-y-3">
+                          {faqItems.map((faq) => (
+                            <div
+                              key={faq.q}
+                              className="rounded-[20px] bg-[#111111] px-5 py-5"
+                            >
+                              <p className="text-[18px] font-semibold text-white">
+                                {faq.q}
+                              </p>
+                              <p className="mt-2 text-[15px] leading-7 text-[#aeb8cb]">
+                                {faq.a}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          Need More Help?
+                        </p>
+                        <p className="mt-3 text-[15px] leading-7 text-[#d7ddea]">
+                          Reach out to our support team for account concerns,
+                          bookings, payments, or technical issues.
+                        </p>
+
+                        <a
+                          href="mailto:support@bearfit.com?subject=BearFit Support Request"
+                          className="mt-5 inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#ff7a1a] px-5 text-[16px] font-semibold text-white transition hover:opacity-90 md:w-auto"
+                        >
+                          <Mail className="h-5 w-5" />
+                          Contact Support
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.id === "privacy" && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          Data Protection
+                        </p>
+                        <p className="mt-3 text-[15px] leading-7 text-[#d7ddea]">
+                          Your account details, bookings, and payments are used
+                          only for BearFit services and membership management.
+                        </p>
+                      </div>
+
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[14px] font-medium uppercase tracking-[0.14em] text-[#9eabc0]">
+                          Account Security
+                        </p>
+                        <p className="mt-3 text-[15px] leading-7 text-[#d7ddea]">
+                          Use a strong password, keep your login private, and
+                          avoid sharing your account with others.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.id === "language" && (
+                    <div className="rounded-[24px] bg-[#1d2b46] p-4 md:p-5">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {[
+                          "English",
+                          "Filipino",
+                          "Spanish",
+                          "Japanese",
+                          "Korean",
+                        ].map((lang) => {
+                          const isSelected = selectedLanguage === lang
+
+                          return (
+                            <button
+                              key={lang}
+                              type="button"
+                              onClick={() => setSelectedLanguage(lang)}
+                              className={`flex items-center justify-between rounded-[20px] px-5 py-4 text-left transition ${
+                                isSelected
+                                  ? "border border-[#ff7a1a] bg-[#111111]"
+                                  : "bg-[#111111] hover:border hover:border-[#26467a]"
+                              }`}
+                            >
+                              <span
+                                className={`text-[16px] font-medium ${
+                                  isSelected ? "text-white" : "text-[#c2cbda]"
+                                }`}
+                              >
+                                {lang}
+                              </span>
+
+                              {isSelected && (
+                                <CheckCircle2 className="h-5 w-5 text-[#ff7a1a]" />
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {item.id === "notifications" && (
+                    <div className="space-y-3">
+                      {notificationItems.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-[18px] font-semibold text-white">
+                                  {notification.title}
+                                </p>
+                                {notification.unread && (
+                                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#ff7a1a]" />
+                                )}
+                              </div>
+                              <p className="mt-2 text-[15px] leading-7 text-[#c2cbda]">
+                                {notification.message}
+                              </p>
+                              <p className="mt-3 text-[13px] text-[#9eabc0]">
+                                {notification.time}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
 
-                  <button
-                    onClick={() => {
-                      window.location.href =
-                        "mailto:support@bearfit.com?subject=BearFit Support Request"
-                    }}
-                    className="w-full rounded-[22px] bg-[#ff7a1a] py-6 text-[18px] font-semibold text-white"
-                  >
-                    Contact Support
-                  </button>
-                </div>
-              )}
+                  {item.id === "about" && (
+                    <div className="space-y-4">
+                      <div className="rounded-[24px] bg-[#1d2b46] p-6 text-center">
+                        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#ff7a1a] text-[28px] font-bold text-white">
+                          B
+                        </div>
+                        <p className="mt-4 text-[28px] font-bold text-white">
+                          BearFit
+                        </p>
+                        <p className="mt-1 text-[14px] text-[#9eabc0]">
+                          Version 2.0.1
+                        </p>
+                      </div>
 
-              {openModal === "privacy" && (
-                <div className="space-y-4">
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">
-                      Data Protection
-                    </p>
-                    <p className="mt-3 text-[14px] text-[#c2cbda]">
-                      Your account details, bookings, and payments are only used
-                      for BearFit services.
-                    </p>
-                  </div>
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">
-                      Account Security
-                    </p>
-                    <p className="mt-3 text-[14px] text-[#c2cbda]">
-                      Use a strong password and do not share your login with
-                      others.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {openModal === "language" && (
-                <div className="space-y-3">
-                  {["English", "Filipino", "Spanish", "Japanese", "Korean"].map(
-                    (lang) => (
-                      <button
-                        key={lang}
-                        onClick={() => {
-                          setSelectedLanguage(lang)
-                          closeModal()
-                        }}
-                        className={`flex w-full items-center justify-between rounded-[20px] p-5 ${
-                          selectedLanguage === lang
-                            ? "border border-[#ff7a1a] bg-[#1d2b46]"
-                            : "bg-[#1d2b46]"
-                        }`}
-                      >
-                        <span
-                          className={`text-[16px] font-medium ${
-                            selectedLanguage === lang
-                              ? "text-[#ff7a1a]"
-                              : "text-white"
-                          }`}
-                        >
-                          {lang}
-                        </span>
-                        {selectedLanguage === lang && (
-                          <CheckCircle className="h-5 w-5 text-[#ff7a1a]" />
-                        )}
-                      </button>
-                    )
+                      <div className="rounded-[24px] bg-[#1d2b46] p-5 md:p-6">
+                        <p className="text-[15px] leading-7 text-[#d7ddea]">
+                          BearFit is your all-in-one fitness companion for
+                          training, scheduling, progress tracking, payments, and
+                          membership management.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
-
-              {openModal === "notifications" && (
-                <div className="space-y-4">
-                  {notifications.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-[20px] bg-[#1d2b46] p-6"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-[16px] font-semibold text-white">
-                            {item.title}
-                          </p>
-                          <p className="mt-2 text-[14px] text-[#c2cbda]">
-                            {item.message}
-                          </p>
-                          <p className="mt-3 text-[12px] text-[#9eabc0]">
-                            {item.time}
-                          </p>
-                        </div>
-                        {item.unread && (
-                          <span className="mt-1 inline-block h-3 w-3 rounded-full bg-[#ff7a1a]" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {openModal === "about" && (
-                <div className="space-y-6">
-                  <div className="py-6 text-center">
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#ff7a1a] text-[28px] font-bold text-white">
-                      B
-                    </div>
-                    <p className="mt-4 text-[24px] font-bold text-white">
-                      BearFit
-                    </p>
-                    <p className="text-[14px] text-[#9eabc0]">Version 2.0.1</p>
-                  </div>
-
-                  <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[15px] leading-7 text-[#c2cbda]">
-                      BearFit is your all-in-one fitness companion for training,
-                      scheduling, progress tracking, and membership management.
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
-      )}
-    </>
+          )
+        })}
+      </div>
+    </div>
   )
 }
