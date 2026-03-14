@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -19,11 +20,7 @@ const timeSlots = [
   "6:00 PM",
 ]
 
-export default function BookSessionModal({
-  close,
-}: {
-  close: () => void
-}) {
+export default function BookSessionModal({ close }: { close: () => void }) {
   const [coach, setCoach] = useState("")
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
@@ -43,17 +40,13 @@ export default function BookSessionModal({
 
     setLoading(false)
 
-    if (!error) {
-      close()
-    }
+    if (!error) close()
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="w-full max-w-md rounded-3xl bg-[#141414] p-6 border border-border/40 shadow-2xl">
-        <h3 className="mb-6 text-2xl font-bold text-white">
-          Book a Session
-        </h3>
+        <h3 className="mb-6 text-2xl font-bold text-white">Book a Session</h3>
 
         <div className="space-y-4">
           <select
@@ -62,10 +55,8 @@ export default function BookSessionModal({
             className="w-full rounded-2xl border border-border bg-[#1d1d1d] px-4 py-4 text-sm text-white outline-none"
           >
             <option value="">Choose Coach</option>
-            {coaches.map((coachName) => (
-              <option key={coachName} value={coachName}>
-                {coachName}
-              </option>
+            {coaches.map((c) => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
@@ -87,7 +78,7 @@ export default function BookSessionModal({
                   className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
                     time === slot
                       ? "bg-primary text-white border-primary"
-                      : "bg-[#1d1d1d] text-slate-300 border-border hover:border-primary/60"
+                      : "bg-[#1d1d1d] text-slate-300 border-border"
                   }`}
                 >
                   {slot}
