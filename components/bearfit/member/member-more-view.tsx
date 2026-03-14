@@ -11,7 +11,6 @@ import {
   Info,
   X,
   CheckCircle,
-  Clock,
 } from "lucide-react"
 
 type ModalType =
@@ -68,7 +67,7 @@ const notifications = [
     title: "Session Reminder",
     message: "Your session with Coach Joaquin starts in 30 minutes.",
     time: "Just now",
-    unread: true,  # harmless trick to keep formatter simple
+    unread: true,
   },
   {
     id: 2,
@@ -158,7 +157,9 @@ export default function MemberMoreView() {
                         BEARFIT-2026
                       </div>
                       <button
-                        onClick={() => navigator.clipboard?.writeText("BEARFIT-2026")}
+                        onClick={() =>
+                          navigator.clipboard?.writeText("BEARFIT-2026")
+                        }
                         className="rounded-[16px] bg-[#ff7a1a] px-5 py-4 text-[15px] font-semibold text-white"
                       >
                         Copy Code
@@ -179,7 +180,7 @@ export default function MemberMoreView() {
                 </div>
               )}
 
-                            {openModal === "help" && (
+              {openModal === "help" && (
                 <div className="space-y-6">
                   <div className="rounded-[24px] bg-[#1d2b46] p-8">
                     <p className="mb-5 text-[16px] font-semibold text-white">
@@ -206,8 +207,12 @@ export default function MemberMoreView() {
                         },
                       ].map((faq, i) => (
                         <div key={i} className="rounded-[20px] bg-black p-6">
-                          <p className="text-[16px] font-semibold text-white">{faq.q}</p>
-                          <p className="mt-2 text-[14px] text-[#9eabc0]">{faq.a}</p>
+                          <p className="text-[16px] font-semibold text-white">
+                            {faq.q}
+                          </p>
+                          <p className="mt-2 text-[14px] text-[#9eabc0]">
+                            {faq.a}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -228,15 +233,21 @@ export default function MemberMoreView() {
               {openModal === "privacy" && (
                 <div className="space-y-4">
                   <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">Data Protection</p>
+                    <p className="text-[16px] font-semibold text-white">
+                      Data Protection
+                    </p>
                     <p className="mt-3 text-[14px] text-[#c2cbda]">
-                      Your account details, bookings, and payments are only used for BearFit services.
+                      Your account details, bookings, and payments are only used
+                      for BearFit services.
                     </p>
                   </div>
                   <div className="rounded-[24px] bg-[#1d2b46] p-8">
-                    <p className="text-[16px] font-semibold text-white">Account Security</p>
+                    <p className="text-[16px] font-semibold text-white">
+                      Account Security
+                    </p>
                     <p className="mt-3 text-[14px] text-[#c2cbda]">
-                      Use a strong password and do not share your login with others.
+                      Use a strong password and do not share your login with
+                      others.
                     </p>
                   </div>
                 </div>
@@ -244,43 +255,56 @@ export default function MemberMoreView() {
 
               {openModal === "language" && (
                 <div className="space-y-3">
-                  {["English", "Filipino", "Spanish", "Japanese", "Korean"].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => {
-                        setSelectedLanguage(lang)
-                        closeModal()
-                      }}
-                      className={`flex w-full items-center justify-between rounded-[20px] p-5 ${
-                        selectedLanguage === lang
-                          ? "border border-[#ff7a1a] bg-[#1d2b46]"
-                          : "bg-[#1d2b46]"
-                      }`}
-                    >
-                      <span
-                        className={`text-[16px] font-medium ${
-                          selectedLanguage === lang ? "text-[#ff7a1a]" : "text-white"
+                  {["English", "Filipino", "Spanish", "Japanese", "Korean"].map(
+                    (lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => {
+                          setSelectedLanguage(lang)
+                          closeModal()
+                        }}
+                        className={`flex w-full items-center justify-between rounded-[20px] p-5 ${
+                          selectedLanguage === lang
+                            ? "border border-[#ff7a1a] bg-[#1d2b46]"
+                            : "bg-[#1d2b46]"
                         }`}
                       >
-                        {lang}
-                      </span>
-                      {selectedLanguage === lang && (
-                        <CheckCircle className="h-5 w-5 text-[#ff7a1a]" />
-                      )}
-                    </button>
-                  ))}
+                        <span
+                          className={`text-[16px] font-medium ${
+                            selectedLanguage === lang
+                              ? "text-[#ff7a1a]"
+                              : "text-white"
+                          }`}
+                        >
+                          {lang}
+                        </span>
+                        {selectedLanguage === lang && (
+                          <CheckCircle className="h-5 w-5 text-[#ff7a1a]" />
+                        )}
+                      </button>
+                    )
+                  )}
                 </div>
               )}
 
               {openModal === "notifications" && (
                 <div className="space-y-4">
                   {notifications.map((item) => (
-                    <div key={item.id} className="rounded-[20px] bg-[#1d2b46] p-6">
+                    <div
+                      key={item.id}
+                      className="rounded-[20px] bg-[#1d2b46] p-6"
+                    >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-[16px] font-semibold text-white">{item.title}</p>
-                          <p className="mt-2 text-[14px] text-[#c2cbda]">{item.message}</p>
-                          <p className="mt-3 text-[12px] text-[#9eabc0]">{item.time}</p>
+                          <p className="text-[16px] font-semibold text-white">
+                            {item.title}
+                          </p>
+                          <p className="mt-2 text-[14px] text-[#c2cbda]">
+                            {item.message}
+                          </p>
+                          <p className="mt-3 text-[12px] text-[#9eabc0]">
+                            {item.time}
+                          </p>
                         </div>
                         {item.unread && (
                           <span className="mt-1 inline-block h-3 w-3 rounded-full bg-[#ff7a1a]" />
@@ -297,7 +321,9 @@ export default function MemberMoreView() {
                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#ff7a1a] text-[28px] font-bold text-white">
                       B
                     </div>
-                    <p className="mt-4 text-[24px] font-bold text-white">BearFit</p>
+                    <p className="mt-4 text-[24px] font-bold text-white">
+                      BearFit
+                    </p>
                     <p className="text-[14px] text-[#9eabc0]">Version 2.0.1</p>
                   </div>
 
