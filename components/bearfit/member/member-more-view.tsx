@@ -22,6 +22,10 @@ type ModalType =
   | "notifications"
   | "about"
 
+type MemberMoreViewProps = {
+  onOpenNotifications?: () => void
+}
+
 const memberMoreItems = [
   {
     icon: Gift,
@@ -85,7 +89,9 @@ const notifications = [
   },
 ]
 
-export default function MemberMoreView() {
+export default function MemberMoreView({
+  onOpenNotifications,
+}: MemberMoreViewProps) {
   const [openModal, setOpenModal] = useState<ModalType>(null)
   const [selectedLanguage, setSelectedLanguage] = useState("English")
 
@@ -100,7 +106,13 @@ export default function MemberMoreView() {
           return (
             <button
               key={item.id}
-              onClick={() => setOpenModal(item.id)}
+              onClick={() => {
+                if (item.id === "notifications" && onOpenNotifications) {
+                  onOpenNotifications()
+                } else {
+                  setOpenModal(item.id)
+                }
+              }}
               className="w-full flex items-center justify-between rounded-[28px] border border-[#17305b] bg-[#111111] px-6 py-7 text-left transition hover:border-[#26467a]"
             >
               <div className="flex items-center gap-5">
