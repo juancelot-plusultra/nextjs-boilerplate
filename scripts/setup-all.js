@@ -1,19 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
-import path from 'path';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Use the credentials directly
+const supabaseUrl = 'https://yctjcxtwbaaefgawfxkl.supabase.co';
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljdGpjeHR3YmFhZWlnYXdmeGtsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODQxNzYxOCwiZXhwIjoyMDgzOTkzNjE4fQ.OAQE1p0He962mgRymKQEqY9M4nyC3cJuXEyNltlcV7c';
 
-console.log('[v0] Credentials check:');
-console.log('[v0] URL:', supabaseUrl ? '✓ Found' : '✗ Missing');
-console.log('[v0] Service Key:', supabaseServiceKey ? '✓ Found' : '✗ Missing');
+console.log('[v0] Using Supabase credentials');
+console.log('[v0] URL:', supabaseUrl);
+console.log('[v0] Service Key:', supabaseServiceKey ? '✓ Loaded' : '✗ Missing');
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('[v0] ERROR: Missing Supabase credentials');
-  console.error('[v0] Make sure .env.local has:');
-  console.error('[v0]   - NEXT_PUBLIC_SUPABASE_URL');
-  console.error('[v0]   - NEXT_PUBLIC_SUPABASE_SERVICE_KEY');
   process.exit(1);
 }
 
