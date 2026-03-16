@@ -10,21 +10,6 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[v0] Initializing database...')
 
-    // Create users table
-    const { error: usersError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS auth.users (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          email VARCHAR(255) UNIQUE NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
-        );
-      `,
-    })
-
-    if (usersError) {
-      console.error('[v0] Users table error:', usersError)
-    }
-
     // Create members table
     const { error: membersError } = await supabase.rpc('query', {
       query: `
@@ -133,7 +118,6 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Database initialized',
       errors: {
-        usersError,
         membersError,
         staffError,
         sessionsError,
@@ -142,6 +126,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('[v0] Database init error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
   }
 }
