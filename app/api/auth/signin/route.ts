@@ -5,7 +5,12 @@ function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY;
 
+  console.log('[v0] Environment check:');
+  console.log('[v0] NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+  console.log('[v0] NEXT_PUBLIC_SUPABASE_SERVICE_KEY:', supabaseServiceKey ? 'Set' : 'Missing');
+
   if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('[v0] Missing credentials. Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')));
     throw new Error('Missing Supabase credentials: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_SERVICE_KEY must be set');
   }
 
