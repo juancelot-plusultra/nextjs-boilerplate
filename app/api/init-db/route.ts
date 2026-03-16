@@ -11,117 +11,34 @@ export async function POST(request: NextRequest) {
     console.log('[v0] Initializing database...')
 
     // Create members table
-    const { error: membersError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.members (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
-          full_name VARCHAR(255),
-          email VARCHAR(255),
-          phone VARCHAR(20),
-          branch_id VARCHAR(50),
-          avatar VARCHAR(500),
-          package_id VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'active',
-          sessions_left INT DEFAULT 0,
-          total_sessions INT DEFAULT 0,
-          join_date DATE,
-          total_paid DECIMAL(10, 2) DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (membersError) {
-      console.error('[v0] Members table error:', membersError)
-    }
-
-    // Create staff table
-    const { error: staffError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.staff (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
-          full_name VARCHAR(255),
-          email VARCHAR(255),
-          phone VARCHAR(20),
-          branch_id VARCHAR(50),
-          avatar VARCHAR(500),
-          role VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'online',
-          clients_count INT DEFAULT 0,
-          rating DECIMAL(3, 2) DEFAULT 0,
-          total_sessions INT DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (staffError) {
-      console.error('[v0] Staff table error:', staffError)
-    }
-
-    // Create sessions table
-    const { error: sessionsError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.sessions (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          member_id UUID NOT NULL,
-          staff_id UUID NOT NULL,
-          branch_id VARCHAR(50),
-          session_type VARCHAR(100),
-          session_date DATE,
-          start_time TIME,
-          duration_minutes INT,
-          status VARCHAR(50) DEFAULT 'soon',
-          notes TEXT,
-          rating INT,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE,
-          FOREIGN KEY (staff_id) REFERENCES public.staff(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (sessionsError) {
-      console.error('[v0] Sessions table error:', sessionsError)
-    }
-
-    // Create transactions table
-    const { error: transError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.transactions (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          member_id UUID NOT NULL,
-          package_id VARCHAR(50),
-          branch_id VARCHAR(50),
-          amount DECIMAL(10, 2),
-          transaction_type VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'pending',
-          transaction_date TIMESTAMP DEFAULT NOW(),
-          created_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (transError) {
-      console.error('[v0] Transactions table error:', transError)
-    }
+    const { error: membersError } = await supabase
+      .from('members')
+      .select('id')
+      .limit(1)
+      .then(async () => {
+        // Table exists, no need to create
+        return { error: null }
+      })
+      .catch(async (err) => {
+        // Table doesn't exist, we need to create it via SQL
+        // Since we can't execute raw SQL via the JS client, this must be done in Supabase dashboard
+        console.log('[v0] Members table needs to be created via Supabase SQL editor')
+        return { error: 'Table creation requires Supabase dashboard access' }
+      })
 
     return NextResponse.json({
-      success: true,
-      message: 'Database initialized',
-      errors: {
-        membersError,
-        staffError,
-        sessionsError,
-        transError,
+      success: false,
+      message: 'Database initialization requires manual setup',
+      instructions: {
+        step1: 'Go to your Supabase dashboard (https://app.supabase.com)',
+        step2: 'Select your project',
+        step3: 'Go to SQL Editor',
+        step4: 'Run the SQL migrations from /scripts folder',
+        step5: 'Verify tables are created successfully',
+      },
+      currentStatus: {
+        url: supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey,
       },
     })
   } catch (error: any) {
