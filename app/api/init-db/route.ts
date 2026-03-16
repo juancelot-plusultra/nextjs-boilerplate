@@ -1,133 +1,45 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    console.log('[v0] Initializing database...')
+    console.log('[v0] Checking database tables...')
 
-    // Create members table
-    const { error: membersError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.members (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
-          full_name VARCHAR(255),
-          email VARCHAR(255),
-          phone VARCHAR(20),
-          branch_id VARCHAR(50),
-          avatar VARCHAR(500),
-          package_id VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'active',
-          sessions_left INT DEFAULT 0,
-          total_sessions INT DEFAULT 0,
-          join_date DATE,
-          total_paid DECIMAL(10, 2) DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-        );
-      `,
-    })
+    // Check if members table exists
+    const { error } = await supabase
+      .from('members')
+      .select('*')
+      .limit(1)
 
-    if (membersError) {
-      console.error('[v0] Members table error:', membersError)
-    }
+    if (error) {
+      console.log(
+        '[v0] Members table likely does not exist yet. Please create it via Supabase SQL Editor.'
+      )
 
-    // Create staff table
-    const { error: staffError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.staff (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
-          full_name VARCHAR(255),
-          email VARCHAR(255),
-          phone VARCHAR(20),
-          branch_id VARCHAR(50),
-          avatar VARCHAR(500),
-          role VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'online',
-          clients_count INT DEFAULT 0,
-          rating DECIMAL(3, 2) DEFAULT 0,
-          total_sessions INT DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (staffError) {
-      console.error('[v0] Staff table error:', staffError)
-    }
-
-    // Create sessions table
-    const { error: sessionsError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.sessions (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          member_id UUID NOT NULL,
-          staff_id UUID NOT NULL,
-          branch_id VARCHAR(50),
-          session_type VARCHAR(100),
-          session_date DATE,
-          start_time TIME,
-          duration_minutes INT,
-          status VARCHAR(50) DEFAULT 'soon',
-          notes TEXT,
-          rating INT,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE,
-          FOREIGN KEY (staff_id) REFERENCES public.staff(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (sessionsError) {
-      console.error('[v0] Sessions table error:', sessionsError)
-    }
-
-    // Create transactions table
-    const { error: transError } = await supabase.rpc('query', {
-      query: `
-        CREATE TABLE IF NOT EXISTS public.transactions (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          member_id UUID NOT NULL,
-          package_id VARCHAR(50),
-          branch_id VARCHAR(50),
-          amount DECIMAL(10, 2),
-          transaction_type VARCHAR(50),
-          status VARCHAR(50) DEFAULT 'pending',
-          transaction_date TIMESTAMP DEFAULT NOW(),
-          created_at TIMESTAMP DEFAULT NOW(),
-          FOREIGN KEY (member_id) REFERENCES public.members(id) ON DELETE CASCADE
-        );
-      `,
-    })
-
-    if (transError) {
-      console.error('[v0] Transactions table error:', transError)
+      return NextResponse.json({
+        success: false,
+        message:
+          'Members table not found. Create tables in Supabase SQL Editor.',
+      })
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Database initialized',
-      errors: {
-        membersError,
-        staffError,
-        sessionsError,
-        transError,
-      },
+      message: 'Database connection successful and tables exist.',
     })
-  } catch (error: any) {
-    console.error('[v0] Database init error:', error)
+  } catch (err: any) {
+    console.error('[v0] Database initialization error:', err)
+
     return NextResponse.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error: err.message,
+      },
       { status: 500 }
     )
   }
