@@ -21,9 +21,15 @@ export async function POST(request: NextRequest) {
 
     // Create user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+  email,
+  password,
+  options: {
+    data: {
+      full_name: fullName,
+      phone: phone || null,
+    },
+  },
+});
 
     if (authError) {
       return NextResponse.json({ error: authError.message }, { status: 400 });
