@@ -534,7 +534,10 @@ const sessionTimeSlots = {
   "6:00 PM": { clients: 3, coach: "Coach Carlos" },
 }
 
-export default function BearfitApp() {
+export default function BearfitDashboardClient({
+  user,
+  member,
+}: BearfitDashboardClientProps) {
   const [activeTab, setActiveTab] = useState("home")
   const [showChat, setShowChat] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
