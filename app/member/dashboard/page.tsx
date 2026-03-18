@@ -7,27 +7,18 @@ export default async function MemberDashboardPage() {
 
   const {
     data: { user },
-    error: userError,
+    error,
   } = await supabase.auth.getUser()
 
-  if (userError || !user) {
+  if (error || !user) {
     redirect("/welcome")
   }
 
-  const { data: memberData, error: memberError } = await supabase
+  const { data: member } = await supabase
     .from("members")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle()
 
-  if (memberError && memberError.code !== "PGRST116") {
-    console.error("[dashboard] member fetch error:", memberError)
-  }
-
-  return (
-    <BearfitDashboardClient
-      user={user}
-      member={memberData ?? null}
-    />
-  )
+  return <BearfitDashboardClient user={user} member={member ?? null} />
 }
