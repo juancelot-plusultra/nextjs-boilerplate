@@ -28,6 +28,21 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ data });
     }
+
+    if (action === 'signin') {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ user: data.user });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (err) {
     // Type assertion to Error type
     const error = err as Error;  // Assert that err is an instance of Error
