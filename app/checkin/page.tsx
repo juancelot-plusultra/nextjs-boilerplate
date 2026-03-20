@@ -13,12 +13,10 @@ export default function CheckInPage() {
   const [busy, setBusy] = useState(false);
   const [role, setRole] = useState<string | null>(null);
 
-  // Prevent double scans
   const lastScanTsRef = useRef<number>(0);
 
   useEffect(() => {
     (async () => {
-      // 1) Confirm logged in + role
       const { data: authData } = await supabase.auth.getUser();
       if (!authData?.user) {
         setStatus("Not logged in. Go to login page first.");
@@ -37,19 +35,18 @@ export default function CheckInPage() {
       }
 
       setRole(profile?.role ?? null);
+
       if (profile?.role !== "staff") {
         setStatus("Access denied. This page is staff-only.");
         return;
       }
 
-      // 2) Start camera
       await startCamera();
     })();
 
     return () => {
       stopCamera();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function startCamera() {
@@ -69,8 +66,6 @@ export default function CheckInPage() {
       }
 
       setStatus("Camera ready. Point at a member QR code.");
-
-      // 3) Start scanning loop
       scanLoop();
     } catch (e: any) {
       setStatus("Camera error: " + (e?.message ?? "Unknown"));
@@ -80,15 +75,17 @@ export default function CheckInPage() {
   function stopCamera() {
     try {
       if (streamRef.current) {
-        for (const track of streamRef.current.getTracks()) track.stop();
+        for (const track of streamRef.current.getTracks()) {
+          track.stop();
+        }
       }
       streamRef.current = null;
     } catch {}
   }
 
   async function scanLoop() {
-    // Use BarcodeDetector (works great on Chrome/Android + HTTPS)
     const AnyWindow = window as any;
+
     if (!AnyWindow.BarcodeDetector) {
       setStatus(
         "BarcodeDetector not supported on this browser. Use Chrome on Android, or tell me and I’ll give the library version."
@@ -105,7 +102,6 @@ export default function CheckInPage() {
       if (busy) return requestAnimationFrame(tick);
 
       const now = Date.now();
-      // Throttle scanning a bit
       if (now - lastScanTsRef.current < 250) {
         return requestAnimationFrame(tick);
       }
@@ -125,9 +121,7 @@ export default function CheckInPage() {
             setStatus(`Scanned QR, but could not read a member code: "${raw}"`);
           }
         }
-      } catch (e: any) {
-        // Keep scanning even if a frame fails
-      }
+      } catch {}
 
       requestAnimationFrame(tick);
     };
@@ -136,18 +130,11 @@ export default function CheckInPage() {
   }
 
   function normalizeMemberCode(raw: string) {
-    // Accept:
-    // "M001"
-    // "bearfit:M001"
-    // "member=M001"
-    // "https://.../?member=M001"
     const s = raw.trim();
 
-    // direct match
     const direct = s.match(/\bM\d{3,}\b/i);
     if (direct?.[0]) return direct[0].toUpperCase();
 
-    // query param member=
     try {
       if (s.startsWith("http")) {
         const url = new URL(s);
@@ -167,7 +154,6 @@ export default function CheckInPage() {
     setBusy(true);
 
     try {
-      // Call the secure function
       const { data, error } = await supabase.rpc("staff_qr_checkin", {
         p_member_code: memberCode,
         p_notes: notes || null,
@@ -179,7 +165,6 @@ export default function CheckInPage() {
         `✅ Checked in ${memberCode}. New sessions left: ${data?.new_sessions_left ?? "?"}`
       );
 
-      // Small delay so it doesn’t instantly re-scan the same QR
       await new Promise((r) => setTimeout(r, 1200));
       setStatus("Camera ready. Point at a member QR code.");
     } catch (e: any) {
@@ -208,7 +193,7 @@ export default function CheckInPage() {
           <button
             onClick={async () => {
               await supabase.auth.signOut();
-              location.href = "/";
+              window.location.href = "/";
             }}
             className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white"
           >
@@ -258,8 +243,8 @@ export default function CheckInPage() {
           </div>
 
           <div className="mt-4 text-xs text-gray-600">
-            ⚠️ Camera works only on <b>HTTPS</b> (Vercel is fine). Use Chrome on
-            Android for best results.
+            ⚠️ Camera works only on <b>HTTPS</b>. Use Chrome on Android for best
+            results.
           </div>
         </div>
       </main>
