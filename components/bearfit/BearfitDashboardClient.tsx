@@ -1,119 +1,114 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState } from "react"
+import type { User } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
+import {
+  Home,
+  Calendar,
+  CreditCard,
+  User as UserIcon,
+  MoreHorizontal,
+  LogOut,
+} from "lucide-react"
 
-export default function ResetPasswordPage() {
-  const [mounted, setMounted] = useState(false);
-  const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+const supabase = createClient()
 
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+type Props = {
+  user: User
+  member: any | null
+}
 
-  useEffect(() => {
-    setMounted(true);
+export default function BearfitDashboardClient({ user, member }: Props) {
+  const [activeTab, setActiveTab] = useState("home")
 
-    // If Supabase uses "code" param (PKCE), exchange it for a session
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).catch(() => {
-        // ignore; user can still try if session exists already
-      });
-    }
-  }, []);
-
-  async function handleSetPassword() {
-    setErr(null);
-    setMsg(null);
-
-    if (!password || password.length < 8) {
-      setErr("Password must be at least 8 characters.");
-      return;
-    }
-    if (password !== password2) {
-      setErr("Passwords do not match.");
-      return;
-    }
-
-    setLoading(true);
-
-    // Requires a valid session from the email reset link
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      setErr(error.message);
-      setLoading(false);
-      return;
-    }
-
-    setMsg("Password updated. You can now log in.");
-    setLoading(false);
-
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 900);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    window.location.href = "/welcome"
   }
 
+  const memberNavItems = [
+    { icon: Home, label: "Home", id: "home" },
+    { icon: Calendar, label: "Schedule", id: "schedule" },
+    { icon: CreditCard, label: "Payment", id: "payment" },
+    { icon: UserIcon, label: "Profile", id: "profile" },
+    { icon: MoreHorizontal, label: "More", id: "more" },
+  ]
+
   return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center">
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-up { animation: fadeUp .5s ease-out forwards; }
-      `}</style>
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Bearfit Dashboard</h1>
 
-      <div className="w-full h-full md:max-w-[430px] md:rounded-2xl bg-[#0b0b0b] flex items-center justify-center px-6">
-        <div className={`w-full max-w-sm ${mounted ? "fade-up" : "opacity-0"}`}>
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">
-              Set New Password
-            </h1>
-            <p className="text-white/70 text-sm mt-2">
-              Create a strong password you’ll remember.
-            </p>
-          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm"
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+        </div>
 
-          <div className="space-y-4">
-            <input
-              type="password"
-              placeholder="New password (min 8 chars)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#F37120]"
-            />
-            <input
-              type="password"
-              placeholder="Confirm new password"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#F37120]"
-            />
+        <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
+          <p className="text-sm text-gray-500">Logged in as</p>
+          <p className="font-medium">{user?.email}</p>
+        </div>
 
-            {err && <div className="text-red-400 text-sm text-center">{err}</div>}
-            {msg && <div className="text-green-300 text-sm text-center">{msg}</div>}
-
+        <div className="mb-6 grid grid-cols-5 gap-2">
+          {memberNavItems.map((item) => (
             <button
-              onClick={handleSetPassword}
-              disabled={loading}
-              className="w-full rounded-full bg-[#F37120] py-3 font-semibold text-black disabled:opacity-60"
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center justify-center rounded-lg p-3 text-xs ${
+                activeTab === item.id ? "bg-black text-white" : "border bg-white"
+              }`}
             >
-              {loading ? "Saving…" : "Update password"}
+              <item.icon size={18} />
+              <span className="mt-1">{item.label}</span>
             </button>
+          ))}
+        </div>
 
-            <a
-              href="/login"
-              className="block text-center text-sm text-white/70 underline underline-offset-4"
-            >
-              Back to login
-            </a>
-          </div>
+        <div className="rounded-xl bg-white p-6 shadow-sm">
+          {activeTab === "home" && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">Home</h2>
+              <p>Welcome to your dashboard.</p>
+            </div>
+          )}
+
+          {activeTab === "schedule" && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">Schedule</h2>
+              <p>Your sessions will appear here.</p>
+            </div>
+          )}
+
+          {activeTab === "payment" && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">Payment</h2>
+              <p>Payment details will appear here.</p>
+            </div>
+          )}
+
+          {activeTab === "profile" && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">Profile</h2>
+              <pre className="rounded bg-gray-100 p-3 text-xs">
+                {JSON.stringify(member, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          {activeTab === "more" && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">More</h2>
+              <p>More features coming soon.</p>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    </main>
+  )
 }
