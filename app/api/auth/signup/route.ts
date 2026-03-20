@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
   try {
@@ -47,8 +47,11 @@ export async function POST(request: Request) {
       )
     }
 
+    // Use service role client to bypass RLS for user profile creation
+    const serviceSupabase = createServiceRoleClient()
+
     // Create user record in users table
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await serviceSupabase
       .from("users")
       .insert({
         id: authData.user.id,
@@ -70,7 +73,7 @@ export async function POST(request: Request) {
     }
 
     // Create member record in members table
-    const { data: memberData, error: memberError } = await supabase
+    const { data: memberData, error: memberError } = await serviceSupabase
       .from("members")
       .insert({
         user_id: authData.user.id,
