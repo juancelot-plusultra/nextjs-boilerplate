@@ -5,9 +5,6 @@ import { supabase } from "@/lib/supabaseClient";
 
 type MemberJoin = { member_code: string | null; name: string | null };
 
-// NOTE: Some Supabase joins return an ARRAY even for 1-to-1 relationships.
-// Your Vercel error earlier showed `members` was an array.
-// So we type it as MemberJoin[] and we always use members?.[0].
 type PaymentRow = {
   id: string;
   member_id: string;
@@ -45,12 +42,9 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
   const [search, setSearch] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
-  // Per-row loading for button
   const [marking, setMarking] = useState<Record<string, boolean>>({});
 
   async function fetchPayments() {
@@ -59,8 +53,7 @@ export default function PaymentsPage() {
 
     const { data, error } = await supabase
       .from("payments")
-      .select(
-        `
+      .select(`
         id,
         member_id,
         package_name,
@@ -70,8 +63,7 @@ export default function PaymentsPage() {
         created_at,
         paid_at,
         members:members ( member_code, name )
-      `
-      )
+      `)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -90,7 +82,9 @@ export default function PaymentsPage() {
 
   const packages = useMemo(() => {
     const set = new Set<string>();
-    for (const r of rows) if (r.package_name) set.add(r.package_name);
+    for (const r of rows) {
+      if (r.package_name) set.add(r.package_name);
+    }
     return ["ALL", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [rows]);
 
@@ -111,7 +105,6 @@ export default function PaymentsPage() {
         (r.stage ?? "").toLowerCase().includes(s);
 
       const matchPackage = packageFilter === "ALL" || pkg === packageFilter;
-
       const matchStatus =
         statusFilter === "ALL" || st === statusFilter.toLowerCase();
 
@@ -149,7 +142,6 @@ export default function PaymentsPage() {
 
       const nowIso = new Date().toISOString();
 
-      // 1) Update payments table
       const { error: payErr } = await supabase
         .from("payments")
         .update({ status: "paid", paid_at: nowIso })
@@ -157,7 +149,6 @@ export default function PaymentsPage() {
 
       if (payErr) throw payErr;
 
-      // 2) Update member summary fields (so dashboard / member page can show real status)
       const { error: memErr } = await supabase
         .from("members")
         .update({
@@ -169,7 +160,6 @@ export default function PaymentsPage() {
 
       if (memErr) throw memErr;
 
-      // Refresh list
       await fetchPayments();
     } catch (e: any) {
       setError(e?.message ?? "Failed to mark as paid.");
@@ -180,7 +170,6 @@ export default function PaymentsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Top bar */}
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
         <div className="text-xl font-extrabold">
           Bear<span className="text-orange-500">Fit</span>PH
@@ -193,17 +182,20 @@ export default function PaymentsPage() {
           >
             Dashboard
           </a>
-          <a
-            href="/"
+          <button
+            type="button"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = "/";
+            }}
             className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white"
           >
             Log out
-          </a>
+          </button>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-4 pb-10">
-        {/* Stat cards */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <StatCard title="Payments Due" value={stats.paymentsDue} />
           <StatCard title="Paid Today" value={stats.paidToday} />
@@ -211,7 +203,6 @@ export default function PaymentsPage() {
           <StatCard title="Renewals Soon" value={stats.renewalsSoon} />
         </div>
 
-        {/* Table card */}
         <section className="mt-6 rounded-3xl border-2 border-black p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h2 className="text-xl font-extrabold">Payment Records</h2>
@@ -351,7 +342,9 @@ export default function PaymentsPage() {
               “Mark as Paid” updates:
               <span className="font-semibold"> payments.status + payments.paid_at</span>
               {" "}AND{" "}
-              <span className="font-semibold">members.payment_status + members.last_paid_at + members.last_paid_amount</span>.
+              <span className="font-semibold">
+                members.payment_status + members.last_paid_at + members.last_paid_amount
+              </span>.
             </div>
           </div>
         </section>
