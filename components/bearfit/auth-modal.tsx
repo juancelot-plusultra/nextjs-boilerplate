@@ -20,6 +20,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setFullName("");
+    setPhone("");
+    setError("");
+    setSuccess("");
+    setLoading(false);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -42,15 +53,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       }
 
       setSuccess("Login successful! Redirecting...");
-      // Store session in localStorage
-      if (data.session) {
-        localStorage.setItem("supabase_session", JSON.stringify(data.session));
-      }
-      
+
       setTimeout(() => {
         onSuccess?.(data.user.id);
         onClose();
-        window.location.href = "/member/dashboard";
+        window.location.href = data.redirectTo || "/member/dashboard";
       }, 1000);
     } catch (err) {
       setError("An unexpected error occurred");
@@ -84,7 +91,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName, phone: phone || null }),
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone: phone || null,
+        }),
       });
 
       const data = await response.json();
@@ -95,17 +107,13 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         return;
       }
 
-      setSuccess("Account created successfully! You can now sign in.");
+      setSuccess("Account created successfully! Redirecting...");
+
       setTimeout(() => {
-        setTab("login");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-        setFullName("");
-        setPhone("");
-        setSuccess("");
-        setLoading(false);
-      }, 2000);
+        onSuccess?.(data.user?.id || "");
+        onClose();
+        window.location.href = data.redirectTo || "/member/dashboard";
+      }, 1000);
     } catch (err) {
       setError("An unexpected error occurred");
       setLoading(false);
@@ -116,24 +124,20 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      {/* Modal */}
       <div className="relative w-full max-w-md mx-4 bg-[#0b0b0b] rounded-2xl shadow-2xl p-8">
-        {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            resetForm();
+            onClose();
+          }}
           className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
           aria-label="Close modal"
         >
           <X className="w-6 h-6" />
         </button>
 
-        {/* Header */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-white mb-2">
             {tab === "login" ? "Welcome Back" : "Join BearFit"}
@@ -145,7 +149,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-lg">
           <button
             onClick={() => {
@@ -153,6 +156,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               setError("");
               setSuccess("");
             }}
+            type="button"
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
               tab === "login"
                 ? "bg-[#F37120] text-black"
@@ -167,6 +171,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               setError("");
               setSuccess("");
             }}
+            type="button"
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
               tab === "signup"
                 ? "bg-[#F37120] text-black"
@@ -177,9 +182,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={tab === "login" ? handleLogin : handleSignUp} className="space-y-4">
-          {/* Full Name (Sign Up only) */}
           {tab === "signup" && (
             <div>
               <label className="block text-white/80 text-sm font-medium mb-2">
@@ -199,7 +202,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             </div>
           )}
 
-          {/* Phone (Sign Up only) */}
           {tab === "signup" && (
             <div>
               <label className="block text-white/80 text-sm font-medium mb-2">
@@ -215,7 +217,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             </div>
           )}
 
-          {/* Email */}
           <div>
             <label className="block text-white/80 text-sm font-medium mb-2">
               Email
@@ -233,7 +234,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             </div>
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-white/80 text-sm font-medium mb-2">
               Password
@@ -251,7 +251,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             </div>
           </div>
 
-          {/* Confirm Password (Sign Up only) */}
           {tab === "signup" && (
             <div>
               <label className="block text-white/80 text-sm font-medium mb-2">
@@ -271,21 +270,18 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          {/* Success Message */}
           {success && (
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
               <p className="text-green-400 text-sm">{success}</p>
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -295,7 +291,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           </button>
         </form>
 
-        {/* Footer */}
         <p className="text-white/60 text-xs text-center mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
