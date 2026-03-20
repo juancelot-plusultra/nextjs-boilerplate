@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient, createServiceRoleClient } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
   try {
@@ -47,53 +47,17 @@ export async function POST(request: Request) {
       )
     }
 
-    // Use service role client to bypass RLS for user profile creation
-    const serviceSupabase = createServiceRoleClient()
-
-    // Create user record in users table
-    const { data: userData, error: userError } = await serviceSupabase
-      .from("users")
-      .insert({
-        id: authData.user.id,
-        email,
-        full_name: fullName,
-        phone: phone || null,
-        role: "member",
-        is_active: true,
-      })
-      .select()
-      .single()
-
-    if (userError) {
-      console.error("[v0] User creation error:", userError)
-      return NextResponse.json(
-        { error: "Failed to create user profile" },
-        { status: 500 }
-      )
-    }
-
-    // Create member record in members table
-    const { data: memberData, error: memberError } = await serviceSupabase
-      .from("members")
-      .insert({
-        user_id: authData.user.id,
-        email,
-        phone: phone || null,
-        status: "active",
-      })
-      .select()
-      .single()
-
-    if (memberError) {
-      console.error("[v0] Member creation error:", memberError)
-      // Don't fail completely if member creation fails, user can still login
-    }
-
+    // Signup successful - return auth data only
+    // User profile and member records will be created on first login via signin route
     return NextResponse.json({
       success: true,
-      user: userData,
-      member: memberData || null,
+      message: "Account created successfully! You can now sign in.",
       session: authData.session,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        user_metadata: authData.user.user_metadata,
+      },
     })
   } catch (error) {
     console.error("[v0] Sign up error:", error)

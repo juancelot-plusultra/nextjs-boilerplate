@@ -36,17 +36,60 @@ export async function POST(request: Request) {
     }
 
     // Fetch user details from users table
-    const { data: userData, error: userError } = await supabase
+    let { data: userData, error: userError } = await supabase
       .from("users")
       .select("*")
       .eq("id", authData.user.id)
-      .single()
+      .maybeSingle()
 
-    if (userError) {
-      return NextResponse.json(
-        { error: "Failed to fetch user data" },
-        { status: 500 }
-      )
+    // If user doesn't exist (first login after signup), create user record
+    if (!userData && !userError) {
+      const fullName = authData.user.user_metadata?.full_name || authData.user.email?.split("@")[0] || "User"
+      const phone = authData.user.user_metadata?.phone || null
+
+      const { data: newUserData, error: createError } = await supabase
+        .from("users")
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email!,
+          full_name: fullName,
+          phone,
+          role: "member",
+          is_active: true,
+        })
+        .select()
+        .single()
+
+      if (createError) {
+        console.error("[v0] Failed to create user on first login:", createError)
+        // Return auth data even if profile creation fails
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: authData.user.id,
+            email: authData.user.email,
+            full_name: fullName,
+            phone,
+            role: "member",
+            is_active: true,
+          },
+          session: authData.session,
+        })
+      }
+
+      userData = newUserData
+    } else if (userError) {
+      console.error("[v0] Fetch user error:", userError)
+      // Return auth data if fetch fails
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          full_name: authData.user.user_metadata?.full_name || authData.user.email?.split("@")[0],
+        },
+        session: authData.session,
+      })
     }
 
     return NextResponse.json({
