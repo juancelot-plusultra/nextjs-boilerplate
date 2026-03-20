@@ -69,9 +69,27 @@ export async function POST(request: Request) {
       )
     }
 
+    // Create member record in members table
+    const { data: memberData, error: memberError } = await supabase
+      .from("members")
+      .insert({
+        user_id: authData.user.id,
+        email,
+        phone: phone || null,
+        status: "active",
+      })
+      .select()
+      .single()
+
+    if (memberError) {
+      console.error("[v0] Member creation error:", memberError)
+      // Don't fail completely if member creation fails, user can still login
+    }
+
     return NextResponse.json({
       success: true,
       user: userData,
+      member: memberData || null,
       session: authData.session,
     })
   } catch (error) {
