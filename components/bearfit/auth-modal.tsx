@@ -42,16 +42,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       }
 
       setSuccess("Login successful! Redirecting...");
-      // Store session in localStorage
-      if (data.session) {
-        localStorage.setItem("supabase_session", JSON.stringify(data.session));
-      }
       
       setTimeout(() => {
         onSuccess?.(data.user.id);
         onClose();
         window.location.href = "/member/dashboard";
-      }, 1000);
+      }, 800);
     } catch (err) {
       setError("An unexpected error occurred");
       setLoading(false);
