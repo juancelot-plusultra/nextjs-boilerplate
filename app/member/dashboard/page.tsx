@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import BearfitDashboardClient from "./BearfitDashboardClient"
+import MemberDashboardPageClient from "./MemberDashboardPageClient"
 
 export default async function MemberDashboardPage() {
   const supabase = await createClient()
@@ -20,5 +20,5 @@ export default async function MemberDashboardPage() {
     .eq("user_id", user.id)
     .maybeSingle()
 
-  return <BearfitDashboardClient user={user} member={member ?? null} />
+  return <MemberDashboardPageClient user={user} member={member ?? null} />
 }
