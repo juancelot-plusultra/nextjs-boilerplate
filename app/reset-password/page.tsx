@@ -15,12 +15,12 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     setMounted(true);
 
-    // If Supabase uses "code" param (PKCE), exchange it for a session
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+
     if (code) {
       supabase.auth.exchangeCodeForSession(code).catch(() => {
-        // ignore; user can still try if session exists already
+        // ignore
       });
     }
   }, []);
@@ -33,6 +33,7 @@ export default function ResetPasswordPage() {
       setErr("Password must be at least 8 characters.");
       return;
     }
+
     if (password !== password2) {
       setErr("Passwords do not match.");
       return;
@@ -40,7 +41,6 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    // Requires a valid session from the email reset link
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
@@ -70,9 +70,7 @@ export default function ResetPasswordPage() {
       <div className="w-full h-full md:max-w-[430px] md:rounded-2xl bg-[#0b0b0b] flex items-center justify-center px-6">
         <div className={`w-full max-w-sm ${mounted ? "fade-up" : "opacity-0"}`}>
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">
-              Set New Password
-            </h1>
+            <h1 className="text-2xl font-bold text-white">Set New Password</h1>
             <p className="text-white/70 text-sm mt-2">
               Create a strong password you’ll remember.
             </p>
@@ -86,6 +84,7 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#F37120]"
             />
+
             <input
               type="password"
               placeholder="Confirm new password"
