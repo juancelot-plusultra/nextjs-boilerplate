@@ -1,4 +1,4 @@
-qimport Image from "next/image"
+import Image from "next/image"
 
 type BrandLogoProps = {
   size?: number
