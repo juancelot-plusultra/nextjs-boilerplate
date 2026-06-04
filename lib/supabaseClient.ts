@@ -4,11 +4,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL environment variable.");
+  throw new Error("Missing environment variable: NEXT_PUBLIC_SUPABASE_URL");
 }
 
 if (!supabaseAnonKey) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable.");
+  throw new Error("Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY");
 }
 
 export function createClient() {
