@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AuthModal } from "@/components/bearfit/auth-modal";
 
 type Slide = {
   key: string;
@@ -67,6 +68,8 @@ export default function WelcomePage() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [assessmentModalOpen, setAssessmentModalOpen] = useState(false);
 
   // countdown (only meaningful on video slide)
   const [countdown, setCountdown] = useState(DURATIONS_SECONDS.welcomeVideo);
@@ -273,18 +276,29 @@ export default function WelcomePage() {
                     <p className="mt-4 text-white/85 font-medium">{slide.subtitle}</p>
                   )}
 
-                  {/* Video slide CTA (shows countdown) */}
+                  {/* Video slide CTA (shows countdown) + Auth Modal */}
                   {slide.key === "welcome-video" && (
-                    <button
-                      onClick={() => {
-                        resetIdle();
-                        next();
-                      }}
-                      className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black"
-                    >
-                      <span>Get Started</span>
-                      <span className="text-black/70 text-sm">{countdown}s</span>
-                    </button>
+                    <div className="flex flex-col items-center gap-4">
+                      <button
+                        onClick={() => {
+                          resetIdle();
+                          setAuthModalOpen(true);
+                        }}
+                        className="mt-7 inline-flex items-center justify-between gap-4 w-full sm:w-[380px] rounded-full bg-[#F37120] px-6 py-4 font-semibold text-black hover:bg-[#E86010] transition-colors"
+                      >
+                        <span>Get Started</span>
+                        <span className="text-black/70 text-sm">{countdown}s</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          resetIdle();
+                          next();
+                        }}
+                        className="text-white/70 hover:text-white text-sm underline transition-colors"
+                      >
+                        Or skip to learn more
+                      </button>
+                    </div>
                   )}
 
                   {/* CTA slide: FAQ + start button + ROLE VIEW BUTTONS */}
@@ -307,9 +321,9 @@ export default function WelcomePage() {
       type="button"
       onClick={() => {
         resetIdle();
-        window.location.href = "/member/dashboard";
+        setAssessmentModalOpen(true);
       }}
-      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black"
+      className="mt-4 w-full sm:w-[420px] rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black hover:bg-[#E86010] transition-colors"
     >
       Get Started – Free Assessment
     </button>
@@ -340,11 +354,12 @@ export default function WelcomePage() {
         <button
           onClick={() => {
             resetIdle();
-            skip();
+            prev();
           }}
-          className="text-white/80"
+          disabled={index === 0}
+          className={index === 0 ? "opacity-40 cursor-not-allowed" : "text-white/80 hover:text-white transition-colors"}
         >
-          Skip
+          ← Back
         </button>
 
         <div className="flex gap-2">
@@ -362,11 +377,131 @@ export default function WelcomePage() {
             next();
           }}
           disabled={isLast}
-          className={isLast ? "opacity-40" : "text-white/80"}
+          className={isLast ? "opacity-40 cursor-not-allowed" : "text-white/80 hover:text-white transition-colors text-sm"}
         >
-          Next
+          Next →
         </button>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={() => {
+          localStorage.setItem(STORAGE_KEY, "1");
+        }}
+      />
+
+      {/* Free Assessment Modal */}
+      {assessmentModalOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setAssessmentModalOpen(false)}
+          />
+          <div className="relative bg-[#1a1a1a] rounded-2xl p-8 w-full max-w-md border border-white/10">
+            <button
+              onClick={() => setAssessmentModalOpen(false)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl font-bold text-white mb-6">Free Assessment</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                console.log("[v0] Assessment submission:", Object.fromEntries(formData));
+                // Show acknowledgement
+                alert("Thank you for submitting your free assessment request!\n\nOur team will get back to you within 24-48 hours to confirm your appointment and discuss your fitness goals.\n\nLet's build your story together! 💪");
+                setAssessmentModalOpen(false);
+                localStorage.setItem(STORAGE_KEY, "1");
+                window.location.href = START_PAGE;
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Full Name *</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  placeholder="John Doe"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="john@example.com"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Phone *</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Address *</label>
+                <input
+                  type="text"
+                  name="address"
+                  required
+                  placeholder="123 Main Street"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Gym Branch *</label>
+                <select
+                  name="gymBranch"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                >
+                  <option value="">Select a branch</option>
+                  <option value="malingap">Malingap</option>
+                  <option value="erod">E.Rod</option>
+                  <option value="primark">Primark Cainta</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Preferred Assessment Date *</label>
+                <input
+                  type="date"
+                  name="assessmentDate"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Fitness Goals *</label>
+                <textarea
+                  name="goals"
+                  required
+                  placeholder="What are your fitness goals?"
+                  rows={3}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#F37120]/50 focus:ring-1 focus:ring-[#F37120]/20 resize-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full mt-6 rounded-full bg-[#F37120] px-6 py-3 font-semibold text-black hover:bg-[#E86010] transition-colors"
+              >
+                Submit Assessment
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* FAQ MODAL — FULL 1–6 */}
       {faqOpen && (

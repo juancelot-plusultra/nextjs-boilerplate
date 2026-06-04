@@ -1,6 +1,20 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  return value;
+}
+
+const supabaseUrl = getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+const supabaseAnonKey = getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+
+export function createClient() {
+  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+}
+
+export const supabase = createClient();

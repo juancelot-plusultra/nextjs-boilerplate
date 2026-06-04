@@ -47,20 +47,19 @@ export default function MePage() {
     setLoading(true);
     setError(null);
 
-    // 1) Must be logged in
     const { data: authData, error: authErr } = await supabase.auth.getUser();
     if (authErr) {
       setError(authErr.message);
       setLoading(false);
       return;
     }
+
     if (!authData?.user) {
       setError("Not logged in.");
       setLoading(false);
       return;
     }
 
-    // 2) Fetch profile to know member_id
     const { data: p, error: pErr } = await supabase
       .from("profiles")
       .select("role, member_id")
@@ -88,7 +87,6 @@ export default function MePage() {
       return;
     }
 
-    // 3) Fetch member info
     const { data: m, error: mErr } = await supabase
       .from("members")
       .select("id, member_code, name, package_name, sessions_left")
@@ -100,9 +98,9 @@ export default function MePage() {
       setLoading(false);
       return;
     }
+
     setMember(m as MemberRow);
 
-    // 4) Fetch session logs (timeline)
     const { data: s, error: sErr } = await supabase
       .from("session_logs")
       .select("id, member_id, trained_at, notes, staff_user_id")
@@ -114,8 +112,8 @@ export default function MePage() {
       setLoading(false);
       return;
     }
-    setLogs((s ?? []) as SessionLogRow[]);
 
+    setLogs((s ?? []) as SessionLogRow[]);
     setLoading(false);
   }
 
@@ -125,7 +123,6 @@ export default function MePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Top bar */}
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
         <div className="text-xl font-extrabold">
           Bear<span className="text-orange-500">Fit</span>PH
@@ -156,7 +153,6 @@ export default function MePage() {
 
         {!loading && !error && member && (
           <>
-            {/* Member card */}
             <section className="mt-4 rounded-3xl border-2 border-black p-6">
               <div className="text-xl font-extrabold">{member.name ?? "—"}</div>
               <div className="text-sm text-gray-600">
@@ -184,7 +180,6 @@ export default function MePage() {
               </div>
             </section>
 
-            {/* Session Timeline */}
             <section className="mt-6 rounded-3xl border-2 border-black p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-extrabold">Session Timeline</h2>
